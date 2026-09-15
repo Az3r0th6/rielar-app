@@ -27,11 +27,11 @@ export default function MoreView({ onInstallApp }) {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [copiedDownload, setCopiedDownload] = useState(false);
 
-  const secureTunnelUrl = 'https://enhancing-sophisticated-richard-bizarre.trycloudflare.com';
+  const OFFICIAL_URL = 'https://rielar-app.onrender.com';
   const directDownloadUrl =
     typeof window !== 'undefined' && window.location.protocol === 'https:'
       ? `${window.location.origin}/?descargar=true`
-      : `${secureTunnelUrl}/?descargar=true`;
+      : `${OFFICIAL_URL}/?descargar=true`;
 
   const handleCopyDownloadLink = () => {
     triggerHaptic('light');

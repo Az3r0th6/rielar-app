@@ -86,8 +86,8 @@ export default function iPhoneFrame({
     setIsFullscreen(!isFullscreen);
   };
 
-  const secureTunnelUrl = 'https://collectibles-cover-though-foundations.trycloudflare.com';
-  const mobileUrl = window.location.protocol === 'https:' ? window.location.origin : secureTunnelUrl;
+  const OFFICIAL_URL = 'https://rielar-app.onrender.com';
+  const mobileUrl = typeof window !== 'undefined' && window.location.protocol === 'https:' ? window.location.origin : OFFICIAL_URL;
 
   const handleCopyLink = () => {
     triggerHaptic('light');
@@ -295,7 +295,8 @@ export default function iPhoneFrame({
               }}
             >
               <img
-                src="/qr-mobile.png"
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(mobileUrl)}`}
+                onError={(e) => { e.target.src = '/qr-mobile.png'; }}
                 alt="Escanear con celular"
                 style={{ width: '100%', height: '100%', borderRadius: '8px' }}
               />
