@@ -1,0 +1,2652 @@
+[
+  {
+    "id": 93,
+    "name": "Constitución",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.6303512,
+    "lng": -58.3805802,
+    "zone": "CABA"
+  },
+  {
+    "id": 172,
+    "name": "Hipólito Yrigoyen",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.6536422,
+    "lng": -58.3788878,
+    "zone": "CABA"
+  },
+  {
+    "id": 368,
+    "name": "Santillán y Kosteki",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.6620947,
+    "lng": -58.3766492,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 151,
+    "name": "Gerli",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.6857287,
+    "lng": -58.3826371,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 215,
+    "name": "Lanús",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.7074543,
+    "lng": -58.390637,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 329,
+    "name": "Remedios de Escalada",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.7269127,
+    "lng": -58.3936412,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 30,
+    "name": "Banfield",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.7439703,
+    "lng": -58.3954618,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 238,
+    "name": "Lomas de Zamora",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.7612113,
+    "lng": -58.3973326,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 386,
+    "name": "Temperley",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.7772101,
+    "lng": -58.395885,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 8,
+    "name": "Adrogué",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.7978483,
+    "lng": -58.3942737,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 49,
+    "name": "Burzaco",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.8251482,
+    "lng": -58.3913722,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 239,
+    "name": "Longchamps",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.8595879,
+    "lng": -58.3871987,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 152,
+    "name": "Glew",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.8886501,
+    "lng": -58.3837029,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 165,
+    "name": "Guernica",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.9179155,
+    "lng": -58.3805605,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 13,
+    "name": "Alejandro Korn",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Alejandro Korn",
+    "lat": -34.980769,
+    "lng": -58.3737744,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 370,
+    "name": "Sarandí",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.6787475,
+    "lng": -58.3449626,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 418,
+    "name": "Villa Domínico",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.6915355,
+    "lng": -58.3253499,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 430,
+    "name": "Wilde",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.6975894,
+    "lng": -58.3111938,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 115,
+    "name": "Don Bosco",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.7033242,
+    "lng": -58.2961718,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 39,
+    "name": "Bernal",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.7093395,
+    "lng": -58.2803725,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 322,
+    "name": "Quilmes",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.7243402,
+    "lng": -58.2608888,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 133,
+    "name": "Ezpeleta",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.7518509,
+    "lng": -58.2341863,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 38,
+    "name": "Berazategui",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.7639154,
+    "lng": -58.2088198,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 420,
+    "name": "Villa España",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.7744501,
+    "lng": -58.1949303,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 328,
+    "name": "Ranelagh",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.7893721,
+    "lng": -58.2031929,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 380,
+    "name": "Sourigues",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.8072374,
+    "lng": -58.2131028,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 43,
+    "name": "Bosques",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-Q",
+    "lat": -34.8195018,
+    "lng": -58.2303679,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 197,
+    "name": "José Mármol",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-T",
+    "lat": -34.7919121,
+    "lng": -58.3811522,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 324,
+    "name": "Rafael Calzada",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-T",
+    "lat": -34.7966735,
+    "lng": -58.3591724,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 85,
+    "name": "Claypole",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-T",
+    "lat": -34.80118,
+    "lng": -58.3382367,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 102,
+    "name": "Dante Ardigó",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-T",
+    "lat": -34.8088901,
+    "lng": -58.3025039,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 138,
+    "name": "Florencio Varela",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-T",
+    "lat": -34.8111227,
+    "lng": -58.2742679,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 435,
+    "name": "Zeballos",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Bosques-T",
+    "lat": -34.8110162,
+    "lng": -58.2566214,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 399,
+    "name": "Turdera",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Ezeiza",
+    "lat": -34.7950754,
+    "lng": -58.4080951,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 235,
+    "name": "Llavallol",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Ezeiza",
+    "lat": -34.7971317,
+    "lng": -58.4300258,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 246,
+    "name": "Luis Guillón",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Ezeiza",
+    "lat": -34.8032178,
+    "lng": -58.4485504,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 277,
+    "name": "Monte Grande",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Ezeiza",
+    "lat": -34.8144339,
+    "lng": -58.4696989,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 125,
+    "name": "El Jagüel",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Ezeiza",
+    "lat": -34.8332274,
+    "lng": -58.4961652,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 132,
+    "name": "Ezeiza",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Ezeiza",
+    "lat": -34.8540842,
+    "lng": -58.5228154,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 309,
+    "name": "Plátanos",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-La Plata",
+    "lat": -34.7823359,
+    "lng": -58.1707596,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 176,
+    "name": "Hudson",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-La Plata",
+    "lat": -34.7909139,
+    "lng": -58.1556292,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 303,
+    "name": "Pereyra",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-La Plata",
+    "lat": -34.8366304,
+    "lng": -58.0945403,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 419,
+    "name": "Villa Elisa",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-La Plata",
+    "lat": -34.8497716,
+    "lng": -58.0748099,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 83,
+    "name": "City Bell",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-La Plata",
+    "lat": -34.8657239,
+    "lng": -58.0420495,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 153,
+    "name": "Gonnet",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-La Plata",
+    "lat": -34.879841,
+    "lng": -58.0107856,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 334,
+    "name": "Ringuelet",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-La Plata",
+    "lat": -34.8813876,
+    "lng": -57.9960622,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 392,
+    "name": "Tolosa",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-La Plata",
+    "lat": -34.8909547,
+    "lng": -57.9680983,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 217,
+    "name": "La Plata",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-La Plata",
+    "lat": -34.9032966,
+    "lng": -57.9509918,
+    "zone": "La Plata"
+  },
+  {
+    "id": 117,
+    "name": "Domselaar",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Chascomus",
+    "lat": -35.0701752,
+    "lng": -58.2906247,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 86,
+    "name": "Cnel Brandsen",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Chascomus",
+    "lat": -35.1680647,
+    "lng": -58.2318305,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 189,
+    "name": "Jeppener",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Chascomus",
+    "lat": -35.2776676,
+    "lng": -58.1982603,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 17,
+    "name": "Altamirano",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Chascomus",
+    "lat": -35.3611696,
+    "lng": -58.1512081,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 146,
+    "name": "Gándara",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Chascomus",
+    "lat": -35.4494698,
+    "lng": -58.0939374,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 78,
+    "name": "Chascomús",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Chascomus",
+    "lat": -35.5790842,
+    "lng": -57.9823866,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 60,
+    "name": "Cañuelas",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Lobos",
+    "lat": -35.0593556,
+    "lng": -58.7543291,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 402,
+    "name": "Uribelarrea",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Lobos",
+    "lat": -35.1154841,
+    "lng": -58.8984676,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 129,
+    "name": "Empalme Lobos",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Lobos",
+    "lat": -35.1515057,
+    "lng": -59.0908028,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 237,
+    "name": "Lobos",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Lobos",
+    "lat": -35.1848403,
+    "lng": -59.0927904,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 396,
+    "name": "Tristán Suárez",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Monte",
+    "lat": -34.8905761,
+    "lng": -58.5694728,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 407,
+    "name": "Vicente Casares",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Monte",
+    "lat": -34.9622855,
+    "lng": -58.6480259,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 333,
+    "name": "Ricardo Levene",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Monte",
+    "lat": -35.0217509,
+    "lng": -58.7239218,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 8653,
+    "name": "Hospital Cuenca Alta",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Monte",
+    "lat": -35.0264121,
+    "lng": -58.7290951,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 214,
+    "name": "La Noria",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Monte",
+    "lat": -35.1651382,
+    "lng": -58.7881853,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 3,
+    "name": "Abbott",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Monte",
+    "lat": -35.2814201,
+    "lng": -58.8029392,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 490,
+    "name": "KM 105",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Monte",
+    "lat": -35.3870187,
+    "lng": -58.818789,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 276,
+    "name": "Monte",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Constitución-Monte",
+    "lat": -35.4368315,
+    "lng": -58.8176431,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 18272,
+    "name": "Hospital Ezeiza",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Ezeiza-Cañuelas",
+    "lat": -34.8645504,
+    "lng": -58.5361065,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 400,
+    "name": "Unión Ferroviaria",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Ezeiza-Cañuelas",
+    "lat": -34.8702432,
+    "lng": -58.5434227,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 64,
+    "name": "Carlos Spegazzini",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Ezeiza-Cañuelas",
+    "lat": -34.9100305,
+    "lng": -58.5944238,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 265,
+    "name": "Máximo Paz",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Ezeiza-Cañuelas",
+    "lat": -34.9362878,
+    "lng": -58.6205451,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 14,
+    "name": "Alejandro Petión",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Ezeiza-Cañuelas",
+    "lat": -34.9775385,
+    "lng": -58.6743571,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 21,
+    "name": "Apeadero Kloosterman",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Ezeiza-Cañuelas",
+    "lat": -34.986459,
+    "lng": -58.6897619,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 25,
+    "name": "Arquitectura",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "La Plata - Htal. San Juan de Dios",
+    "lat": -34.9050119,
+    "lng": -57.9433437,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 179,
+    "name": "Informática",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "La Plata - Htal. San Juan de Dios",
+    "lat": -34.9032506,
+    "lng": -57.9380775,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 267,
+    "name": "Medicina",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "La Plata - Htal. San Juan de Dios",
+    "lat": -34.9090514,
+    "lng": -57.9278447,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 304,
+    "name": "Periodismo",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "La Plata - Htal. San Juan de Dios",
+    "lat": -34.9122051,
+    "lng": -57.9242646,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 113,
+    "name": "Diagonal 73",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "La Plata - Htal. San Juan de Dios",
+    "lat": -34.9201456,
+    "lng": -57.9190388,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 311,
+    "name": "Policlínico",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "La Plata - Htal. San Juan de Dios",
+    "lat": -34.9253053,
+    "lng": -57.9213044,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 5976,
+    "name": "Avenida 7",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "La Plata - Htal. San Juan de Dios",
+    "lat": -34.9317367,
+    "lng": -57.9283343,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 5977,
+    "name": "Circunvalación",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "La Plata - Htal. San Juan de Dios",
+    "lat": -34.9369548,
+    "lng": -57.934057,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 5978,
+    "name": "Meridiano V",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "La Plata - Htal. San Juan de Dios",
+    "lat": -34.9404335,
+    "lng": -57.9378722,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 5979,
+    "name": "Hospital San Juan de Dios",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "La Plata - Htal. San Juan de Dios",
+    "lat": -34.9471234,
+    "lng": -57.9452089,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 367,
+    "name": "Santa Sofía",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Gutiérrez",
+    "lat": -34.8250759,
+    "lng": -58.2132521,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 168,
+    "name": "J. M. Gutiérrez",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Gutiérrez",
+    "lat": -34.8340285,
+    "lng": -58.1856356,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 174,
+    "name": "Hospital Español",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Haedo",
+    "lat": -34.7862792,
+    "lng": -58.4072878,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 365,
+    "name": "Santa Catalina",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Haedo",
+    "lat": -34.7804203,
+    "lng": -58.4373374,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 201,
+    "name": "Juan XXIII",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Haedo",
+    "lat": -34.7713636,
+    "lng": -58.4441098,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 205,
+    "name": "KM 34",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Haedo",
+    "lat": -34.7434594,
+    "lng": -58.465016,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 314,
+    "name": "P. Turner",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Haedo",
+    "lat": -34.7335958,
+    "lng": -58.4743907,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 9,
+    "name": "Agustín de Elía",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Haedo",
+    "lat": -34.7099772,
+    "lng": -58.5059186,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 383,
+    "name": "Tablada",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Haedo",
+    "lat": -34.6930707,
+    "lng": -58.5280209,
+    "zone": "CABA"
+  },
+  {
+    "id": 359,
+    "name": "San Justo",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Haedo",
+    "lat": -34.6738305,
+    "lng": -58.5558413,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 182,
+    "name": "Ingeniero S. Brian",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Haedo",
+    "lat": -34.6580457,
+    "lng": -58.5730377,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 169,
+    "name": "Haedo",
+    "lineId": 11,
+    "lineName": "Roca",
+    "ramal": "Temperley-Haedo",
+    "lat": -34.6449656,
+    "lng": -58.5922159,
+    "zone": "GBA Sur"
+  },
+  {
+    "id": 293,
+    "name": "Once",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6085914,
+    "lng": -58.407559,
+    "zone": "CABA"
+  },
+  {
+    "id": 50,
+    "name": "Caballito",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6192442,
+    "lng": -58.4436522,
+    "zone": "CABA"
+  },
+  {
+    "id": 139,
+    "name": "Flores",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6277298,
+    "lng": -58.4657649,
+    "zone": "CABA"
+  },
+  {
+    "id": 140,
+    "name": "Floresta",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6323755,
+    "lng": -58.4808913,
+    "zone": "CABA"
+  },
+  {
+    "id": 423,
+    "name": "Villa Luro",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6361011,
+    "lng": -58.5010544,
+    "zone": "CABA"
+  },
+  {
+    "id": 234,
+    "name": "Liniers",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6387919,
+    "lng": -58.5252548,
+    "zone": "CABA"
+  },
+  {
+    "id": 84,
+    "name": "Ciudadela",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6399227,
+    "lng": -58.5411225,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 327,
+    "name": "Ramos Mejía",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6404544,
+    "lng": -58.5643758,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 169,
+    "name": "Haedo",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6449656,
+    "lng": -58.5922159,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 279,
+    "name": "Morón",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6482256,
+    "lng": -58.6195948,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 70,
+    "name": "Castelar",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6519632,
+    "lng": -58.6419153,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 186,
+    "name": "Ituzaingó",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6595863,
+    "lng": -58.6661833,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 347,
+    "name": "S.A. de Padua",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6655136,
+    "lng": -58.6986426,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 269,
+    "name": "Merlo",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6644017,
+    "lng": -58.7281142,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 300,
+    "name": "Paso del Rey",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6582078,
+    "lng": -58.7621474,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 278,
+    "name": "Moreno",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Moreno",
+    "lat": -34.6503755,
+    "lng": -58.7902146,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 464,
+    "name": "Km 34,5",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -34.6801742,
+    "lng": -58.7602409,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 137,
+    "name": "A. Ferrari",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -34.706078,
+    "lng": -58.7794327,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 257,
+    "name": "Mariano Acosta",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -34.7244791,
+    "lng": -58.7930682,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 4601,
+    "name": "Maquinista R. Cal",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -34.744777,
+    "lng": -58.8081306,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 254,
+    "name": "Marcos Paz",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -34.7832092,
+    "lng": -58.8366592,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 432,
+    "name": "Zamudio",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -34.8578991,
+    "lng": -58.8921946,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 173,
+    "name": "Hornos",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -34.8923029,
+    "lng": -58.917861,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 225,
+    "name": "Las Heras",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -34.9280932,
+    "lng": -58.9445443,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 381,
+    "name": "Speratti",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -35.0021051,
+    "lng": -58.9998545,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 433,
+    "name": "Zapiola",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -35.0583029,
+    "lng": -59.0418857,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 129,
+    "name": "Empalme Lobos",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -35.1515057,
+    "lng": -59.0908028,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 237,
+    "name": "Lobos",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Merlo-Lobos",
+    "lat": -35.1848403,
+    "lng": -59.0927904,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 218,
+    "name": "La Reja",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.6399483,
+    "lng": -58.8276318,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 134,
+    "name": "Fco. Álvarez",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.6322048,
+    "lng": -58.8553185,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 310,
+    "name": "Ing. PP. Marín",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.6227343,
+    "lng": -58.893542,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 226,
+    "name": "Las Malvinas",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.616121,
+    "lng": -58.9218744,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 163,
+    "name": "Gral. Rodríguez",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.6087241,
+    "lng": -58.9535544,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 210,
+    "name": "La Fraternidad",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.5984984,
+    "lng": -58.9974242,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 231,
+    "name": "Lezica y Torrezuri",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.5847033,
+    "lng": -59.056365,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 401,
+    "name": "Univ. Luján",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.5774739,
+    "lng": -59.0871981,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 247,
+    "name": "Luján",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.5777553,
+    "lng": -59.1052941,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 188,
+    "name": "Jáuregui",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.6006948,
+    "lng": -59.1736895,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 290,
+    "name": "Olivera",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.6279272,
+    "lng": -59.2553985,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 155,
+    "name": "Gowland",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.6478196,
+    "lng": -59.352839,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 268,
+    "name": "Mercedes",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Moreno-Mercedes",
+    "lat": -34.657799,
+    "lng": -59.432222,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 382,
+    "name": "Suipacha",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Bragado",
+    "lat": -34.7732378,
+    "lng": -59.6902528,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 80,
+    "name": "Chivilcoy Sud",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Bragado",
+    "lat": -34.9173927,
+    "lng": -59.9961128,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 403,
+    "name": "Andrés Vaccarezza",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Bragado",
+    "lat": -35.0345,
+    "lng": -60.2771963,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 266,
+    "name": "Mechita",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Bragado",
+    "lat": -35.0664207,
+    "lng": -60.4072915,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 46,
+    "name": "Bragado",
+    "lineId": 1,
+    "lineName": "Sarmiento",
+    "ramal": "Once-Bragado",
+    "lat": -35.1197072,
+    "lng": -60.4782808,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 332,
+    "name": "Retiro (LGM)",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5909122,
+    "lng": -58.3750538,
+    "zone": "CABA"
+  },
+  {
+    "id": 1,
+    "name": "3 de febrero",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5718528,
+    "lng": -58.42516,
+    "zone": "CABA"
+  },
+  {
+    "id": 272,
+    "name": "Ministro Carranza",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5754325,
+    "lng": -58.4343684,
+    "zone": "CABA"
+  },
+  {
+    "id": 91,
+    "name": "Colegiales",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5729746,
+    "lng": -58.448253,
+    "zone": "CABA"
+  },
+  {
+    "id": 35,
+    "name": "Belgrano R",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5678249,
+    "lng": -58.4624028,
+    "zone": "CABA"
+  },
+  {
+    "id": 236,
+    "name": "L.M.Drago",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5684173,
+    "lng": -58.4789912,
+    "zone": "CABA"
+  },
+  {
+    "id": 150,
+    "name": "General Urquiza",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.574712,
+    "lng": -58.4878391,
+    "zone": "CABA"
+  },
+  {
+    "id": 318,
+    "name": "Pueyrredón",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5804962,
+    "lng": -58.501898,
+    "zone": "CABA"
+  },
+  {
+    "id": 271,
+    "name": "Miguelete",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5811313,
+    "lng": -58.5166476,
+    "zone": "CABA"
+  },
+  {
+    "id": 360,
+    "name": "San Martín",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5739248,
+    "lng": -58.531334,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 353,
+    "name": "San Andrés",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5637151,
+    "lng": -58.540541,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 249,
+    "name": "Malaver",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5573725,
+    "lng": -58.5479328,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 412,
+    "name": "Villa Ballester",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5510362,
+    "lng": -58.5559827,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 79,
+    "name": "Chilavert",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.542232,
+    "lng": -58.566917,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 190,
+    "name": "J.L. Suárez",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-J.L. Suárez",
+    "lat": -34.5347444,
+    "lng": -58.5759721,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 90,
+    "name": "Coghlan",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Mitre",
+    "lat": -34.5654176,
+    "lng": -58.4749559,
+    "zone": "CABA"
+  },
+  {
+    "id": 346,
+    "name": "Saavedra",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Mitre",
+    "lat": -34.5545422,
+    "lng": -58.4867373,
+    "zone": "CABA"
+  },
+  {
+    "id": 200,
+    "name": "Juan B. Justo",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Mitre",
+    "lat": -34.5425501,
+    "lng": -58.494657,
+    "zone": "CABA"
+  },
+  {
+    "id": 141,
+    "name": "Florida",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Mitre",
+    "lat": -34.5304745,
+    "lng": -58.4944563,
+    "zone": "CABA"
+  },
+  {
+    "id": 119,
+    "name": "Dr. Cetrángolo",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Mitre",
+    "lat": -34.5232688,
+    "lng": -58.4941393,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 273,
+    "name": "Bmé. Mitre",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Mitre",
+    "lat": -34.5150276,
+    "lng": -58.4892365,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 229,
+    "name": "Lisandro de la Torre",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.5625299,
+    "lng": -58.4367116,
+    "zone": "CABA"
+  },
+  {
+    "id": 34,
+    "name": "Belgrano C",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.5584914,
+    "lng": -58.4494807,
+    "zone": "CABA"
+  },
+  {
+    "id": 287,
+    "name": "Nuñez",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.5487486,
+    "lng": -58.4625541,
+    "zone": "CABA"
+  },
+  {
+    "id": 337,
+    "name": "Rivadavia",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.5365204,
+    "lng": -58.4680326,
+    "zone": "CABA"
+  },
+  {
+    "id": 408,
+    "name": "Vicente López",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.5245542,
+    "lng": -58.4728819,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 291,
+    "name": "Olivos",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.508223,
+    "lng": -58.4804366,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 212,
+    "name": "La Lucila",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.4974813,
+    "lng": -58.4886129,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 262,
+    "name": "Martínez",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.4881444,
+    "lng": -58.4970405,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 5,
+    "name": "Acassuso",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.4799498,
+    "lng": -58.5040028,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 357,
+    "name": "San Isidro C",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.4717862,
+    "lng": -58.5137942,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 32,
+    "name": "Beccar",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.4608043,
+    "lng": -58.5265437,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 409,
+    "name": "Victoria",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.4564919,
+    "lng": -58.5404899,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 428,
+    "name": "Virreyes",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.4503293,
+    "lng": -58.5511975,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 355,
+    "name": "San Fernando C",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.4440924,
+    "lng": -58.5590584,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 65,
+    "name": "Carupá",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.4381545,
+    "lng": -58.5666484,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 389,
+    "name": "Tigre",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Retiro-Tigre",
+    "lat": -34.4239474,
+    "lng": -58.5812663,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 118,
+    "name": "Dr. Schweitzer",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Victoria-Capilla del Señor",
+    "lat": -34.4720989,
+    "lng": -58.5744514,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 128,
+    "name": "El Talar",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Victoria-Capilla del Señor",
+    "lat": -34.4627922,
+    "lng": -58.6460044,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 240,
+    "name": "López Camelo",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Victoria-Capilla del Señor",
+    "lat": -34.4468958,
+    "lng": -58.6773897,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 147,
+    "name": "Garín",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Victoria-Capilla del Señor",
+    "lat": -34.421623,
+    "lng": -58.7365407,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 253,
+    "name": "Maq. Savio",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Victoria-Capilla del Señor",
+    "lat": -34.4069132,
+    "lng": -58.771933,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 264,
+    "name": "Matheu",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Victoria-Capilla del Señor",
+    "lat": -34.3828607,
+    "lng": -58.8296505,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 436,
+    "name": "Zelaya",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Victoria-Capilla del Señor",
+    "lat": -34.3701878,
+    "lng": -58.8691562,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 243,
+    "name": "Los Cardales",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Victoria-Capilla del Señor",
+    "lat": -34.3309008,
+    "lng": -58.9874005,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 61,
+    "name": "Capilla del Señor",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Victoria-Capilla del Señor",
+    "lat": -34.2863605,
+    "lng": -59.1024923,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 29,
+    "name": "Bancalari",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Villa Ballester-Zárate",
+    "lat": -34.4798228,
+    "lng": -58.6028139,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 296,
+    "name": "Gral. Pacheco",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Villa Ballester-Zárate",
+    "lat": -34.4558335,
+    "lng": -58.6201168,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 37,
+    "name": "Benavídez",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Villa Ballester-Zárate",
+    "lat": -34.4092816,
+    "lng": -58.6845898,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 263,
+    "name": "Ing. Maschwitz",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Villa Ballester-Zárate",
+    "lat": -34.3830219,
+    "lng": -58.7362697,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 130,
+    "name": "Escobar",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Villa Ballester-Zárate",
+    "lat": -34.3496547,
+    "lng": -58.7950265,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 335,
+    "name": "Río Luján",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Villa Ballester-Zárate",
+    "lat": -34.2780361,
+    "lng": -58.8903187,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 294,
+    "name": "Otamendi",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Villa Ballester-Zárate",
+    "lat": -34.2222066,
+    "lng": -58.8965515,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 55,
+    "name": "Campana",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Villa Ballester-Zárate",
+    "lat": -34.1567628,
+    "lng": -58.9584056,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 204,
+    "name": "Kilómetro 83",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Villa Ballester-Zárate",
+    "lat": -34.1602209,
+    "lng": -58.977169,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 434,
+    "name": "Zárate",
+    "lineId": 5,
+    "lineName": "Mitre",
+    "ramal": "Villa Ballester-Zárate",
+    "lat": -34.0979051,
+    "lng": -59.0378286,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 463,
+    "name": "Retiro (LSM)",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.5888579,
+    "lng": -58.3741843,
+    "zone": "CABA"
+  },
+  {
+    "id": 297,
+    "name": "Palermo",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.5789111,
+    "lng": -58.426813,
+    "zone": "CABA"
+  },
+  {
+    "id": 414,
+    "name": "Villa Crespo",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.5934824,
+    "lng": -58.4485515,
+    "zone": "CABA"
+  },
+  {
+    "id": 216,
+    "name": "La Paternal",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.5970559,
+    "lng": -58.4673174,
+    "zone": "CABA"
+  },
+  {
+    "id": 415,
+    "name": "Villa del Parque",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.6013699,
+    "lng": -58.4935315,
+    "zone": "CABA"
+  },
+  {
+    "id": 348,
+    "name": "Saenz Peña",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.6031708,
+    "lng": -58.5278989,
+    "zone": "CABA"
+  },
+  {
+    "id": 67,
+    "name": "Caseros",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.6046525,
+    "lng": -58.5646067,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 177,
+    "name": "Hurlingham",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.5911517,
+    "lng": -58.6322349,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 194,
+    "name": "José C. Paz",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.5190115,
+    "lng": -58.7504431,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 106,
+    "name": "Derqui",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.4908888,
+    "lng": -58.8386488,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 306,
+    "name": "Pilar",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.4686135,
+    "lng": -58.9083124,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 252,
+    "name": "Manzanares",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.4522459,
+    "lng": -59.0067549,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 51,
+    "name": "Dr. Cabred",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.4878244,
+    "lng": -59.075658,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 3672,
+    "name": "Cortines",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.5555513,
+    "lng": -59.2066397,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 3664,
+    "name": "Mercedes P",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.6568159,
+    "lng": -59.4312711,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 442,
+    "name": "Franklin",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.6101466,
+    "lng": -59.6300184,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 470,
+    "name": "Rivas",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.6103018,
+    "lng": -59.7504883,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 443,
+    "name": "Castilla",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.6104373,
+    "lng": -59.8974332,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 444,
+    "name": "Rawson",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.6104601,
+    "lng": -60.0674634,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 3667,
+    "name": "Cucha Cucha",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.6217206,
+    "lng": -60.4082693,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 75,
+    "name": "Chacabuco",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.6296987,
+    "lng": -60.4701147,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 471,
+    "name": "O Higgins",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.5815866,
+    "lng": -60.7002349,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 202,
+    "name": "Junin",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro - Junín",
+    "lat": -34.5841937,
+    "lng": -60.949734,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 112,
+    "name": "Devoto",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro-Cabred",
+    "lat": -34.6026704,
+    "lng": -58.5128663,
+    "zone": "CABA"
+  },
+  {
+    "id": 369,
+    "name": "Santos Lugares",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro-Cabred",
+    "lat": -34.6036828,
+    "lng": -58.5409703,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 127,
+    "name": "El Palomar",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro-Cabred",
+    "lat": -34.604924,
+    "lng": -58.5958736,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 431,
+    "name": "William Morris",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro-Cabred",
+    "lat": -34.5785609,
+    "lng": -58.6563955,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 36,
+    "name": "Bella Vista",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro-Cabred",
+    "lat": -34.5638352,
+    "lng": -58.6845919,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 283,
+    "name": "Muñiz",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro-Cabred",
+    "lat": -34.5512323,
+    "lng": -58.7034606,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 361,
+    "name": "San Miguel",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro-Cabred",
+    "lat": -34.5441372,
+    "lng": -58.7132686,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 378,
+    "name": "Sol y Verde",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro-Cabred",
+    "lat": -34.5043148,
+    "lng": -58.7965871,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 411,
+    "name": "Villa Astolfi",
+    "lineId": 31,
+    "lineName": "San Martín",
+    "ramal": "Retiro-Cabred",
+    "lat": -34.4786178,
+    "lng": -58.8770376,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 525,
+    "name": "Dr. A. Sáenz Viad.",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.6490835,
+    "lng": -58.4158387,
+    "zone": "CABA"
+  },
+  {
+    "id": 121,
+    "name": "Dr. A. Sáenz  Prov.",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.6484899,
+    "lng": -58.4189585,
+    "zone": "CABA"
+  },
+  {
+    "id": 427,
+    "name": "Villa Soldati",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.6622828,
+    "lng": -58.4410917,
+    "zone": "CABA"
+  },
+  {
+    "id": 313,
+    "name": "Pte. Arturo Illia",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.6656436,
+    "lng": -58.4490599,
+    "zone": "CABA"
+  },
+  {
+    "id": 422,
+    "name": "Villa Lugano",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.6772759,
+    "lng": -58.4770979,
+    "zone": "CABA"
+  },
+  {
+    "id": 424,
+    "name": "Villa Madero",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.6840433,
+    "lng": -58.4923276,
+    "zone": "CABA"
+  },
+  {
+    "id": 260,
+    "name": "Marinos del Fournier",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.6901777,
+    "lng": -58.5076299,
+    "zone": "CABA"
+  },
+  {
+    "id": 385,
+    "name": "Tapiales",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.7024078,
+    "lng": -58.5116991,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 181,
+    "name": "Dr. Ing. Castello",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.7102867,
+    "lng": -58.5060412,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 321,
+    "name": "Querandí",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.7224666,
+    "lng": -58.5309116,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 209,
+    "name": "Laferrere",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.7507523,
+    "lng": -58.5844338,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 256,
+    "name": "María Eva Duarte",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.7561325,
+    "lng": -58.6008057,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 178,
+    "name": "Independencia",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.7609176,
+    "lng": -58.6177546,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 154,
+    "name": "González Catán",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-Gonzalez Catán",
+    "lat": -34.7717022,
+    "lng": -58.6468732,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 12,
+    "name": "Aldo Bonzi",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-M.C.G. Belgrano",
+    "lat": -34.7107066,
+    "lng": -58.5143488,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 354,
+    "name": "Sánchez de Mendeville",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-M.C.G. Belgrano",
+    "lat": -34.7123564,
+    "lng": -58.5247424,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 195,
+    "name": "José Ingenieros",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-M.C.G. Belgrano",
+    "lat": -34.710762,
+    "lng": -58.537256,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 203,
+    "name": "Justo Villegas",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-M.C.G. Belgrano",
+    "lat": -34.708965,
+    "lng": -58.5519393,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 184,
+    "name": "Isidro Casanova",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-M.C.G. Belgrano",
+    "lat": -34.7045467,
+    "lng": -58.5873422,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 325,
+    "name": "Rafael Castillo",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-M.C.G. Belgrano",
+    "lat": -34.6996678,
+    "lng": -58.6264089,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 270,
+    "name": "Merlo Gómez",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-M.C.G. Belgrano",
+    "lat": -34.697041,
+    "lng": -58.647345,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 232,
+    "name": "Libertad",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-M.C.G. Belgrano",
+    "lat": -34.692147,
+    "lng": -58.686403,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 259,
+    "name": "Marinos C. G Belgrano",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "Buenos Aires-M.C.G. Belgrano",
+    "lat": -34.7089204,
+    "lng": -58.7312927,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 526,
+    "name": "20 de Junio",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "González Catan -Navarro",
+    "lat": -34.7802634,
+    "lng": -58.7379094,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 3700,
+    "name": "Marcos Paz",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "González Catan -Navarro",
+    "lat": -34.7864831,
+    "lng": -58.8296055,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 4226,
+    "name": "Villars",
+    "lineId": 21,
+    "lineName": "Belgrano Sur",
+    "ramal": "González Catan -Navarro",
+    "lat": -34.8288253,
+    "lng": -58.9387125,
+    "zone": "GBA Oeste"
+  },
+  {
+    "id": 248,
+    "name": "Maipú",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.5136639,
+    "lng": -58.4881058,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 42,
+    "name": "Borges",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.5084637,
+    "lng": -58.4847347,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 233,
+    "name": "Libertador",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.5027276,
+    "lng": -58.4821262,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 198,
+    "name": "Juan Anchorena",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.4891115,
+    "lng": -58.4812172,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 222,
+    "name": "Las Barrancas",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.4723359,
+    "lng": -58.4930118,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 358,
+    "name": "San Isidro R",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.4654466,
+    "lng": -58.5081309,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 319,
+    "name": "Punta Chica",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.4506585,
+    "lng": -58.5236988,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 258,
+    "name": "Marina Nueva",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.4445522,
+    "lng": -58.5390515,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 356,
+    "name": "San Fernando R",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.4375367,
+    "lng": -58.553991,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 58,
+    "name": "Canal San Fernando",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.4299116,
+    "lng": -58.5629211,
+    "zone": "Zona Norte"
+  },
+  {
+    "id": 104,
+    "name": "Delta",
+    "lineId": 41,
+    "lineName": "Tren de la Costa",
+    "ramal": "Maipú-Delta",
+    "lat": -34.4188877,
+    "lng": -58.5763625,
+    "zone": "Zona Norte"
+  }
+]

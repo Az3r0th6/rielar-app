@@ -1,0 +1,20 @@
+{
+  "name": "RielAR - Movilidad Ferroviaria en Tiempo Real",
+  "short_name": "RielAR",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#009fe3",
+  "description": "RielAR: Próximos arribos, estado de la red y horarios de trenes en tiempo real para iOS y Android sin instalación.",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "utilities", "navigation"]
+}

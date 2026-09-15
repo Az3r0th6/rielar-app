@@ -1,0 +1,1064 @@
+/* ==========================================================================
+   TRENES ARGENTINOS • iOS Premium Design System & Stylesheet
+   Crafted with Apple Human Interface Guidelines & Glassmorphism
+   ========================================================================== */
+
+:root {
+  /* Core Apple System Colors (Dark & Light) */
+  --ios-bg: #000000;
+  --ios-surface: #121216;
+  --ios-card: rgba(26, 26, 32, 0.75);
+  --ios-card-hover: rgba(36, 36, 46, 0.85);
+  --ios-card-border: rgba(255, 255, 255, 0.08);
+  --ios-card-border-active: rgba(255, 255, 255, 0.18);
+  
+  --ios-text-primary: #f5f5f7;
+  --ios-text-secondary: #8e8e93;
+  --ios-text-tertiary: #636366;
+  --ios-separator: rgba(84, 84, 88, 0.35);
+
+  /* iOS Accent Palette */
+  --ios-blue: #0a84ff;
+  --ios-green: #30d158;
+  --ios-indigo: #5e5ce6;
+  --ios-orange: #ff9f0a;
+  --ios-pink: #ff375f;
+  --ios-purple: #bf5af2;
+  --ios-red: #ff453a;
+  --ios-teal: #64d2ff;
+  --ios-yellow: #ffd60a;
+
+  /* Trenes Official AMBA Palette */
+  --mitre-color: #009fe3;
+  --sarmiento-color: #008b47;
+  --roca-color: #004f9e;
+  --san-martin-color: #3182ce;
+  --belgrano-sur-color: #e53e3e;
+  --tren-costa-color: #8ac53f;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', sans-serif;
+  --font-mono: 'JetBrains Mono', SFMono-Regular, monospace;
+
+  /* Transitions & Shadows */
+  --ios-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ios-ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(10, 132, 255, 0.35);
+}
+
+/* Light Mode Overrides */
+[data-theme='light'] {
+  --ios-bg: #f2f2f7;
+  --ios-surface: #ffffff;
+  --ios-card: rgba(255, 255, 255, 0.85);
+  --ios-card-hover: #ffffff;
+  --ios-card-border: rgba(0, 0, 0, 0.06);
+  --ios-card-border-active: rgba(0, 0, 0, 0.14);
+  
+  --ios-text-primary: #1c1c1e;
+  --ios-text-secondary: #8e8e93;
+  --ios-text-tertiary: #aeaeb2;
+  --ios-separator: rgba(60, 60, 67, 0.18);
+  
+  --ios-blue: #007aff;
+  --ios-green: #34c759;
+  --ios-orange: #ff9500;
+  --ios-red: #ff3b30;
+}
+
+/* Base Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: #060608;
+  color: var(--ios-text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+}
+
+/* ==========================================================================
+   Simulator Wrapper & iPhone Frame
+   ========================================================================== */
+
+.app-viewport-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: radial-gradient(circle at 50% 20%, #151824 0%, #060608 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background Ambient Glow */
+.app-viewport-container::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(0, 159, 227, 0.15), transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Top Toolbar for Desktop Preview */
+.simulator-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  z-index: 10;
+  background: rgba(26, 26, 32, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--ios-card-border);
+  padding: 8px 16px;
+  border-radius: 30px;
+  box-shadow: var(--shadow-sm);
+}
+
+.simulator-btn {
+  background: transparent;
+  border: none;
+  color: var(--ios-text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s var(--ios-ease);
+}
+
+.simulator-btn:hover, .simulator-btn.active {
+  color: var(--ios-text-primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.simulator-btn.active {
+  color: #ffffff;
+  background: var(--ios-blue);
+}
+
+/* Realistic iPhone 16 Pro Frame */
+.iphone-frame {
+  width: 402px;
+  height: 874px;
+  max-height: 90vh;
+  background: var(--ios-bg);
+  border-radius: 56px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 0 0 12px #2a2a2f,
+    0 0 0 14px #1c1c20,
+    0 30px 80px rgba(0, 0, 0, 0.8),
+    0 0 40px rgba(0, 159, 227, 0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  transition: all 0.4s var(--ios-ease);
+}
+
+/* Real Mobile Viewport (iOS Safari & Android Chrome Native Experience) */
+.app-viewport-container.native-mobile {
+  padding: 0 !important;
+  min-height: 100dvh !important;
+  height: 100dvh !important;
+  width: 100vw !important;
+  background: var(--ios-bg) !important;
+  overflow: hidden !important;
+}
+
+.iphone-frame.mobile-viewport {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+@media (max-width: 600px) {
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .app-viewport-container {
+    padding: 0 !important;
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+    background: var(--ios-bg) !important;
+  }
+
+  .iphone-frame {
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .simulator-controls {
+    display: none !important;
+  }
+
+  .ios-status-bar {
+    display: none !important;
+  }
+
+  .ios-home-indicator {
+    display: none !important;
+  }
+}
+
+/* Fullscreen mode on Desktop (takes over window cleanly) */
+.app-viewport-container.fullscreen-mode {
+  padding: 0;
+  background: var(--ios-bg);
+}
+
+.app-viewport-container.fullscreen-mode .simulator-controls {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  margin-bottom: 0;
+  z-index: 9999;
+}
+
+.app-viewport-container.fullscreen-mode .iphone-frame {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   iOS Top Elements: Status Bar & Dynamic Island
+   ========================================================================== */
+
+.ios-status-bar {
+  height: 48px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ios-text-primary);
+  z-index: 30;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.ios-status-time {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ios-status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Dynamic Island */
+.dynamic-island-container {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+}
+
+.dynamic-island {
+  background: #000000;
+  border-radius: 24px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.35s var(--ios-spring);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Compact Pill */
+.dynamic-island.compact {
+  width: 125px;
+  height: 35px;
+}
+
+.dynamic-island.compact .pill-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dynamic-island.compact .pill-right {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ios-green);
+}
+
+/* Expanded Dynamic Island */
+.dynamic-island.expanded {
+  width: 360px;
+  height: 140px;
+  padding: 16px;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 36px;
+  background: rgba(10, 10, 14, 0.96);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.expanded-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.expanded-train-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.expanded-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 10px 0;
+  position: relative;
+}
+
+.expanded-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--mitre-color), var(--ios-green));
+  border-radius: 99px;
+  transition: width 1s linear;
+}
+
+.expanded-footer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ios-text-secondary);
+}
+
+/* ==========================================================================
+   Main App Screen Layout & Safe Areas
+   ========================================================================== */
+
+.app-screen-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 56px; /* Below status bar & Dynamic island */
+  padding-bottom: 76px; /* Above iOS tab bar */
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  background: var(--ios-bg);
+}
+
+/* Header Banner */
+.ios-nav-header {
+  padding: 16px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  z-index: 20;
+  border-bottom: 1px solid var(--ios-separator);
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.28s ease;
+  will-change: transform, opacity;
+}
+
+.header-hidden .ios-nav-header,
+.ios-nav-header.header-hidden {
+  transform: translateY(-110%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ios-large-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ios-text-primary);
+  line-height: 1.15;
+}
+
+.ios-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ios-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.ios-live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background: rgba(48, 209, 88, 0.15);
+  border: 1px solid rgba(48, 209, 88, 0.35);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ios-green);
+  text-transform: uppercase;
+}
+
+.live-pulse-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--ios-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--ios-green);
+  animation: pulse-ring 1.8s infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.4); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* ==========================================================================
+   Cards, List Items & Glassmorphism
+   ========================================================================== */
+
+.ios-card {
+  background: var(--ios-card);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--ios-card-border);
+  border-radius: 20px;
+  padding: 16px;
+  margin: 0 16px 14px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s var(--ios-ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.ios-card:hover {
+  border-color: var(--ios-card-border-active);
+  transform: translateY(-1px);
+}
+
+.ios-card:active {
+  transform: scale(0.985);
+}
+
+/* Line Badge */
+.line-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Station Card with Arrivals */
+.station-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.station-title-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.station-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ios-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.station-distance {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ios-blue);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.fav-button {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: var(--ios-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fav-button.active {
+  color: #ffd60a;
+  background: rgba(255, 214, 10, 0.15);
+}
+
+/* Train Arrivals Row */
+.arrival-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: all 0.2s var(--ios-ease);
+}
+
+.arrival-row:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.arrival-dest {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ios-text-primary);
+}
+
+.arrival-meta {
+  font-size: 12px;
+  color: var(--ios-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.platform-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.arrival-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.countdown-number {
+  font-size: 19px;
+  font-weight: 800;
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
+}
+
+.badge-imminent .countdown-number {
+  color: #ff453a;
+  animation: pulse-fast 1.2s infinite;
+}
+
+.badge-soon .countdown-number {
+  color: var(--ios-green);
+}
+
+.badge-normal .countdown-number {
+  color: var(--ios-text-primary);
+}
+
+.countdown-scheduled {
+  font-size: 11px;
+  color: var(--ios-text-tertiary);
+  font-weight: 600;
+}
+
+@keyframes pulse-fast {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ==========================================================================
+   iOS Segmented Control
+   ========================================================================== */
+
+.ios-segmented-control {
+  display: flex;
+  background: rgba(118, 118, 128, 0.24);
+  backdrop-filter: blur(12px);
+  padding: 3px;
+  border-radius: 14px;
+  margin: 10px 16px 16px;
+  gap: 2px;
+  overflow-x: auto;
+}
+
+.segmented-option {
+  flex: 1;
+  text-align: center;
+  padding: 7px 12px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ios-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s var(--ios-ease);
+}
+
+.segmented-option.active {
+  color: var(--ios-text-primary);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================================
+   iOS Native Bottom Tab Bar
+   ========================================================================== */
+
+.ios-tab-bar {
+  height: 76px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(18, 18, 24, 0.88);
+  backdrop-filter: blur(35px);
+  -webkit-backdrop-filter: blur(35px);
+  border-top: 1px solid var(--ios-separator);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 6px 4px 16px;
+  z-index: 30;
+  transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.ios-tab-bar.tab-bar-hidden {
+  transform: translateY(105%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tab-item {
+  flex: 1;
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: var(--ios-text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s var(--ios-ease);
+  position: relative;
+  padding: 4px 2px;
+  border-radius: 12px;
+}
+
+.tab-item.active {
+  color: var(--ios-blue);
+  transform: translateY(-1px);
+}
+
+.tab-item:active {
+  transform: scale(0.92);
+}
+
+.tab-badge {
+  position: absolute;
+  top: 0px;
+  right: 2px;
+  background: var(--ios-red);
+  color: white;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(255, 69, 58, 0.5);
+}
+
+/* Home Indicator Pill */
+.ios-home-indicator {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border-radius: 100px;
+  z-index: 35;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   iOS Action Sheet / Bottom Modal Sheet
+   ========================================================================== */
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: fadeIn 0.25s var(--ios-ease);
+}
+
+.ios-bottom-sheet {
+  background: #18181f;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 36px 36px 0 0;
+  max-height: 85%;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.35s var(--ios-spring);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+
+.sheet-handle-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 6px;
+  cursor: grab;
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 5px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.sheet-header {
+  padding: 10px 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ios-separator);
+}
+
+.sheet-content {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.close-round-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: var(--ios-text-secondary);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.close-round-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Train Stops Route Timeline */
+.timeline-list {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 24px;
+  margin-top: 16px;
+}
+
+.timeline-list::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 7px;
+  width: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 99px;
+}
+
+.timeline-step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+
+.timeline-step::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ios-text-tertiary);
+  border: 2px solid #18181f;
+  transition: all 0.2s;
+}
+
+.timeline-step.passed::before {
+  background: var(--ios-blue);
+  box-shadow: 0 0 8px var(--ios-blue);
+}
+
+.timeline-step.current::before {
+  background: var(--ios-green);
+  width: 13px;
+  height: 13px;
+  left: -22px;
+  box-shadow: 0 0 10px var(--ios-green);
+  animation: pulse-ring 1.5s infinite;
+}
+
+/* Interactive Map Styles */
+.map-view-wrapper {
+  width: 100%;
+  height: 100%;
+  min-height: calc(100vh - 140px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 550px !important;
+  flex: 1;
+  background: #0f111a !important;
+}
+
+/* Leaflet Div Icon Reset & Pin Precision */
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Precision iOS Station Pin pointing accurately at railway tracks */
+.ios-station-pin {
+  position: relative;
+  width: 28px;
+  height: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ios-station-pin:hover {
+  transform: scale(1.22);
+  z-index: 1000 !important;
+}
+
+.ios-station-pin-head {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--pin-color, #009fe3);
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #ffffff;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+.ios-station-pin-needle {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 8px solid var(--pin-color, #009fe3);
+  margin-top: -2px;
+}
+
+/* Pristine Apple Dark Mode filter on map tiles */
+.dark-osm-tiles {
+  filter: brightness(0.6) invert(1) contrast(2.4) hue-rotate(200deg) saturate(0.35);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Railway Track Timeline Styles for Live Train Journey */
+.timeline-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+.timeline-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  position: relative;
+  padding-bottom: 22px;
+}
+
+.timeline-step:last-child {
+  padding-bottom: 8px;
+}
+
+.track-rail-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 24px;
+  flex-shrink: 0;
+  position: relative;
+  align-self: stretch;
+}
+
+.track-node {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  z-index: 3;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.track-node.completed {
+  background: #30d158;
+  color: #0b1a0e;
+  box-shadow: 0 0 10px rgba(48, 209, 88, 0.5);
+}
+
+.track-node.current {
+  width: 26px;
+  height: 26px;
+  background: #009fe3;
+  color: #ffffff;
+  font-size: 14px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 16px rgba(0, 159, 227, 0.9);
+  animation: pulse-ring 1.8s infinite;
+}
+
+.track-node.upcoming {
+  background: #24242e;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  color: transparent;
+}
+
+.track-line {
+  position: absolute;
+  top: 20px;
+  bottom: -4px;
+  width: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  z-index: 1;
+}
+
+.track-line.completed {
+  background: #30d158;
+  box-shadow: 0 0 6px rgba(48, 209, 88, 0.4);
+}
