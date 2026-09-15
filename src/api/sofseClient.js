@@ -50,3 +50,14 @@ export async function getAllStationsCatalog() {
   if (!res.ok) throw new Error(`Error fetching all stations: ${res.status}`);
   return await res.json();
 }
+
+export async function sendBugReport(reportData) {
+  const res = await fetch(`${API_BASE}/reports`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(reportData),
+  });
+  if (!res.ok) throw new Error(`Error al enviar el reporte: ${res.status}`);
+  return await res.json();
+}
+

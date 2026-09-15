@@ -365,6 +365,39 @@ app.get('/api/all-stations', async (req, res) => {
   }
 });
 
+// 6. User Bug & Incident Reports Engine
+const inMemoryReports = [];
+
+app.post('/api/reports', (req, res) => {
+  try {
+    const { category, lineName, stationName, description, deviceDetails } = req.body || {};
+    if (!description || !description.trim()) {
+      return res.status(400).json({ error: 'La descripción del reporte es obligatoria.' });
+    }
+    const reportId = `REP-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newReport = {
+      id: reportId,
+      timestamp: new Date().toISOString(),
+      category: category || 'General',
+      lineName: lineName || 'No especificada',
+      stationName: stationName || 'No especificada',
+      description: description.trim(),
+      deviceDetails: deviceDetails || {},
+      status: 'Recibido',
+    };
+    inMemoryReports.unshift(newReport);
+    if (inMemoryReports.length > 200) inMemoryReports.pop();
+    console.log(`[RielAR Reportes] Nuevo reporte recibido #${reportId}: ${newReport.category} - ${newReport.lineName}`);
+    res.json({ success: true, report: newReport });
+  } catch (err) {
+    res.status(500).json({ error: 'Error procesando el reporte', details: err.message });
+  }
+});
+
+app.get('/api/reports', (req, res) => {
+  res.json({ count: inMemoryReports.length, reports: inMemoryReports.slice(0, 50) });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime(), hasToken: !!cachedToken });

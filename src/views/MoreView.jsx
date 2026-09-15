@@ -13,6 +13,7 @@ import {
   Info,
   Smartphone,
   Laptop,
+  AlertCircle,
 } from 'lucide-react';
 import {
   triggerHaptic,
@@ -20,9 +21,10 @@ import {
   sendAppNotification,
   requestNotificationPermission,
 } from '../utils/notifications';
+import BugReportSection from '../components/BugReportSection';
 
 export default function MoreView({ onInstallApp }) {
-  const [activeSection, setActiveSection] = useState('download'); // 'download' | 'notifications' | 'credits'
+  const [activeSection, setActiveSection] = useState('download'); // 'download' | 'notifications' | 'reports' | 'credits'
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [copiedDownload, setCopiedDownload] = useState(false);
@@ -83,6 +85,7 @@ export default function MoreView({ onInstallApp }) {
             <span>
               {activeSection === 'download' && 'Descarga e instalación directa en tu dispositivo'}
               {activeSection === 'notifications' && 'Preferencias de alertas sonoras y push'}
+              {activeSection === 'reports' && 'Reportes de fallos en horarios, estaciones o la app'}
               {activeSection === 'credits' && 'Desarrollo oficial por Martin Calvo Ruiz'}
             </span>
           </div>
@@ -97,11 +100,12 @@ export default function MoreView({ onInstallApp }) {
           display: 'flex',
           gap: '4px',
           padding: '4px',
+          overflowX: 'auto',
         }}
       >
         <button
           className={`segmented-option ${activeSection === 'download' ? 'active' : ''}`}
-          style={{ padding: '8px 12px', fontSize: '13px' }}
+          style={{ padding: '8px 10px', fontSize: '12px', flexShrink: 0 }}
           onClick={() => {
             triggerHaptic('light');
             setActiveSection('download');
@@ -112,18 +116,29 @@ export default function MoreView({ onInstallApp }) {
 
         <button
           className={`segmented-option ${activeSection === 'notifications' ? 'active' : ''}`}
-          style={{ padding: '8px 12px', fontSize: '13px' }}
+          style={{ padding: '8px 10px', fontSize: '12px', flexShrink: 0 }}
           onClick={() => {
             triggerHaptic('light');
             setActiveSection('notifications');
           }}
         >
-          🔔 Notificaciones
+          🔔 Alertas
+        </button>
+
+        <button
+          className={`segmented-option ${activeSection === 'reports' ? 'active' : ''}`}
+          style={{ padding: '8px 10px', fontSize: '12px', flexShrink: 0 }}
+          onClick={() => {
+            triggerHaptic('light');
+            setActiveSection('reports');
+          }}
+        >
+          🚨 Reportes
         </button>
 
         <button
           className={`segmented-option ${activeSection === 'credits' ? 'active' : ''}`}
-          style={{ padding: '8px 12px', fontSize: '13px' }}
+          style={{ padding: '8px 10px', fontSize: '12px', flexShrink: 0 }}
           onClick={() => {
             triggerHaptic('light');
             setActiveSection('credits');
@@ -496,6 +511,11 @@ export default function MoreView({ onInstallApp }) {
             </div>
           </div>
         )}
+
+        {/* ========================================================
+            SECCIÓN: REPORTAR FALLOS O PROBLEMAS
+            ======================================================== */}
+        {activeSection === 'reports' && <BugReportSection />}
 
         {/* ========================================================
             SECCIÓN: CRÉDITOS Y DESARROLLO OFICIAL
