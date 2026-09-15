@@ -277,7 +277,7 @@ export default function NearbyView({
         >
           Todas
         </button>
-        {LINES_DATA.slice(0, 5).map((line) => (
+        {LINES_DATA.map((line) => (
           <button
             key={line.id}
             className={`segmented-option ${selectedLine === String(line.id) ? 'active' : ''}`}
