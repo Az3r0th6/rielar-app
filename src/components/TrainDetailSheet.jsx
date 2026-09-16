@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   X,
   Bell,
@@ -13,6 +13,8 @@ import {
   Radio,
   Layers,
   RotateCw,
+  Plus,
+  Minus,
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -22,15 +24,52 @@ import { playChimeSound, triggerHaptic, sendAppNotification } from '../utils/not
 import { calculateTrainJourney } from '../utils/trainTracker';
 import { getStationArrivals } from '../api/sofseClient';
 
-function ChangeTrackingMapView({ center, zoom }) {
+function ChangeTrackingMapView({ center, defaultZoom = 14, onUserMove, userHasMoved, onMapReady }) {
   const map = useMap();
+  const isInitial = useRef(true);
+
+  // Notify parent of map instance
   useEffect(() => {
-    map.setView(center, zoom);
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 200);
-    return () => clearTimeout(timer);
-  }, [center, zoom, map]);
+    if (map && onMapReady) {
+      onMapReady(map);
+    }
+  }, [map, onMapReady]);
+
+  // Initial center only once upon opening map view
+  useEffect(() => {
+    if (center && isInitial.current) {
+      map.setView(center, defaultZoom);
+      isInitial.current = false;
+      const timer = setTimeout(() => {
+        map.invalidateSize();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [map, center, defaultZoom]);
+
+  // Detect when user zooms, pans or pinches so we DO NOT reset their view every second!
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      if (onUserMove) {
+        onUserMove(true);
+      }
+    };
+
+    map.on('dragstart', handleUserInteraction);
+    map.on('zoomstart', handleUserInteraction);
+
+    return () => {
+      map.off('dragstart', handleUserInteraction);
+      map.off('zoomstart', handleUserInteraction);
+    };
+  }, [map, onUserMove]);
+
+  // Smoothly follow train ONLY if user has NOT panned or zoomed away, and NEVER reset zoom!
+  useEffect(() => {
+    if (!center || userHasMoved || isInitial.current) return;
+    map.panTo(center, { animate: true, duration: 0.8 });
+  }, [center, userHasMoved, map]);
+
   return null;
 }
 
@@ -41,11 +80,21 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
   const [liveTrain, setLiveTrain] = useState(trainData);
   const [currentSeconds, setCurrentSeconds] = useState(trainData?.arribo?.segundos ?? 180);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [userHasMovedMap, setUserHasMovedMap] = useState(false);
+  const [mapInstance, setMapInstance] = useState(null);
+
+  // When user toggles between timeline and map, reset moved state so map centers cleanly
+  useEffect(() => {
+    if (viewMode === 'map') {
+      setUserHasMovedMap(false);
+    }
+  }, [viewMode]);
 
   // Sync state whenever prop trainData changes
   useEffect(() => {
     setLiveTrain(trainData);
     setCurrentSeconds(trainData?.arribo?.segundos ?? 180);
+    setUserHasMovedMap(false);
   }, [trainData?.servicio?.numero, trainData?.stationId, trainData?.arribo?.segundos]);
 
   // Second-by-second countdown decrementer (prevents freezing inside station view!)
@@ -412,7 +461,7 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
           {viewMode === 'map' && (
             <div
               style={{
-                height: '320px',
+                height: '380px',
                 width: '100%',
                 borderRadius: '18px',
                 overflow: 'hidden',
@@ -421,13 +470,124 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
                 marginBottom: '14px',
               }}
             >
+              {/* Floating Zoom Controls (+ / -) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  zIndex: 999,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                }}
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    triggerHaptic('light');
+                    if (mapInstance) {
+                      mapInstance.zoomIn();
+                      setUserHasMovedMap(true);
+                    }
+                  }}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: 'rgba(18, 18, 24, 0.88)',
+                    backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    color: '#f5f5f7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                  }}
+                  title="Acercar mapa (+)"
+                >
+                  <Plus size={18} />
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    triggerHaptic('light');
+                    if (mapInstance) {
+                      mapInstance.zoomOut();
+                      setUserHasMovedMap(true);
+                    }
+                  }}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: 'rgba(18, 18, 24, 0.88)',
+                    backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    color: '#f5f5f7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                  }}
+                  title="Alejar mapa (-)"
+                >
+                  <Minus size={18} />
+                </button>
+              </div>
+
+              {/* Floating Recenter Button: appears when user zooms/pans to let them easily re-lock */}
+              {userHasMovedMap && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    triggerHaptic('light');
+                    setUserHasMovedMap(false);
+                    if (mapInstance && journey?.trainPosition) {
+                      mapInstance.flyTo(journey.trainPosition, 15, { animate: true, duration: 0.8 });
+                    }
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    left: '12px',
+                    zIndex: 999,
+                    background: 'linear-gradient(135deg, #0a84ff, #0056b3)',
+                    backdropFilter: 'blur(16px)',
+                    color: '#ffffff',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    borderRadius: '20px',
+                    padding: '6px 14px',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(10, 132, 255, 0.5)',
+                  }}
+                >
+                  <Navigation size={13} />
+                  <span>🎯 Centrar en tren</span>
+                </button>
+              )}
+
               <MapContainer
                 center={journey?.trainPosition || [-34.5909, -58.375]}
-                zoom={13}
+                zoom={14}
                 style={{ width: '100%', height: '100%' }}
                 zoomControl={false}
               >
-                <ChangeTrackingMapView center={journey?.trainPosition || [-34.5909, -58.375]} zoom={13} />
+                <ChangeTrackingMapView
+                  center={journey?.trainPosition}
+                  defaultZoom={14}
+                  onUserMove={() => setUserHasMovedMap(true)}
+                  userHasMoved={userHasMovedMap}
+                  onMapReady={setMapInstance}
+                />
 
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
