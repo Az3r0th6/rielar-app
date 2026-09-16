@@ -78,6 +78,8 @@ export function calculateTrainJourney(trainData) {
         anden: st.anden?.nombre || '1',
         scheduledDeparture: st.salida?.programada,
         scheduledArrival: st.llegada?.programada,
+        estimatedArrival: st.llegada?.estimada,
+        secondsToStop: st.segundos,
       };
     });
   } else {
@@ -117,14 +119,14 @@ export function calculateTrainJourney(trainData) {
   let prevStationIndex = Math.max(0, targetIndex - 1);
   let progressRatioInLeg = 0.7; // default 70% of distance travelled towards target station
 
-  if (secondsToTarget <= 30) {
+  if (secondsToTarget <= 25) {
     // Train is at the platform
     progressRatioInLeg = 0.98;
     currentStationIndex = targetIndex;
   } else {
     // Estimate leg progress based on arrival seconds (typically 3-5 min per station)
     const legDurationSec = 240;
-    progressRatioInLeg = Math.max(0.1, Math.min(0.95, 1 - (secondsToTarget / legDurationSec)));
+    progressRatioInLeg = Math.max(0.08, Math.min(0.95, 1 - (secondsToTarget / legDurationSec)));
   }
 
   const prevStop = stops[prevStationIndex] || stops[0];
@@ -142,40 +144,68 @@ export function calculateTrainJourney(trainData) {
     Math.max(5, Math.round(((stopsPassed + progressRatioInLeg) / Math.max(1, totalStops - 1)) * 100))
   );
 
-  // Determine current status message
+  // Dynamic Physical Speed Model calibrated to real AMBA commuter rail data:
+  // Operating average is 40-45 km/h (26-28 mph, matching user measured ~27 mph = 43.45 km/h)
+  const legDistanceMeters = (prevStop && nextStop && prevStop.id !== nextStop.id)
+    ? getDistanceMeters(prevStop.lat, prevStop.lng, nextStop.lat, nextStop.lng)
+    : 1800;
+
+  let baseCruisingSpeed = 43;
+  if (legDistanceMeters > 2800) {
+    baseCruisingSpeed = 45;
+  } else if (legDistanceMeters < 1400) {
+    baseCruisingSpeed = 41;
+  }
+
+  // Subtle physics-based variance along the run (+/- 1.5 km/h)
+  const dynamicJitter = Math.round(Math.sin(progressRatioInLeg * Math.PI) * 2);
+  const targetCruising = Math.max(38, Math.min(48, baseCruisingSpeed + dynamicJitter));
+
   let statusBadge = '';
   let statusDetail = '';
   let speedKmH = 0;
 
-  if (secondsToTarget <= 35) {
+  if (secondsToTarget <= 25) {
     statusBadge = 'En andén';
     statusDetail = `Detenido en Andén ${nextStop.anden || '1'} de ${nextStop.name}`;
     speedKmH = 0;
-  } else if (secondsToTarget <= 90) {
-    statusBadge = 'Arribando';
+  } else if (secondsToTarget <= 60) {
+    statusBadge = 'Ingresando a andén';
     statusDetail = `Ingresando a ${nextStop.name} en ${Math.round(secondsToTarget)} seg`;
-    speedKmH = 28;
+    // Decelerating into the platform: 14 to 26 km/h
+    speedKmH = Math.round(14 + ((secondsToTarget - 25) / 35) * 12);
+  } else if (secondsToTarget <= 110) {
+    statusBadge = 'Aproximándose';
+    statusDetail = `Aproximándose a ${nextStop.name} (~1 min)`;
+    // Braking approach phase: 27 to 39 km/h
+    speedKmH = Math.round(27 + ((secondsToTarget - 60) / 50) * 12);
   } else {
     statusBadge = 'En viaje';
     const minutesLeft = Math.ceil(secondsToTarget / 60);
     statusDetail = `En trayecto hacia ${nextStop.name} (llega en ~${minutesLeft} min)`;
-    speedKmH = 56;
+    speedKmH = targetCruising; // ~42-45 km/h (calibrated to real 43 km/h / 27 mph)
   }
 
   // Assign status to each stop
   const stopsWithStatus = stops.map((st, idx) => {
     let state = 'upcoming';
     let label = '';
+    const stopSec = st.secondsToStop;
+
     if (idx < targetIndex) {
       state = 'completed';
       label = 'Paso completado';
     } else if (idx === targetIndex) {
       state = 'current';
-      label = secondsToTarget <= 35 ? 'En andén ahora' : `Próxima parada (~${Math.ceil(secondsToTarget / 60)} min)`;
+      label = secondsToTarget <= 25 ? 'En andén ahora' : `Próxima parada (~${Math.ceil(secondsToTarget / 60)} min)`;
     } else {
       state = 'upcoming';
-      const legDiff = idx - targetIndex;
-      label = `En ~${Math.ceil(secondsToTarget / 60) + legDiff * 4} min`;
+      if (stopSec !== undefined && stopSec !== null && stopSec > 0) {
+        label = `En ~${Math.ceil(stopSec / 60)} min`;
+      } else {
+        const legDiff = idx - targetIndex;
+        label = `En ~${Math.ceil(secondsToTarget / 60) + legDiff * 3} min`;
+      }
     }
 
     return {
@@ -224,7 +254,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Núñez',
       nextStation: 'Rivadavia',
       status: 'En viaje hacia Tigre',
-      speed: 58,
+      speed: 43,
       heading: 'Norte',
       etaNextMin: 3,
     },
@@ -241,7 +271,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'San Isidro C',
       nextStation: 'Acassuso',
       status: 'En viaje hacia Retiro',
-      speed: 55,
+      speed: 42,
       heading: 'Sur',
       etaNextMin: 2,
     },
@@ -258,7 +288,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Colegiales',
       nextStation: 'Belgrano R',
       status: 'En viaje hacia J. L. Suárez',
-      speed: 52,
+      speed: 41,
       heading: 'Noroeste',
       etaNextMin: 2,
     },
@@ -275,7 +305,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'San Martín',
       nextStation: 'Miguelete',
       status: 'En viaje hacia Retiro',
-      speed: 60,
+      speed: 44,
       heading: 'Sureste',
       etaNextMin: 3,
     },
@@ -292,7 +322,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Coghlan',
       nextStation: 'Saavedra',
       status: 'En viaje hacia Bmé. Mitre',
-      speed: 48,
+      speed: 39,
       heading: 'Norte',
       etaNextMin: 2,
     },
@@ -311,7 +341,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Flores',
       nextStation: 'Floresta',
       status: 'En viaje hacia Moreno',
-      speed: 62,
+      speed: 45,
       heading: 'Oeste',
       etaNextMin: 2,
     },
@@ -328,7 +358,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Morón',
       nextStation: 'Haedo',
       status: 'En viaje hacia Once',
-      speed: 65,
+      speed: 46,
       heading: 'Este',
       etaNextMin: 3,
     },
@@ -347,7 +377,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Quilmes',
       nextStation: 'Ezpeleta',
       status: 'En viaje hacia La Plata',
-      speed: 64,
+      speed: 44,
       heading: 'Sur',
       etaNextMin: 4,
     },
@@ -364,7 +394,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'City Bell',
       nextStation: 'Villa Elisa',
       status: 'En viaje hacia Constitución',
-      speed: 68,
+      speed: 45,
       heading: 'Noroeste',
       etaNextMin: 3,
     },
@@ -381,7 +411,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Lomas de Zamora',
       nextStation: 'Temperley',
       status: 'En viaje hacia Korn',
-      speed: 58,
+      speed: 43,
       heading: 'Sur',
       etaNextMin: 2,
     },
@@ -398,7 +428,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Monte Grande',
       nextStation: 'El Jagüel',
       status: 'En viaje hacia Ezeiza',
-      speed: 60,
+      speed: 44,
       heading: 'Suroeste',
       etaNextMin: 3,
     },
@@ -417,7 +447,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Palermo',
       nextStation: 'Villa Crespo',
       status: 'En viaje hacia Pilar',
-      speed: 54,
+      speed: 43,
       heading: 'Oeste',
       etaNextMin: 3,
     },
@@ -434,7 +464,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Caseros',
       nextStation: 'Devoto',
       status: 'En viaje hacia Retiro',
-      speed: 56,
+      speed: 44,
       heading: 'Este',
       etaNextMin: 3,
     },
@@ -453,7 +483,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'Villegas',
       nextStation: 'Isidro Casanova',
       status: 'En viaje hacia G. Catán',
-      speed: 48,
+      speed: 40,
       heading: 'Suroeste',
       etaNextMin: 3,
     },
@@ -472,7 +502,7 @@ export function getActiveNetworkTrains() {
       currentStation: 'San Isidro R',
       nextStation: 'Punta Chica',
       status: 'En viaje hacia Delta',
-      speed: 38,
+      speed: 34,
       heading: 'Noroeste',
       etaNextMin: 2,
     },

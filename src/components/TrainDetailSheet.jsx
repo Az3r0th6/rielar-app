@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   X,
   Bell,
@@ -12,6 +12,7 @@ import {
   Clock,
   Radio,
   Layers,
+  RotateCw,
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -19,6 +20,7 @@ import LineBadge from './LineBadge';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { playChimeSound, triggerHaptic, sendAppNotification } from '../utils/notifications';
 import { calculateTrainJourney } from '../utils/trainTracker';
+import { getStationArrivals } from '../api/sofseClient';
 
 function ChangeTrackingMapView({ center, zoom }) {
   const map = useMap();
@@ -36,22 +38,92 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
   if (!trainData) return null;
 
   const [viewMode, setViewMode] = useState('timeline'); // 'timeline' or 'map'
-  const journey = calculateTrainJourney(trainData);
+  const [liveTrain, setLiveTrain] = useState(trainData);
+  const [currentSeconds, setCurrentSeconds] = useState(trainData?.arribo?.segundos ?? 180);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { servicio, arribo, stationName } = trainData;
+  // Sync state whenever prop trainData changes
+  useEffect(() => {
+    setLiveTrain(trainData);
+    setCurrentSeconds(trainData?.arribo?.segundos ?? 180);
+  }, [trainData?.servicio?.numero, trainData?.stationId, trainData?.arribo?.segundos]);
+
+  // Second-by-second countdown decrementer (prevents freezing inside station view!)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSeconds((prev) => {
+        if (prev === undefined || prev === null) return 0;
+        return Math.max(0, prev - 1);
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [trainData?.servicio?.numero, trainData?.stationId]);
+
+  // Background auto-refresh from SOFSE every 15 seconds
+  const refreshArrivals = useCallback(async () => {
+    const stationId = liveTrain?.stationId || trainData?.stationId;
+    const trainNum = liveTrain?.servicio?.numero || trainData?.servicio?.numero;
+    if (!stationId) return;
+
+    try {
+      setIsRefreshing(true);
+      const data = await getStationArrivals(stationId);
+      const arrivals = Array.isArray(data) ? data : (data?.results || data?.arribos || []);
+      
+      const matched = arrivals.find((arr) => String(arr.servicio?.numero) === String(trainNum))
+        || arrivals.find((arr) => arr.servicio?.sentido === (liveTrain?.servicio?.sentido || trainData?.servicio?.sentido));
+
+      if (matched) {
+        setLiveTrain((prev) => ({
+          ...prev,
+          ...matched,
+          stationName: trainData.stationName,
+          stationId,
+        }));
+        if (matched.arribo?.segundos !== undefined && matched.arribo?.segundos !== null) {
+          setCurrentSeconds(matched.arribo.segundos);
+        }
+      }
+    } catch (err) {
+      console.warn('[TrainDetailSheet] Auto-refresh sync warning:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [liveTrain?.stationId, liveTrain?.servicio?.numero, liveTrain?.servicio?.sentido, trainData?.stationId, trainData?.servicio?.numero, trainData?.servicio?.sentido, trainData?.stationName]);
+
+  useEffect(() => {
+    const interval = setInterval(refreshArrivals, 15000);
+    return () => clearInterval(interval);
+  }, [refreshArrivals]);
+
+  // Compute journey dynamically based on live ticking seconds
+  const journey = calculateTrainJourney({
+    ...liveTrain,
+    stationName: trainData.stationName,
+    arribo: {
+      ...liveTrain?.arribo,
+      segundos: currentSeconds,
+    },
+  });
+
+  const { servicio, stationName } = liveTrain;
   const destination = journey?.destination || 'Destino final';
   const origin = journey?.origin || 'Origen';
   const trainNumber = journey?.trainNumber || 'S/N';
   const lineName = journey?.lineName || 'Línea';
-  const seconds = arribo?.segundos ?? 180;
-  const platform = arribo?.anden?.nombre || '1';
+  const seconds = currentSeconds;
+  const platform = liveTrain?.arribo?.anden?.nombre || '1';
   const isCancelled = !!servicio?.cancelacion;
   const delayMsg = servicio?.leyenda || (isCancelled ? 'Servicio Cancelado' : 'A horario');
 
   const handleTrackToggle = () => {
     triggerHaptic('medium');
     playChimeSound('arrival');
-    onTrackTrain(trainData);
+    onTrackTrain({
+      ...liveTrain,
+      arribo: { ...liveTrain?.arribo, segundos: currentSeconds },
+      stationName,
+    });
   };
 
   const handleNotificationReminder = () => {
@@ -127,9 +199,22 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
               EN VIVO
             </span>
           </div>
-          <button className="close-round-btn" onClick={onClose} aria-label="Cerrar">
-            <X size={16} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              className="fav-button"
+              style={{ width: '32px', height: '32px' }}
+              onClick={() => {
+                triggerHaptic('light');
+                refreshArrivals();
+              }}
+              title="Actualizar arribo ahora"
+            >
+              <RotateCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+            </button>
+            <button className="close-round-btn" onClick={onClose} aria-label="Cerrar">
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         <div className="sheet-content">
@@ -143,7 +228,7 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
             </div>
           </div>
 
-          {/* Real-time Journey Live Status Card (Similar to Trenes Argentinos app) */}
+          {/* Real-time Journey Live Status Card */}
           <div
             className="ios-card"
             style={{
@@ -163,7 +248,7 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#8e8e93' }}>
                 <Gauge size={14} style={{ color: '#0a84ff' }} />
-                <span>Velocidad: ~{journey?.speedKmH || 54} km/h</span>
+                <span>Velocidad: ~{journey?.speedKmH ?? 43} km/h</span>
               </div>
             </div>
 

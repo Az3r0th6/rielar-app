@@ -398,9 +398,15 @@ app.get('/api/reports', (req, res) => {
   res.json({ count: inMemoryReports.length, reports: inMemoryReports.slice(0, 50) });
 });
 
-// Health check
+// Health check & keep-alive target
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime(), hasToken: !!cachedToken });
+  res.json({
+    status: 'ok',
+    service: 'RielAR Backend Engine',
+    timestamp: new Date().toISOString(),
+    uptime: Math.round(process.uptime()),
+    hasToken: !!cachedToken,
+  });
 });
 
 // Serve frontend build static files
@@ -416,4 +422,21 @@ app.get('*', (req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`[RielAR Production Server] Running on port ${PORT}`);
+
+  // Render Free-Tier Keep-Alive Engine
+  // Free tier instances sleep after 15 min of zero requests.
+  // Pinging /api/health every 12 minutes prevents cold starts 24/7.
+  const keepAliveUrl = process.env.RENDER_EXTERNAL_URL || process.env.APP_URL;
+  if (keepAliveUrl) {
+    console.log(`[RielAR Keep-Alive] Active for host: ${keepAliveUrl}`);
+    setInterval(async () => {
+      try {
+        const pingTarget = `${keepAliveUrl.replace(/\/$/, '')}/api/health`;
+        const r = await fetch(pingTarget);
+        console.log(`[RielAR Keep-Alive] Heartbeat pinged ${pingTarget} -> ${r.status}`);
+      } catch (err) {
+        console.warn(`[RielAR Keep-Alive] Ping error:`, err.message);
+      }
+    }, 12 * 60 * 1000);
+  }
 });

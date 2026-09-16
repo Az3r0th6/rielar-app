@@ -38,6 +38,29 @@ export default function FavoritesView({
     return () => clearInterval(interval);
   }, [favorites]);
 
+  // Second-by-second countdown decrementer for Favorites
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setFavoriteArrivals((prev) => {
+        const next = {};
+        Object.entries(prev).forEach(([k, list]) => {
+          next[k] = (list || []).map((t) => {
+            const sec = t.arribo?.segundos;
+            if (sec !== undefined && sec > 0) {
+              return {
+                ...t,
+                arribo: { ...t.arribo, segundos: sec - 1 },
+              };
+            }
+            return t;
+          });
+        });
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div>
       {/* Header */}

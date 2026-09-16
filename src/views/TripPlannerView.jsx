@@ -51,6 +51,26 @@ export default function TripPlannerView({ onSelectTrain }) {
     }
   };
 
+  // Second-by-second countdown decrementer for Trip Planner results
+  useEffect(() => {
+    if (!results.length) return;
+    const timer = setInterval(() => {
+      setResults((prev) =>
+        prev.map((t) => {
+          const sec = t.arribo?.segundos;
+          if (sec !== undefined && sec > 0) {
+            return {
+              ...t,
+              arribo: { ...t.arribo, segundos: sec - 1 },
+            };
+          }
+          return t;
+        })
+      );
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [results.length]);
+
   const originStation = PRELOADED_STATIONS.find((s) => String(s.id) === String(originId));
   const destStation = PRELOADED_STATIONS.find((s) => String(s.id) === String(destId));
 
