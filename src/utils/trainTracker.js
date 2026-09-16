@@ -88,10 +88,24 @@ export function calculateTrainJourney(trainData) {
     const destGeo = findStationByName(destName, lineId) || PRELOADED_STATIONS[16] || origGeo;
     const targetGeo = findStationByName(stationName, lineId) || origGeo;
 
-    // Filter stations belonging to the same line/ramal between origin and destination
-    const lineStations = PRELOADED_STATIONS.filter(s => s.lineId === (origGeo.lineId || 5));
-    if (lineStations.length > 2) {
-      stops = lineStations.slice(0, 10).map(s => ({
+    // Filter stations belonging to the specific branch between origin and destination
+    const lineStations = PRELOADED_STATIONS.filter(s => s.lineId === (origGeo.lineId || lineId || 5));
+    const targetRamal = origGeo.ramal || destGeo.ramal;
+    let branchStations = targetRamal ? lineStations.filter(s => s.ramal === targetRamal) : lineStations;
+
+    const origIdx = branchStations.findIndex(s => cleanName(s.name) === cleanName(origGeo.name));
+    const destIdx = branchStations.findIndex(s => cleanName(s.name) === cleanName(destGeo.name));
+
+    if (origIdx !== -1 && destIdx !== -1) {
+      if (origIdx > destIdx) {
+        branchStations = branchStations.slice(destIdx, origIdx + 1).reverse();
+      } else {
+        branchStations = branchStations.slice(origIdx, destIdx + 1);
+      }
+    }
+
+    if (branchStations.length >= 2) {
+      stops = branchStations.map(s => ({
         id: s.id,
         name: s.name,
         lat: s.lat,
@@ -249,10 +263,11 @@ export function getActiveNetworkTrains() {
       branch: 'Retiro - Tigre',
       origin: 'Retiro',
       destination: 'Tigre',
-      lat: -34.5492,
-      lng: -58.4635,
-      currentStation: 'Núñez',
+      lat: -34.54263,
+      lng: -58.46529,
+      currentStation: 'Nuñez',
       nextStation: 'Rivadavia',
+      progressRatio: 0.5,
       status: 'En viaje hacia Tigre',
       speed: 43,
       heading: 'Norte',
@@ -266,10 +281,11 @@ export function getActiveNetworkTrains() {
       branch: 'Tigre - Retiro',
       origin: 'Tigre',
       destination: 'Retiro',
-      lat: -34.4756,
-      lng: -58.5092,
+      lat: -34.47587,
+      lng: -58.50890,
       currentStation: 'San Isidro C',
       nextStation: 'Acassuso',
+      progressRatio: 0.5,
       status: 'En viaje hacia Retiro',
       speed: 42,
       heading: 'Sur',
@@ -282,11 +298,12 @@ export function getActiveNetworkTrains() {
       lineName: 'Mitre',
       branch: 'Retiro - J. L. Suárez',
       origin: 'Retiro',
-      destination: 'J. L. Suárez',
-      lat: -34.5772,
-      lng: -58.4891,
+      destination: 'J.L. Suárez',
+      lat: -34.57040,
+      lng: -58.45533,
       currentStation: 'Colegiales',
       nextStation: 'Belgrano R',
+      progressRatio: 0.5,
       status: 'En viaje hacia J. L. Suárez',
       speed: 41,
       heading: 'Noroeste',
@@ -298,12 +315,13 @@ export function getActiveNetworkTrains() {
       lineId: 5,
       lineName: 'Mitre',
       branch: 'J. L. Suárez - Retiro',
-      origin: 'J. L. Suárez',
+      origin: 'J.L. Suárez',
       destination: 'Retiro',
-      lat: -34.5598,
-      lng: -58.5273,
+      lat: -34.57753,
+      lng: -58.52399,
       currentStation: 'San Martín',
       nextStation: 'Miguelete',
+      progressRatio: 0.5,
       status: 'En viaje hacia Retiro',
       speed: 44,
       heading: 'Sureste',
@@ -317,10 +335,11 @@ export function getActiveNetworkTrains() {
       branch: 'Retiro - Bartolomé Mitre',
       origin: 'Retiro',
       destination: 'Bmé. Mitre',
-      lat: -34.5412,
-      lng: -58.4981,
+      lat: -34.55998,
+      lng: -58.48085,
       currentStation: 'Coghlan',
       nextStation: 'Saavedra',
+      progressRatio: 0.5,
       status: 'En viaje hacia Bmé. Mitre',
       speed: 39,
       heading: 'Norte',
@@ -336,10 +355,11 @@ export function getActiveNetworkTrains() {
       branch: 'Once - Moreno',
       origin: 'Once',
       destination: 'Moreno',
-      lat: -34.6289,
-      lng: -58.4647,
+      lat: -34.63005,
+      lng: -58.47333,
       currentStation: 'Flores',
       nextStation: 'Floresta',
+      progressRatio: 0.5,
       status: 'En viaje hacia Moreno',
       speed: 45,
       heading: 'Oeste',
@@ -353,10 +373,11 @@ export function getActiveNetworkTrains() {
       branch: 'Moreno - Once',
       origin: 'Moreno',
       destination: 'Once',
-      lat: -34.6465,
-      lng: -58.6058,
+      lat: -34.64660,
+      lng: -58.60591,
       currentStation: 'Morón',
       nextStation: 'Haedo',
+      progressRatio: 0.5,
       status: 'En viaje hacia Once',
       speed: 46,
       heading: 'Este',
@@ -370,12 +391,13 @@ export function getActiveNetworkTrains() {
       lineId: 11,
       lineName: 'Roca',
       branch: 'Constitución - La Plata',
-      origin: 'Plaza Constitución',
+      origin: 'Constitución',
       destination: 'La Plata',
-      lat: -34.7214,
-      lng: -58.2541,
+      lat: -34.73810,
+      lng: -58.24754,
       currentStation: 'Quilmes',
       nextStation: 'Ezpeleta',
+      progressRatio: 0.5,
       status: 'En viaje hacia La Plata',
       speed: 44,
       heading: 'Sur',
@@ -388,11 +410,12 @@ export function getActiveNetworkTrains() {
       lineName: 'Roca',
       branch: 'La Plata - Constitución',
       origin: 'La Plata',
-      destination: 'Plaza Constitución',
-      lat: -34.7925,
-      lng: -58.0754,
+      destination: 'Constitución',
+      lat: -34.85775,
+      lng: -58.05843,
       currentStation: 'City Bell',
       nextStation: 'Villa Elisa',
+      progressRatio: 0.5,
       status: 'En viaje hacia Constitución',
       speed: 45,
       heading: 'Noroeste',
@@ -404,12 +427,13 @@ export function getActiveNetworkTrains() {
       lineId: 11,
       lineName: 'Roca',
       branch: 'Constitución - Alejandro Korn',
-      origin: 'Plaza Constitución',
+      origin: 'Constitución',
       destination: 'Alejandro Korn',
-      lat: -34.7692,
-      lng: -58.3966,
+      lat: -34.76921,
+      lng: -58.39661,
       currentStation: 'Lomas de Zamora',
       nextStation: 'Temperley',
+      progressRatio: 0.5,
       status: 'En viaje hacia Korn',
       speed: 43,
       heading: 'Sur',
@@ -421,12 +445,13 @@ export function getActiveNetworkTrains() {
       lineId: 11,
       lineName: 'Roca',
       branch: 'Constitución - Ezeiza',
-      origin: 'Plaza Constitución',
+      origin: 'Constitución',
       destination: 'Ezeiza',
-      lat: -34.8342,
-      lng: -58.4962,
+      lat: -34.82383,
+      lng: -58.48293,
       currentStation: 'Monte Grande',
       nextStation: 'El Jagüel',
+      progressRatio: 0.5,
       status: 'En viaje hacia Ezeiza',
       speed: 44,
       heading: 'Suroeste',
@@ -442,10 +467,11 @@ export function getActiveNetworkTrains() {
       branch: 'Retiro - Pilar',
       origin: 'Retiro',
       destination: 'Pilar',
-      lat: -34.5886,
-      lng: -58.4371,
+      lat: -34.58620,
+      lng: -58.43768,
       currentStation: 'Palermo',
       nextStation: 'Villa Crespo',
+      progressRatio: 0.5,
       status: 'En viaje hacia Pilar',
       speed: 43,
       heading: 'Oeste',
@@ -459,10 +485,11 @@ export function getActiveNetworkTrains() {
       branch: 'Pilar - Retiro',
       origin: 'Pilar',
       destination: 'Retiro',
-      lat: -34.6036,
-      lng: -58.5387,
+      lat: -34.60366,
+      lng: -58.53874,
       currentStation: 'Caseros',
       nextStation: 'Devoto',
+      progressRatio: 0.5,
       status: 'En viaje hacia Retiro',
       speed: 44,
       heading: 'Este',
@@ -478,10 +505,11 @@ export function getActiveNetworkTrains() {
       branch: 'Sáenz - González Catán',
       origin: 'Dr. Sáenz',
       destination: 'González Catán',
-      lat: -34.6853,
-      lng: -58.4984,
-      currentStation: 'Villegas',
+      lat: -34.70676,
+      lng: -58.56964,
+      currentStation: 'Justo Villegas',
       nextStation: 'Isidro Casanova',
+      progressRatio: 0.5,
       status: 'En viaje hacia G. Catán',
       speed: 40,
       heading: 'Suroeste',
@@ -497,10 +525,11 @@ export function getActiveNetworkTrains() {
       branch: 'Maipú - Delta',
       origin: 'Maipú',
       destination: 'Delta',
-      lat: -34.4654,
-      lng: -58.5081,
+      lat: -34.45805,
+      lng: -58.51591,
       currentStation: 'San Isidro R',
       nextStation: 'Punta Chica',
+      progressRatio: 0.5,
       status: 'En viaje hacia Delta',
       speed: 34,
       heading: 'Noroeste',
@@ -508,5 +537,18 @@ export function getActiveNetworkTrains() {
     },
   ];
 
-  return activeTrains;
+  // Dynamically lock each circulating train directly to its railway corridor between stations
+  return activeTrains.map((train) => {
+    const curr = findStationByName(train.currentStation, train.lineId);
+    const next = findStationByName(train.nextStation, train.lineId);
+    if (curr && next) {
+      const ratio = train.progressRatio || 0.5;
+      return {
+        ...train,
+        lat: Number((curr.lat + (next.lat - curr.lat) * ratio).toFixed(5)),
+        lng: Number((curr.lng + (next.lng - curr.lng) * ratio).toFixed(5)),
+      };
+    }
+    return train;
+  });
 }
