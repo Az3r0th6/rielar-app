@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import IPhoneFrame from './components/iPhoneFrame';
 import TabBar from './components/TabBar';
 import TrainDetailSheet from './components/TrainDetailSheet';
+import ErrorBoundary from './components/ErrorBoundary';
 import NearbyView from './views/NearbyView';
 import MapView from './views/MapView';
 import LineStatusView from './views/LineStatusView';
@@ -250,43 +251,45 @@ export default function App() {
         />
       }
     >
-      {/* Active Tab View */}
-      {activeTab === 'nearby' && (
-        <NearbyView
-          userCoords={userCoords}
-          favorites={favorites}
-          onToggleFavorite={handleToggleFavorite}
-          onSelectTrain={(train) => setSelectedTrain(train)}
-        />
-      )}
+      {/* Active Tab View with Error Boundary protection */}
+      <ErrorBoundary key={activeTab} onNavigateHome={() => handleTabChange('nearby')}>
+        {activeTab === 'nearby' && (
+          <NearbyView
+            userCoords={userCoords}
+            favorites={favorites}
+            onToggleFavorite={handleToggleFavorite}
+            onSelectTrain={(train) => setSelectedTrain(train)}
+          />
+        )}
 
-      {activeTab === 'map' && (
-        <MapView
-          userCoords={userCoords}
-          onSelectStation={(st) => {
-            setActiveTab('nearby');
-          }}
-          onSelectTrain={(train) => setSelectedTrain(train)}
-        />
-      )}
+        {activeTab === 'map' && (
+          <MapView
+            userCoords={userCoords}
+            onSelectStation={(st) => {
+              setActiveTab('nearby');
+            }}
+            onSelectTrain={(train) => setSelectedTrain(train)}
+          />
+        )}
 
-      {activeTab === 'lines' && <LineStatusView />}
+        {activeTab === 'lines' && <LineStatusView />}
 
-      {activeTab === 'planner' && (
-        <TripPlannerView onSelectTrain={(train) => setSelectedTrain(train)} />
-      )}
+        {activeTab === 'planner' && (
+          <TripPlannerView onSelectTrain={(train) => setSelectedTrain(train)} />
+        )}
 
-      {activeTab === 'favorites' && (
-        <FavoritesView
-          favorites={favorites}
-          onRemoveFavorite={handleRemoveFavorite}
-          onSelectStation={(st) => setActiveTab('nearby')}
-        />
-      )}
+        {activeTab === 'favorites' && (
+          <FavoritesView
+            favorites={favorites}
+            onRemoveFavorite={handleRemoveFavorite}
+            onSelectStation={(st) => setActiveTab('nearby')}
+          />
+        )}
 
-      {activeTab === 'more' && (
-        <MoreView onInstallApp={handleInstallApp} />
-      )}
+        {activeTab === 'more' && (
+          <MoreView onInstallApp={handleInstallApp} />
+        )}
+      </ErrorBoundary>
 
       {/* Train Detail Modal Bottom Sheet */}
       <TrainDetailSheet

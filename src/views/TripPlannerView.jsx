@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowUpDown,
   Search,
@@ -15,7 +15,7 @@ import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { triggerHaptic, playChimeSound } from '../utils/notifications';
 
 export default function TripPlannerView({ onSelectTrain }) {
-  const [originId, setOriginId] = useState('332'); // Default Retiro
+  const [originId, setOriginId] = useState('332'); // Default Retiro (Mitre)
   const [destId, setDestId] = useState('389'); // Default Tigre
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -57,7 +57,7 @@ export default function TripPlannerView({ onSelectTrain }) {
     const timer = setInterval(() => {
       setResults((prev) =>
         prev.map((t) => {
-          const sec = t.arribo?.segundos;
+          const sec = t?.arribo?.segundos;
           if (sec !== undefined && sec > 0) {
             return {
               ...t,
@@ -77,8 +77,8 @@ export default function TripPlannerView({ onSelectTrain }) {
   const quickRoutes = [
     { fromId: '332', toId: '389', label: 'Retiro ➔ Tigre' },
     { fromId: '332', toId: '357', label: 'Retiro ➔ San Isidro' },
-    { fromId: '295', toId: '277', label: 'Once ➔ Moreno' },
-    { fromId: '95', toId: '228', label: 'Const. ➔ La Plata' },
+    { fromId: '293', toId: '278', label: 'Once ➔ Moreno' },
+    { fromId: '93', toId: '217', label: 'Const. ➔ La Plata' },
   ];
 
   return (
@@ -122,9 +122,9 @@ export default function TripPlannerView({ onSelectTrain }) {
                   outline: 'none',
                 }}
               >
-                {PRELOADED_STATIONS.map((st) => (
-                  <option key={st.id} value={st.id} style={{ background: '#1c1c20' }}>
-                    {st.name} ({st.ramal})
+                {PRELOADED_STATIONS.map((st, idx) => (
+                  <option key={`${st.id}-${st.ramal || ''}-${idx}`} value={st.id} style={{ background: '#1c1c20' }}>
+                    {st.name} {st.ramal ? `(${st.ramal})` : ''}
                   </option>
                 ))}
               </select>
@@ -175,9 +175,9 @@ export default function TripPlannerView({ onSelectTrain }) {
                   outline: 'none',
                 }}
               >
-                {PRELOADED_STATIONS.map((st) => (
-                  <option key={st.id} value={st.id} style={{ background: '#1c1c20' }}>
-                    {st.name} ({st.ramal})
+                {PRELOADED_STATIONS.map((st, idx) => (
+                  <option key={`${st.id}-${st.ramal || ''}-${idx}`} value={st.id} style={{ background: '#1c1c20' }}>
+                    {st.name} {st.ramal ? `(${st.ramal})` : ''}
                   </option>
                 ))}
               </select>
@@ -265,6 +265,7 @@ export default function TripPlannerView({ onSelectTrain }) {
             </div>
           ) : (
             results.map((train, idx) => {
+              if (!train) return null;
               const seconds = train.arribo?.segundos;
               const platform = train.arribo?.anden?.nombre || '1';
               const departureTime = formatLocalTime(train.arribo?.salida?.programada);
@@ -277,11 +278,13 @@ export default function TripPlannerView({ onSelectTrain }) {
                   style={{ cursor: 'pointer', marginBottom: '10px' }}
                   onClick={() => {
                     triggerHaptic('light');
-                    onSelectTrain({
-                      ...train,
-                      stationName: originStation?.name || 'Origen',
-                      stationId: originId,
-                    });
+                    if (onSelectTrain) {
+                      onSelectTrain({
+                        ...train,
+                        stationName: originStation?.name || 'Origen',
+                        stationId: originId,
+                      });
+                    }
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
