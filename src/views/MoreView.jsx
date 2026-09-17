@@ -635,23 +635,6 @@ export default function MoreView({ onInstallApp }) {
                 </div>
               </div>
             </div>
-
-            {/* Technical stack highlight */}
-            <div
-              className="ios-card"
-              style={{
-                padding: '16px',
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-              }}
-            >
-              <div style={{ fontWeight: 700, fontSize: '13px', color: '#f5f5f7', marginBottom: '8px' }}>
-                Tecnología & Arquitectura
-              </div>
-              <div style={{ fontSize: '12px', color: '#8e8e93', lineHeight: 1.5 }}>
-                Desarrollado con React 18, Vite, Leaflet OpenStreetMap y Service Workers. Interfaz inspirada en Apple Human Interface Guidelines con paleta Dark Mode y micro-interacciones hápticas.
-              </div>
-            </div>
           </div>
         )}
       </div>
