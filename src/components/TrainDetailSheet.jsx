@@ -149,9 +149,8 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
       const trainNum = liveTrain?.servicio?.numero || trainData?.servicio?.numero;
       const sentido = liveTrain?.servicio?.sentido || trainData?.servicio?.sentido;
 
-      const matched = arrivals.find((arr) => String(arr.servicio?.numero).trim() === String(trainNum).trim())
-        || arrivals.find((arr) => arr.servicio?.sentido && arr.servicio?.sentido === sentido)
-        || arrivals[0];
+      // 1. Match ONLY the specific train number being tracked!
+      const matched = arrivals.find((arr) => String(arr.servicio?.numero).trim() === String(trainNum).trim());
 
       if (matched) {
         setLiveTrain((prev) => ({
@@ -170,7 +169,7 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
           playChimeSound('success');
           setJustRefreshed(true);
           const arrivalText = (newSec !== undefined && newSec <= 30)
-            ? '¡Tren en andén o ingresando ahora!'
+            ? `¡Tren en andén en ${stName || 'la estación'}!`
             : `Arribo sincronizado: llega en ${formatArrivalSeconds(newSec ?? 180)}`;
           setSyncNotice({ error: false, text: arrivalText });
           setTimeout(() => {
@@ -179,11 +178,32 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
           }, 3200);
         }
       } else {
-        if (isManual) {
+        // Train #trainNum is not in future arrivals at this station -> it has already ARRIVED!
+        // NEVER replace with another train number!
+        if (currentSeconds <= 90) {
+          setCurrentSeconds(0);
+          setLiveTrain((prev) => ({
+            ...prev,
+            arribo: {
+              ...prev?.arribo,
+              segundos: 0,
+            },
+          }));
+          if (isManual) {
+            triggerHaptic('success');
+            playChimeSound('success');
+            setJustRefreshed(true);
+            setSyncNotice({ error: false, text: `¡Tren arribó a ${stName || 'la estación'}!` });
+            setTimeout(() => {
+              setJustRefreshed(false);
+              setSyncNotice(null);
+            }, 3200);
+          }
+        } else if (isManual) {
           triggerHaptic('medium');
           playChimeSound('success');
           setJustRefreshed(true);
-          setSyncNotice({ error: false, text: 'Horarios confirmados con la red en tiempo real' });
+          setSyncNotice({ error: false, text: `Horario confirmado: llega en ${formatArrivalSeconds(currentSeconds)}` });
           setTimeout(() => {
             setJustRefreshed(false);
             setSyncNotice(null);
@@ -201,7 +221,7 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
     } finally {
       setIsRefreshing(false);
     }
-  }, [liveTrain, trainData]);
+  }, [liveTrain, trainData, currentSeconds]);
 
   useEffect(() => {
     const interval = setInterval(() => refreshArrivals(false), 15000);
@@ -211,7 +231,7 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
   // Compute journey dynamically based on live ticking seconds
   const journey = calculateTrainJourney({
     ...liveTrain,
-    stationName: trainData.stationName,
+    stationName: liveTrain?.stationName || trainData?.stationName,
     arribo: {
       ...liveTrain?.arribo,
       segundos: currentSeconds,

@@ -2,43 +2,75 @@ import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import { getDistanceMeters } from './geo';
 
 /**
- * Normalizes station names for fuzzy comparison
+ * Normalizes station names for fuzzy comparison and acronym resolution
  */
-function cleanName(name = '') {
-  return name
+export function normalizeStationName(name = '') {
+  return String(name)
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\bv\.\s*/g, 'villa ')
+    .replace(/\bvilla\s+/g, 'villa ')
+    .replace(/\bgral\.\s*/g, 'general ')
+    .replace(/\bgeneral\s+/g, 'general ')
+    .replace(/\bj\.\s*l\.\s*/g, 'j l ')
+    .replace(/\bl\.\s*m\.\s*/g, 'l m ')
+    .replace(/\bdr\.\s*/g, 'dr ')
     .replace(/[^a-z0-9]/g, '');
 }
 
 /**
- * Matches a station by name in the master stations catalog
+ * High-precision station resolver supporting ID, object or name
  */
-export function findStationByName(name, lineId = null) {
-  if (!name) return null;
-  const target = cleanName(name);
-  
-  // First attempt: exact cleaned match with line filter
+export function findStation(stObjOrNameOrId, lineId = null) {
+  if (!stObjOrNameOrId) return null;
+
+  // 1. If passed an object containing station identifiers
+  if (typeof stObjOrNameOrId === 'object') {
+    const rawId = stObjOrNameOrId.idElemento || stObjOrNameOrId.id_estacion || stObjOrNameOrId.id;
+    if (rawId) {
+      const match = PRELOADED_STATIONS.find(s => s.id === Number(rawId));
+      if (match) return match;
+    }
+    const name = stObjOrNameOrId.nombre || stObjOrNameOrId.name;
+    return findStation(name, lineId || stObjOrNameOrId.lineId);
+  }
+
+  // 2. If passed a number or numeric string (station ID)
+  if (typeof stObjOrNameOrId === 'number' || /^\d+$/.test(String(stObjOrNameOrId).trim())) {
+    const match = PRELOADED_STATIONS.find(s => s.id === Number(stObjOrNameOrId));
+    if (match) return match;
+  }
+
+  // 3. Match by name
+  const target = normalizeStationName(stObjOrNameOrId);
+  if (!target) return null;
+
+  // Attempt A: Exact normalized match with line filter
   let match = PRELOADED_STATIONS.find(s => {
-    const sClean = cleanName(s.name);
-    return sClean === target && (!lineId || s.lineId === lineId);
+    return normalizeStationName(s.name) === target && (!lineId || s.lineId === lineId);
   });
   if (match) return match;
 
-  // Second attempt: partial contains
+  // Attempt B: Partial contains match with line filter
   match = PRELOADED_STATIONS.find(s => {
-    const sClean = cleanName(s.name);
-    return (sClean.includes(target) || target.includes(sClean)) && (!lineId || s.lineId === lineId);
+    const sNorm = normalizeStationName(s.name);
+    return (sNorm.includes(target) || target.includes(sNorm)) && (!lineId || s.lineId === lineId);
   });
   if (match) return match;
 
-  // Third attempt: any line
+  // Attempt C: Exact normalized match across any line
+  match = PRELOADED_STATIONS.find(s => normalizeStationName(s.name) === target);
+  if (match) return match;
+
+  // Attempt D: Partial contains match across any line
   return PRELOADED_STATIONS.find(s => {
-    const sClean = cleanName(s.name);
-    return sClean === target || sClean.includes(target) || target.includes(sClean);
+    const sNorm = normalizeStationName(s.name);
+    return sNorm.includes(target) || target.includes(sNorm);
   }) || null;
 }
+
+export const findStationByName = findStation;
 
 /**
  * Computes the real-time train journey, current physical location,
@@ -69,10 +101,10 @@ export function calculateTrainJourney(trainData) {
 
   if (rawStops.length >= 2) {
     stops = rawStops.map((st, idx) => {
-      const geo = findStationByName(st.nombre, lineId);
+      const geo = findStation(st, lineId);
       return {
-        id: st.id_estacion || geo?.id || idx,
-        name: st.nombre,
+        id: st.idElemento || st.id_estacion || geo?.id || idx,
+        name: geo?.name || st.nombre,
         lat: geo?.lat || -34.59091,
         lng: geo?.lng || -58.37505,
         anden: st.anden?.nombre || '1',
@@ -84,17 +116,17 @@ export function calculateTrainJourney(trainData) {
     });
   } else {
     // Reconstruct route based on origin & destination from master catalog
-    const origGeo = findStationByName(origName, lineId) || PRELOADED_STATIONS[0];
-    const destGeo = findStationByName(destName, lineId) || PRELOADED_STATIONS[16] || origGeo;
-    const targetGeo = findStationByName(stationName, lineId) || origGeo;
+    const origGeo = findStation(origName, lineId) || PRELOADED_STATIONS[0];
+    const destGeo = findStation(destName, lineId) || PRELOADED_STATIONS[16] || origGeo;
+    const targetGeo = findStation(stationName, lineId) || origGeo;
 
     // Filter stations belonging to the specific branch between origin and destination
     const lineStations = PRELOADED_STATIONS.filter(s => s.lineId === (origGeo.lineId || lineId || 5));
     const targetRamal = origGeo.ramal || destGeo.ramal;
     let branchStations = targetRamal ? lineStations.filter(s => s.ramal === targetRamal) : lineStations;
 
-    const origIdx = branchStations.findIndex(s => cleanName(s.name) === cleanName(origGeo.name));
-    const destIdx = branchStations.findIndex(s => cleanName(s.name) === cleanName(destGeo.name));
+    const origIdx = branchStations.findIndex(s => normalizeStationName(s.name) === normalizeStationName(origGeo.name));
+    const destIdx = branchStations.findIndex(s => normalizeStationName(s.name) === normalizeStationName(destGeo.name));
 
     if (origIdx !== -1 && destIdx !== -1) {
       if (origIdx > destIdx) {
@@ -121,84 +153,143 @@ export function calculateTrainJourney(trainData) {
     }
   }
 
-  // Find index of the queried station
-  let targetIndex = stops.findIndex(s => cleanName(s.name) === cleanName(stationName));
+  // Target index for the station the user clicked or is currently observing
+  const targetStationId = trainData?.stationId;
+  let targetIndex = -1;
+
+  if (targetStationId) {
+    targetIndex = stops.findIndex(s => Number(s.id) === Number(targetStationId));
+  }
+
+  if (targetIndex === -1 && stationName) {
+    const targetNorm = normalizeStationName(stationName);
+    targetIndex = stops.findIndex(s => {
+      const sNorm = normalizeStationName(s.name);
+      return sNorm === targetNorm || sNorm.includes(targetNorm) || targetNorm.includes(sNorm);
+    });
+  }
+
   if (targetIndex === -1) {
     targetIndex = Math.min(Math.floor(stops.length / 2), stops.length - 1);
   }
 
-  // Calculate current train position along the track
-  // If secondsToTarget > 0, train is between targetIndex - 1 and targetIndex
+  const targetStop = stops[targetIndex] || stops[0];
+
+  // Check if we have individual station ETA seconds from SOFSE (servicio.estaciones)
+  const hasStopsSeconds = stops.some(s => s.secondsToStop !== undefined && s.secondsToStop !== null);
+
+  let trainLat = targetStop.lat;
+  let trainLng = targetStop.lng;
   let currentStationIndex = targetIndex;
   let prevStationIndex = Math.max(0, targetIndex - 1);
-  let progressRatioInLeg = 0.7; // default 70% of distance travelled towards target station
+  let statusBadge = 'En viaje';
+  let statusDetail = '';
+  let speedKmH = 43;
+  let isAtPlatform = false;
 
+  // PRIORITY A: Direct synchronization with the observed station countdown (secondsToTarget)
+  // When secondsToTarget <= 25 (e.g. 0 to 25 segs), the train is AT THE PLATFORM of stationName!
   if (secondsToTarget <= 25) {
-    // Train is at the platform
-    progressRatioInLeg = 0.98;
+    trainLat = targetStop.lat;
+    trainLng = targetStop.lng;
     currentStationIndex = targetIndex;
+    prevStationIndex = Math.max(0, targetIndex - 1);
+    isAtPlatform = true;
+    statusBadge = 'En andén';
+    statusDetail = `Detenido en Andén ${targetStop.anden || '1'} de ${targetStop.name}`;
+    speedKmH = 0;
+  } else if (secondsToTarget <= 65) {
+    // Train is decelerating and entering the platform of stationName
+    const prevStop = stops[Math.max(0, targetIndex - 1)] || targetStop;
+    const progress = Math.max(0.65, Math.min(0.99, 1 - ((secondsToTarget - 25) / 40)));
+    trainLat = prevStop.lat + (targetStop.lat - prevStop.lat) * progress;
+    trainLng = prevStop.lng + (targetStop.lng - prevStop.lng) * progress;
+    currentStationIndex = targetIndex;
+    prevStationIndex = Math.max(0, targetIndex - 1);
+    statusBadge = 'Ingresando a andén';
+    statusDetail = `Ingresando a ${targetStop.name} en ${Math.round(secondsToTarget)} seg`;
+    speedKmH = Math.round(12 + ((secondsToTarget - 25) / 40) * 14); // 12-26 km/h
+  } else if (hasStopsSeconds) {
+    // PRIORITY B: Calculate real physical position across the entire route from SOFSE station-by-station seconds!
+    const platformStopIdx = stops.findIndex(
+      s => s.secondsToStop !== undefined && s.secondsToStop <= 25 && s.secondsToStop >= -35
+    );
+
+    if (platformStopIdx !== -1) {
+      const pStop = stops[platformStopIdx];
+      trainLat = pStop.lat;
+      trainLng = pStop.lng;
+      currentStationIndex = platformStopIdx;
+      prevStationIndex = Math.max(0, platformStopIdx - 1);
+      isAtPlatform = true;
+      statusBadge = 'En andén';
+      statusDetail = `Detenido en Andén ${pStop.anden || '1'} de ${pStop.name}`;
+      speedKmH = 0;
+    } else {
+      let nextIdx = stops.findIndex(s => s.secondsToStop !== undefined && s.secondsToStop > 25);
+      if (nextIdx === -1) {
+        // All stops passed: train is at final destination
+        const lastStop = stops[stops.length - 1];
+        trainLat = lastStop.lat;
+        trainLng = lastStop.lng;
+        currentStationIndex = stops.length - 1;
+        prevStationIndex = Math.max(0, stops.length - 2);
+        statusBadge = 'Servicio finalizado';
+        statusDetail = `Arribó a destino final: ${lastStop.name}`;
+        speedKmH = 0;
+      } else if (nextIdx === 0) {
+        // Departing origin
+        const firstStop = stops[0];
+        trainLat = firstStop.lat;
+        trainLng = firstStop.lng;
+        currentStationIndex = 0;
+        prevStationIndex = 0;
+        statusBadge = 'En andén';
+        statusDetail = `Saliendo de cabecera: ${firstStop.name}`;
+        speedKmH = 15;
+      } else {
+        const prevStop = stops[nextIdx - 1];
+        const nextStop = stops[nextIdx];
+        currentStationIndex = nextIdx;
+        prevStationIndex = nextIdx - 1;
+
+        const legDurationSec = Math.max(60, nextStop.secondsToStop - (prevStop.secondsToStop || -180));
+        const elapsedSec = Math.max(0, -(prevStop.secondsToStop || 0));
+        const progress = Math.max(0.05, Math.min(0.95, elapsedSec / legDurationSec));
+
+        trainLat = prevStop.lat + (nextStop.lat - prevStop.lat) * progress;
+        trainLng = prevStop.lng + (nextStop.lng - prevStop.lng) * progress;
+
+        const minToNext = Math.ceil(nextStop.secondsToStop / 60);
+        statusBadge = 'En viaje';
+        statusDetail = `En trayecto hacia ${nextStop.name} (llega en ~${minToNext} min)`;
+        speedKmH = 43;
+      }
+    }
   } else {
-    // Estimate leg progress based on arrival seconds (typically 3-5 min per station)
-    const legDurationSec = 240;
-    progressRatioInLeg = Math.max(0.08, Math.min(0.95, 1 - (secondsToTarget / legDurationSec)));
+    // PRIORITY C: Fallback when individual station seconds are not provided
+    const legDiff = Math.max(0, Math.round(secondsToTarget / 150));
+    const activeIdx = Math.max(0, targetIndex - legDiff);
+    const pStop = stops[Math.max(0, activeIdx - 1)] || stops[0];
+    const nStop = stops[activeIdx] || stops[stops.length - 1];
+
+    currentStationIndex = activeIdx;
+    prevStationIndex = Math.max(0, activeIdx - 1);
+    const progress = Math.max(0.1, Math.min(0.9, 1 - ((secondsToTarget % 150) / 150)));
+
+    trainLat = pStop.lat + (nStop.lat - pStop.lat) * progress;
+    trainLng = pStop.lng + (nStop.lng - pStop.lng) * progress;
+    statusBadge = 'En viaje';
+    statusDetail = `En trayecto hacia ${nStop.name} (llega en ~${Math.ceil(secondsToTarget / 60)} min)`;
+    speedKmH = 43;
   }
-
-  const prevStop = stops[prevStationIndex] || stops[0];
-  const nextStop = stops[targetIndex] || stops[stops.length - 1];
-
-  // Interpolate GPS coordinates of the train
-  const trainLat = prevStop.lat + (nextStop.lat - prevStop.lat) * progressRatioInLeg;
-  const trainLng = prevStop.lng + (nextStop.lng - prevStop.lng) * progressRatioInLeg;
 
   // Calculate total route progress
   const totalStops = stops.length;
-  const stopsPassed = prevStationIndex;
   const overallProgress = Math.min(
     100,
-    Math.max(5, Math.round(((stopsPassed + progressRatioInLeg) / Math.max(1, totalStops - 1)) * 100))
+    Math.max(5, Math.round((currentStationIndex / Math.max(1, totalStops - 1)) * 100))
   );
-
-  // Dynamic Physical Speed Model calibrated to real AMBA commuter rail data:
-  // Operating average is 40-45 km/h (26-28 mph, matching user measured ~27 mph = 43.45 km/h)
-  const legDistanceMeters = (prevStop && nextStop && prevStop.id !== nextStop.id)
-    ? getDistanceMeters(prevStop.lat, prevStop.lng, nextStop.lat, nextStop.lng)
-    : 1800;
-
-  let baseCruisingSpeed = 43;
-  if (legDistanceMeters > 2800) {
-    baseCruisingSpeed = 45;
-  } else if (legDistanceMeters < 1400) {
-    baseCruisingSpeed = 41;
-  }
-
-  // Subtle physics-based variance along the run (+/- 1.5 km/h)
-  const dynamicJitter = Math.round(Math.sin(progressRatioInLeg * Math.PI) * 2);
-  const targetCruising = Math.max(38, Math.min(48, baseCruisingSpeed + dynamicJitter));
-
-  let statusBadge = '';
-  let statusDetail = '';
-  let speedKmH = 0;
-
-  if (secondsToTarget <= 25) {
-    statusBadge = 'En andén';
-    statusDetail = `Detenido en Andén ${nextStop.anden || '1'} de ${nextStop.name}`;
-    speedKmH = 0;
-  } else if (secondsToTarget <= 60) {
-    statusBadge = 'Ingresando a andén';
-    statusDetail = `Ingresando a ${nextStop.name} en ${Math.round(secondsToTarget)} seg`;
-    // Decelerating into the platform: 14 to 26 km/h
-    speedKmH = Math.round(14 + ((secondsToTarget - 25) / 35) * 12);
-  } else if (secondsToTarget <= 110) {
-    statusBadge = 'Aproximándose';
-    statusDetail = `Aproximándose a ${nextStop.name} (~1 min)`;
-    // Braking approach phase: 27 to 39 km/h
-    speedKmH = Math.round(27 + ((secondsToTarget - 60) / 50) * 12);
-  } else {
-    statusBadge = 'En viaje';
-    const minutesLeft = Math.ceil(secondsToTarget / 60);
-    statusDetail = `En trayecto hacia ${nextStop.name} (llega en ~${minutesLeft} min)`;
-    speedKmH = targetCruising; // ~42-45 km/h (calibrated to real 43 km/h / 27 mph)
-  }
 
   // Assign status to each stop
   const stopsWithStatus = stops.map((st, idx) => {
@@ -206,19 +297,24 @@ export function calculateTrainJourney(trainData) {
     let label = '';
     const stopSec = st.secondsToStop;
 
-    if (idx < targetIndex) {
+    if (idx < currentStationIndex) {
       state = 'completed';
       label = 'Paso completado';
-    } else if (idx === targetIndex) {
+    } else if (idx === currentStationIndex) {
       state = 'current';
-      label = secondsToTarget <= 25 ? 'En andén ahora' : `Próxima parada (~${Math.ceil(secondsToTarget / 60)} min)`;
+      if (isAtPlatform) {
+        label = 'En andén ahora';
+      } else {
+        const secDisplay = stopSec ?? secondsToTarget;
+        label = `Próxima parada (~${Math.ceil(Math.max(1, secDisplay) / 60)} min)`;
+      }
     } else {
       state = 'upcoming';
       if (stopSec !== undefined && stopSec !== null && stopSec > 0) {
         label = `En ~${Math.ceil(stopSec / 60)} min`;
       } else {
-        const legDiff = idx - targetIndex;
-        label = `En ~${Math.ceil(secondsToTarget / 60) + legDiff * 3} min`;
+        const legDiff = idx - currentStationIndex;
+        label = `En ~${Math.ceil((secondsToTarget || 180) / 60) + legDiff * 3} min`;
       }
     }
 
@@ -236,8 +332,8 @@ export function calculateTrainJourney(trainData) {
     origin: origName,
     destination: destName,
     trainPosition: [trainLat, trainLng],
-    currentStationName: nextStop.name,
-    prevStationName: prevStop.name,
+    currentStationName: stops[currentStationIndex]?.name || destName,
+    prevStationName: stops[prevStationIndex]?.name || origName,
     statusBadge,
     statusDetail,
     speedKmH,
@@ -245,6 +341,7 @@ export function calculateTrainJourney(trainData) {
     secondsToTarget,
     stops: stopsWithStatus,
     targetIndex,
+    isAtPlatform,
   };
 }
 
@@ -551,4 +648,140 @@ export function getActiveNetworkTrains() {
     }
     return train;
   });
+}
+
+/**
+ * Transforms raw SOFSE live network arrivals into active circulating trains for MapView
+ */
+export function processRawNetworkTrains(rawList = []) {
+  if (!Array.isArray(rawList)) return [];
+  const processed = [];
+
+  for (const item of rawList) {
+    const num = item.servicio?.numero;
+    if (!num) continue;
+
+    const lineId = item.servicio?.lineId || item.servicio?.gerencia?.id || 5;
+    const lineName = item.servicio?.gerencia?.nombre || 'Mitre';
+    const estaciones = item.servicio?.estaciones || [];
+
+    let trainLat = null;
+    let trainLng = null;
+    let currentStationName = 'En viaje';
+    let nextStationName = item.servicio?.hasta?.estacion?.nombre || 'Destino';
+    let speedKmH = 43;
+    let statusDetail = 'En viaje';
+    let etaNextMin = 3;
+
+    if (estaciones.length >= 2) {
+      // 1. Check if train is stopped at any platform (seconds between -35 and 25)
+      const platformStop = estaciones.find(s => s.segundos !== undefined && s.segundos <= 25 && s.segundos >= -35);
+      if (platformStop) {
+        const geo = findStation(platformStop, lineId);
+        if (geo) {
+          trainLat = geo.lat;
+          trainLng = geo.lng;
+          currentStationName = geo.name;
+          const currentIdx = estaciones.indexOf(platformStop);
+          const nextIdx = currentIdx + 1;
+          const nextGeo = nextIdx < estaciones.length ? findStation(estaciones[nextIdx], lineId) : null;
+          nextStationName = nextGeo?.name || geo.name;
+          speedKmH = 0;
+          statusDetail = `Detenido en Andén ${platformStop.anden?.nombre || '1'} de ${geo.name}`;
+          etaNextMin = 0;
+        }
+      } else {
+        // 2. Train is in transit between two stations
+        const lastPassed = estaciones.filter(s => s.segundos !== undefined && s.segundos < -25).pop();
+        const nextUpcoming = estaciones.find(s => s.segundos !== undefined && s.segundos > 25);
+
+        if (lastPassed && nextUpcoming) {
+          const pGeo = findStation(lastPassed, lineId);
+          const nGeo = findStation(nextUpcoming, lineId);
+          if (pGeo && nGeo) {
+            const legDuration = Math.max(60, nextUpcoming.segundos - lastPassed.segundos);
+            const elapsed = Math.max(0, -lastPassed.segundos);
+            const progress = Math.max(0.05, Math.min(0.95, elapsed / legDuration));
+
+            trainLat = pGeo.lat + (nGeo.lat - pGeo.lat) * progress;
+            trainLng = pGeo.lng + (nGeo.lng - pGeo.lng) * progress;
+            currentStationName = pGeo.name;
+            nextStationName = nGeo.name;
+            speedKmH = 43;
+            etaNextMin = Math.max(1, Math.ceil(nextUpcoming.segundos / 60));
+            statusDetail = `En viaje hacia ${nGeo.name} (llega en ~${etaNextMin} min)`;
+          }
+        } else if (!lastPassed && nextUpcoming) {
+          // At origin platform awaiting departure
+          const firstGeo = findStation(estaciones[0], lineId);
+          if (firstGeo) {
+            trainLat = firstGeo.lat;
+            trainLng = firstGeo.lng;
+            currentStationName = firstGeo.name;
+            nextStationName = findStation(nextUpcoming, lineId)?.name || firstGeo.name;
+            speedKmH = 0;
+            statusDetail = `En cabecera: ${firstGeo.name}`;
+            etaNextMin = Math.max(1, Math.ceil(nextUpcoming.segundos / 60));
+          }
+        } else if (lastPassed && !nextUpcoming) {
+          // Completed route at destination
+          const lastGeo = findStation(estaciones[estaciones.length - 1], lineId);
+          if (lastGeo) {
+            trainLat = lastGeo.lat;
+            trainLng = lastGeo.lng;
+            currentStationName = lastGeo.name;
+            nextStationName = lastGeo.name;
+            speedKmH = 0;
+            statusDetail = `Arribó a ${lastGeo.name}`;
+            etaNextMin = 0;
+          }
+        }
+      }
+    }
+
+    // Fallback to journey calculation if physical interpolation couldn't resolve
+    if (!trainLat || !trainLng) {
+      const journey = calculateTrainJourney({
+        ...item,
+        stationName: item.stationName || item.servicio?.hasta?.estacion?.nombre,
+      });
+      if (journey && journey.trainPosition) {
+        trainLat = journey.trainPosition[0];
+        trainLng = journey.trainPosition[1];
+        currentStationName = journey.currentStationName;
+        nextStationName = journey.stops.find(s => s.state === 'upcoming')?.name || journey.destination;
+        speedKmH = journey.speedKmH;
+        statusDetail = journey.statusDetail;
+        etaNextMin = Math.max(1, Math.ceil(journey.secondsToTarget / 60));
+      }
+    }
+
+    if (trainLat && trainLng) {
+      const origName = item.servicio?.desde?.estacion?.nombre || item.servicio?.estaciones?.[0]?.nombre || 'Origen';
+      const destName = item.servicio?.hasta?.estacion?.nombre || item.servicio?.estaciones?.[item.servicio.estaciones.length - 1]?.nombre || 'Destino';
+
+      processed.push({
+        id: `NET-${num}`,
+        number: String(num),
+        lineId,
+        lineName,
+        branch: `${origName} - ${destName}`,
+        origin: origName,
+        destination: destName,
+        currentStation: currentStationName,
+        nextStation: nextStationName,
+        lat: Number(trainLat.toFixed(5)),
+        lng: Number(trainLng.toFixed(5)),
+        speed: speedKmH,
+        status: statusDetail,
+        etaNextMin,
+        servicio: item.servicio,
+        arribo: item.arribo,
+        stationName: currentStationName,
+        stationId: item.arribo?.id_estacion || null,
+      });
+    }
+  }
+
+  return processed;
 }

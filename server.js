@@ -338,6 +338,56 @@ app.get('/api/arrivals/:stationId', async (req, res) => {
   }
 });
 
+// 4b. Live Circulating Network Trains (Aggregated from key line hubs with 25s TTL cache)
+let networkTrainsCache = null;
+let networkTrainsCacheTime = 0;
+
+app.get('/api/network-trains', async (req, res) => {
+  try {
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    });
+
+    const now = Date.now();
+    if (networkTrainsCache && now - networkTrainsCacheTime < 25000) {
+      return res.json(networkTrainsCache);
+    }
+
+    // Comprehensive transit hubs and terminals spanning Mitre, Sarmiento, Roca, San Martín, Belgrano Sur and TDC
+    const hubs = [332, 360, 353, 190, 400, 290, 280, 254, 98, 390, 218, 131, 330, 60, 309, 349, 158, 99, 244];
+    const trainMap = new Map();
+
+    await Promise.all(
+      hubs.map(async (stId) => {
+        try {
+          const data = await fetchFromSofse(`/arribos/estacion/${stId}`, { _t: now });
+          const list = Array.isArray(data) ? data : data?.results || [];
+          for (const item of list) {
+            const num = item.servicio?.numero;
+            if (num && !trainMap.has(String(num))) {
+              trainMap.set(String(num), item);
+            }
+          }
+        } catch (e) {
+          // Individual hub failure fallback
+        }
+      })
+    );
+
+    const trains = Array.from(trainMap.values());
+    networkTrainsCache = trains;
+    networkTrainsCacheTime = now;
+    res.json(trains);
+  } catch (err) {
+    if (networkTrainsCache) {
+      return res.json(networkTrainsCache);
+    }
+    res.status(500).json({ error: 'Failed to aggregate network trains', details: err.message });
+  }
+});
+
 // 5. Preloaded AMBA Stations Directory (All Lines)
 let allStationsCatalog = null;
 app.get('/api/all-stations', async (req, res) => {

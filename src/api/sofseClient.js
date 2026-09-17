@@ -129,3 +129,11 @@ export async function sendBugReport(reportData) {
   if (!res.ok) throw new Error(`Error al enviar el reporte: ${res.status}`);
   return await res.json();
 }
+
+export async function getNetworkTrains() {
+  const res = await fetchWithRetry(`${API_BASE}/network-trains?_t=${Date.now()}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Error fetching network trains: ${res.status}`);
+  return await res.json();
+}

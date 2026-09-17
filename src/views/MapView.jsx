@@ -6,7 +6,8 @@ import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import LineBadge from '../components/LineBadge';
 import { getDistanceMeters, formatDistance } from '../utils/geo';
 import { triggerHaptic } from '../utils/notifications';
-import { getActiveNetworkTrains, findStationByName } from '../utils/trainTracker';
+import { getActiveNetworkTrains, findStationByName, processRawNetworkTrains } from '../utils/trainTracker';
+import { getNetworkTrains } from '../api/sofseClient';
 
 // Helper component to smoothly center map and invalidate size
 function ChangeMapView({ center, zoom }) {
@@ -25,6 +26,33 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain }) 
   const [selectedLine, setSelectedLine] = useState('ALL');
   const [mapCenter, setMapCenter] = useState([userCoords.lat, userCoords.lng]);
   const [mapZoom, setMapZoom] = useState(13);
+  const [liveNetworkTrains, setLiveNetworkTrains] = useState([]);
+
+  // Fetch real-time circulating trains across the network every 20 seconds
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchLiveTrains = async () => {
+      try {
+        const rawList = await getNetworkTrains();
+        if (isMounted && Array.isArray(rawList) && rawList.length > 0) {
+          const processed = processRawNetworkTrains(rawList);
+          if (processed.length > 0) {
+            setLiveNetworkTrains(processed);
+          }
+        }
+      } catch (e) {
+        console.debug('Live network trains fetch error:', e);
+      }
+    };
+
+    fetchLiveTrains();
+    const interval = setInterval(fetchLiveTrains, 20000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   // Custom User Location Pin Icon
   const userIcon = L.divIcon({
@@ -75,7 +103,8 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain }) 
     });
   };
 
-  const activeTrains = getActiveNetworkTrains();
+  const fallbackTrains = getActiveNetworkTrains();
+  const activeTrains = liveNetworkTrains.length > 0 ? liveNetworkTrains : fallbackTrains;
   const filteredTrains = activeTrains.filter((t) => selectedLine === 'ALL' || t.lineId === Number(selectedLine));
 
   const filteredStations = PRELOADED_STATIONS.filter((st) => {
@@ -263,10 +292,11 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain }) 
                       if (onSelectTrain) {
                         const targetStation = findStationByName(train.nextStation, train.lineId);
                         onSelectTrain({
+                          ...train,
                           stationName: train.nextStation,
-                          stationId: targetStation?.id || null,
+                          stationId: targetStation?.id || train.stationId,
                           lineId: train.lineId,
-                          servicio: {
+                          servicio: train.servicio || {
                             numero: train.number,
                             lineId: train.lineId,
                             gerencia: { nombre: train.lineName },
@@ -274,7 +304,7 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain }) 
                             hasta: { estacion: { nombre: train.destination } },
                             leyenda: train.status,
                           },
-                          arribo: {
+                          arribo: train.arribo || {
                             segundos: train.etaNextMin * 60,
                             anden: { nombre: '1' },
                           },
