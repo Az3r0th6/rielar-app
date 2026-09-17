@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Star, Trash2 } from 'lucide-react';
 import LineBadge from '../components/LineBadge';
 import { getStationArrivals } from '../api/sofseClient';
-import { formatArrivalSeconds } from '../utils/time';
+import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { triggerHaptic } from '../utils/notifications';
 
 export default function FavoritesView({
@@ -163,9 +163,16 @@ export default function FavoritesView({
                             t.servicio?.ramal?.cabeceraFinal?.nombre ||
                             'Destino'}
                         </span>
-                        <span style={{ color: '#30d158', fontWeight: 800 }}>
-                          {formatArrivalSeconds(t.arribo?.segundos)}
-                        </span>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ color: '#30d158', fontWeight: 800 }}>
+                            {formatArrivalSeconds(t.arribo?.segundos)}
+                          </span>
+                          {(t.arribo?.salida?.programada || t.arribo?.llegada?.programada) && (
+                            <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 600 }}>
+                              {formatLocalTime(t.arribo?.salida?.programada || t.arribo?.llegada?.programada)} hs
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))
                   ) : (

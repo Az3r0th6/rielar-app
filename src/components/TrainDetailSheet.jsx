@@ -795,9 +795,16 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
                 <h3 style={{ fontSize: '14.5px', fontWeight: 700, color: '#f5f5f7' }}>
                   Itinerario del Viaje ({journey?.stops.length || 0} paradas)
                 </h3>
-                <span style={{ fontSize: '11.5px', color: '#8e8e93' }}>
-                  Arribo en {stationName}: <strong>{formatArrivalSeconds(seconds)}</strong>
-                </span>
+                <div style={{ textAlign: 'right', fontSize: '11.5px', color: '#8e8e93' }}>
+                  {journey?.scheduledTime && (
+                    <span style={{ marginRight: '6px' }}>
+                      Prog: <strong>{formatLocalTime(journey.scheduledTime)}</strong>
+                    </span>
+                  )}
+                  <span style={{ color: '#30d158', fontWeight: 700 }}>
+                    • {formatArrivalSeconds(seconds)}
+                  </span>
+                </div>
               </div>
 
               <div className="timeline-list">
@@ -856,14 +863,39 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
                         </div>
                       </div>
 
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: isCurrent ? '#30d158' : '#f5f5f7' }}>
-                          {st.scheduledArrival ? formatLocalTime(st.scheduledArrival) : (isCurrent ? formatArrivalSeconds(seconds) : '')}
+                      <div style={{ textAlign: 'right', minWidth: '78px' }}>
+                        {/* Primary Clock: Official Timetable Departure Time */}
+                        <div style={{ fontSize: '13px', fontWeight: 800, color: isCurrent ? '#30d158' : '#f5f5f7' }}>
+                          {isCurrent && seconds <= 35 ? (
+                            'En andén'
+                          ) : st.scheduledTime ? (
+                            formatLocalTime(st.scheduledTime)
+                          ) : isCurrent ? (
+                            formatArrivalSeconds(seconds)
+                          ) : (
+                            '--:--'
+                          )}
                         </div>
-                        {st.anden && (
-                          <div style={{ fontSize: '11px', color: '#8e8e93' }}>
-                            Andén {st.anden}
+
+                        {/* Secondary Line: Real-time estimate or Actual recorded time */}
+                        {isCompleted && st.realTime ? (
+                          <div style={{ fontSize: '10.5px', color: '#8e8e93' }}>
+                            Salió {formatLocalTime(st.realTime)}
                           </div>
+                        ) : isCurrent ? (
+                          <div style={{ fontSize: '10.5px', color: '#30d158', fontWeight: 700 }}>
+                            {seconds <= 35 ? 'En andén' : `Llega ${formatArrivalSeconds(seconds)}`}
+                          </div>
+                        ) : st.estimatedTime && formatLocalTime(st.estimatedTime) !== formatLocalTime(st.scheduledTime) ? (
+                          <div style={{ fontSize: '10.5px', color: '#0a84ff', fontWeight: 600 }}>
+                            Est. {formatLocalTime(st.estimatedTime)}
+                          </div>
+                        ) : (
+                          st.anden && (
+                            <div style={{ fontSize: '10.5px', color: '#8e8e93' }}>
+                              Andén {st.anden}
+                            </div>
+                          )
                         )}
                       </div>
                     </div>

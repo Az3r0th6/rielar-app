@@ -1,5 +1,6 @@
 import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import { getDistanceMeters } from './geo';
+import { formatLocalTime } from './time';
 
 /**
  * Normalizes station names for fuzzy comparison and acronym resolution
@@ -102,6 +103,15 @@ export function calculateTrainJourney(trainData) {
   if (rawStops.length >= 2) {
     stops = rawStops.map((st, idx) => {
       const geo = findStation(st, lineId);
+      // In Argentine commuter rail (SOFSE), intermediate and departure stations display
+      // the official departure time (salida.programada), while the final terminal displays llegada.programada
+      const scheduledTime = (idx === rawStops.length - 1)
+        ? (st.llegada?.programada || st.salida?.programada)
+        : (st.salida?.programada || st.llegada?.programada);
+
+      const estimatedTime = st.llegada?.estimada || st.salida?.estimada || (st.segundos !== undefined ? new Date(Date.now() + st.segundos * 1000).toISOString() : null);
+      const realTime = st.salida?.real || st.llegada?.real;
+
       return {
         id: st.idElemento || st.id_estacion || geo?.id || idx,
         name: geo?.name || st.nombre,
@@ -109,8 +119,10 @@ export function calculateTrainJourney(trainData) {
         lng: geo?.lng || -58.37505,
         anden: st.anden?.nombre || '1',
         scheduledDeparture: st.salida?.programada,
-        scheduledArrival: st.llegada?.programada,
-        estimatedArrival: st.llegada?.estimada,
+        scheduledArrival: scheduledTime,
+        scheduledTime,
+        estimatedTime,
+        realTime,
         secondsToStop: st.segundos,
       };
     });
@@ -299,22 +311,22 @@ export function calculateTrainJourney(trainData) {
 
     if (idx < currentStationIndex) {
       state = 'completed';
-      label = 'Paso completado';
+      label = st.realTime ? `Salió ${formatLocalTime(st.realTime)}` : 'Paso completado';
     } else if (idx === currentStationIndex) {
       state = 'current';
       if (isAtPlatform) {
         label = 'En andén ahora';
       } else {
         const secDisplay = stopSec ?? secondsToTarget;
-        label = `Próxima parada (~${Math.ceil(Math.max(1, secDisplay) / 60)} min)`;
+        label = `Próxima parada (~${Math.max(1, Math.round(secDisplay / 60))} min)`;
       }
     } else {
       state = 'upcoming';
       if (stopSec !== undefined && stopSec !== null && stopSec > 0) {
-        label = `En ~${Math.ceil(stopSec / 60)} min`;
+        label = `En ~${Math.max(1, Math.round(stopSec / 60))} min`;
       } else {
         const legDiff = idx - currentStationIndex;
-        label = `En ~${Math.ceil((secondsToTarget || 180) / 60) + legDiff * 3} min`;
+        label = `En ~${Math.max(1, Math.round((secondsToTarget || 180) / 60) + legDiff * 3)} min`;
       }
     }
 
@@ -331,6 +343,8 @@ export function calculateTrainJourney(trainData) {
     lineName: servicio?.gerencia?.nombre || 'Línea',
     origin: origName,
     destination: destName,
+    scheduledTime: targetStop?.scheduledTime || null,
+    estimatedTime: targetStop?.estimatedTime || null,
     trainPosition: [trainLat, trainLng],
     currentStationName: stops[currentStationIndex]?.name || destName,
     prevStationName: stops[prevStationIndex]?.name || origName,

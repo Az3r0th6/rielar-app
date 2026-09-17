@@ -13,9 +13,9 @@ export function formatArrivalSeconds(seconds) {
     return 'En andén';
   }
   if (seconds <= 60) {
-    return `${seconds} seg`;
+    return `${Math.max(1, Math.round(seconds))} seg`;
   }
-  const mins = Math.floor(seconds / 60);
+  const mins = Math.round(seconds / 60);
   if (mins < 60) {
     return `${mins} min`;
   }

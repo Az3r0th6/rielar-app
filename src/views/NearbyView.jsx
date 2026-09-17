@@ -19,7 +19,7 @@ import LineBadge from '../components/LineBadge';
 import { LINES_DATA, PRELOADED_STATIONS } from '../data/linesData';
 import { getNearestStations } from '../utils/geo';
 import { getStationArrivals, getAllStationsCatalog } from '../api/sofseClient';
-import { formatArrivalSeconds, getCountdownBadgeClass } from '../utils/time';
+import { formatArrivalSeconds, formatLocalTime, getCountdownBadgeClass } from '../utils/time';
 import { triggerHaptic, playChimeSound, unlockAudio } from '../utils/notifications';
 
 export default function NearbyView({
@@ -477,6 +477,7 @@ export default function NearbyView({
                       const platform = train.arribo?.anden?.nombre || '1';
                       const badgeClass = getCountdownBadgeClass(seconds);
                       const isCancelled = !!train.servicio?.cancelacion;
+                      const schedTime = train.arribo?.salida?.programada || train.arribo?.llegada?.programada;
 
                       return (
                         <div
@@ -557,9 +558,16 @@ export default function NearbyView({
                                 CANCELADO
                               </span>
                             ) : (
-                              <span className="countdown-number">
-                                {formatArrivalSeconds(seconds)}
-                              </span>
+                              <>
+                                <span className="countdown-number">
+                                  {formatArrivalSeconds(seconds)}
+                                </span>
+                                {schedTime && (
+                                  <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 700 }}>
+                                    {formatLocalTime(schedTime)} hs
+                                  </span>
+                                )}
+                              </>
                             )}
                             <span
                               className="countdown-scheduled"
