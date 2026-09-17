@@ -13,13 +13,14 @@ import {
   Compass,
   SlidersHorizontal,
   X,
+  Check,
 } from 'lucide-react';
 import LineBadge from '../components/LineBadge';
 import { LINES_DATA, PRELOADED_STATIONS } from '../data/linesData';
 import { getNearestStations } from '../utils/geo';
 import { getStationArrivals, getAllStationsCatalog } from '../api/sofseClient';
 import { formatArrivalSeconds, getCountdownBadgeClass } from '../utils/time';
-import { triggerHaptic, playChimeSound } from '../utils/notifications';
+import { triggerHaptic, playChimeSound, unlockAudio } from '../utils/notifications';
 
 export default function NearbyView({
   userCoords,
@@ -36,6 +37,8 @@ export default function NearbyView({
   const [stationsWithArrivals, setStationsWithArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
+  const [justRefreshed, setJustRefreshed] = useState(false);
 
   // Compute nearest stations
   const nearestStations = getNearestStations(
@@ -66,15 +69,20 @@ export default function NearbyView({
     return nearestStations.slice(0, 4);
   };
 
-  // Fetch arrivals for active stations
-  const fetchArrivals = async () => {
+  // Fetch arrivals for active stations with high precision
+  const fetchArrivals = async (isManual = false) => {
+    if (isManual) {
+      unlockAudio();
+      triggerHaptic('light');
+      playChimeSound('click');
+    }
     setRefreshing(true);
     try {
       const targets = getActiveStationsToQuery();
       const results = await Promise.all(
         targets.map(async (station) => {
           try {
-            const data = await getStationArrivals(station.id);
+            const data = await getStationArrivals(station.id, {}, isManual);
             const arrivals = Array.isArray(data)
               ? data
               : data?.results || data?.arribos || [];
@@ -83,13 +91,32 @@ export default function NearbyView({
               arrivals: Array.isArray(arrivals) ? arrivals : [],
             };
           } catch (e) {
-            return { ...station, arrivals: [] };
+            // Keep existing arrivals for this station if a single request hiccups
+            const existing = stationsWithArrivals.find((st) => st.id === station.id);
+            return {
+              ...station,
+              arrivals: existing?.arrivals || [],
+            };
           }
         })
       );
       setStationsWithArrivals(results);
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setLastUpdatedAt(timeStr);
+
+      if (isManual) {
+        triggerHaptic('success');
+        playChimeSound('success');
+        setJustRefreshed(true);
+        setTimeout(() => setJustRefreshed(false), 2000);
+      }
     } catch (err) {
       console.error('Error fetching arrivals:', err);
+      if (isManual) {
+        triggerHaptic('warning');
+        playChimeSound('alert');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -97,8 +124,8 @@ export default function NearbyView({
   };
 
   useEffect(() => {
-    fetchArrivals();
-    const interval = setInterval(fetchArrivals, 20000);
+    fetchArrivals(false);
+    const interval = setInterval(() => fetchArrivals(false), 20000);
     return () => clearInterval(interval);
   }, [userCoords.lat, userCoords.lng, selectedLine, searchQuery, browseMode, selectedCustomStation]);
 
@@ -150,8 +177,8 @@ export default function NearbyView({
               <span className="live-pulse-dot" />
               <span>Tiempo Real</span>
             </span>
-            <span>
-              • {browseMode === 'nearby' ? 'Cercanas a tu ubicación' : 'Toda la red AMBA'}
+            <span style={{ color: justRefreshed ? '#30d158' : '#8e8e93', transition: 'color 0.3s' }}>
+              • {justRefreshed ? '✓ Arribos al día' : lastUpdatedAt ? `Actualizado ${lastUpdatedAt}` : (browseMode === 'nearby' ? 'Cercanas a tu ubicación' : 'Toda la red AMBA')}
             </span>
           </div>
         </div>
@@ -159,12 +186,24 @@ export default function NearbyView({
         <button
           className="fav-button"
           onClick={() => {
-            triggerHaptic('light');
-            fetchArrivals();
+            if (refreshing) return;
+            fetchArrivals(true);
           }}
-          title="Actualizar arribos"
+          style={{
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            borderColor: justRefreshed ? 'rgba(48, 209, 88, 0.6)' : undefined,
+            background: justRefreshed ? 'rgba(48, 209, 88, 0.15)' : undefined,
+            color: justRefreshed ? '#30d158' : undefined,
+            transform: justRefreshed ? 'scale(1.06)' : 'scale(1)',
+          }}
+          title="Actualizar arribos ahora"
+          aria-label="Actualizar arribos ahora"
         >
-          <RotateCw size={17} className={refreshing ? 'animate-spin' : ''} />
+          {justRefreshed ? (
+            <Check size={17} style={{ strokeWidth: 2.8 }} />
+          ) : (
+            <RotateCw size={17} className={refreshing ? 'animate-spin' : ''} />
+          )}
         </button>
       </div>
 

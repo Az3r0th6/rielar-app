@@ -6,7 +6,7 @@ import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import LineBadge from '../components/LineBadge';
 import { getDistanceMeters, formatDistance } from '../utils/geo';
 import { triggerHaptic } from '../utils/notifications';
-import { getActiveNetworkTrains } from '../utils/trainTracker';
+import { getActiveNetworkTrains, findStationByName } from '../utils/trainTracker';
 
 // Helper component to smoothly center map and invalidate size
 function ChangeMapView({ center, zoom }) {
@@ -261,8 +261,10 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain }) 
                   <button
                     onClick={() => {
                       if (onSelectTrain) {
+                        const targetStation = findStationByName(train.nextStation, train.lineId);
                         onSelectTrain({
                           stationName: train.nextStation,
+                          stationId: targetStation?.id || null,
                           lineId: train.lineId,
                           servicio: {
                             numero: train.number,

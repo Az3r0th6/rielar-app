@@ -319,12 +319,18 @@ app.get('/api/stations', async (req, res) => {
   }
 });
 
-// 4. Live Arrivals for Station
+// 4. Live Arrivals for Station (Strictly Real-time, No Cache)
 app.get('/api/arrivals/:stationId', async (req, res) => {
   try {
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Surrogate-Control': 'no-store'
+    });
     const { stationId } = req.params;
-    const { hasta, fecha, hora, cantidad, ramal, sentido } = req.query;
-    const query = { hasta, fecha, hora, cantidad, ramal, sentido };
+    const { hasta, fecha, hora, cantidad, ramal, sentido, _t } = req.query;
+    const query = { hasta, fecha, hora, cantidad, ramal, sentido, _t: _t || Date.now() };
     const data = await fetchFromSofse(`/arribos/estacion/${stationId}`, query);
     res.json(data);
   } catch (err) {
@@ -409,14 +415,34 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve frontend build static files
-app.use(express.static(path.join(__dirname, 'dist')));
+// Serve frontend build static files with optimized cache headers:
+// - index.html, sw.js, manifest.json must NEVER be cached so updates apply immediately!
+// - Hashed assets (/assets/*) are cached safely with content hashes
+app.use(express.static(path.join(__dirname, 'dist'), {
+  setHeaders: (res, filePath) => {
+    const normalized = filePath.replace(/\\/g, '/');
+    if (normalized.endsWith('/index.html') || normalized.endsWith('/sw.js') || normalized.endsWith('/manifest.json')) {
+      res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      });
+    } else if (normalized.includes('/assets/')) {
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+  },
+}));
 
-// SPA fallback for all web routes
+// SPA fallback for all web routes (guarantees fresh index.html on every navigation)
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) {
     return next();
   }
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+  });
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

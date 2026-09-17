@@ -15,13 +15,14 @@ import {
   RotateCw,
   Plus,
   Minus,
+  Check,
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import LineBadge from './LineBadge';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
-import { playChimeSound, triggerHaptic, sendAppNotification } from '../utils/notifications';
-import { calculateTrainJourney } from '../utils/trainTracker';
+import { playChimeSound, triggerHaptic, sendAppNotification, unlockAudio } from '../utils/notifications';
+import { calculateTrainJourney, findStationByName } from '../utils/trainTracker';
 import { getStationArrivals } from '../api/sofseClient';
 
 function ChangeTrackingMapView({ center, defaultZoom = 14, onUserMove, userHasMoved, onMapReady }) {
@@ -82,6 +83,8 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [userHasMovedMap, setUserHasMovedMap] = useState(false);
   const [mapInstance, setMapInstance] = useState(null);
+  const [justRefreshed, setJustRefreshed] = useState(false);
+  const [syncNotice, setSyncNotice] = useState(null);
 
   // When user toggles between timeline and map, reset moved state so map centers cleanly
   useEffect(() => {
@@ -108,40 +111,100 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
     return () => clearInterval(timer);
   }, [trainData?.servicio?.numero, trainData?.stationId]);
 
-  // Background auto-refresh from SOFSE every 15 seconds
-  const refreshArrivals = useCallback(async () => {
-    const stationId = liveTrain?.stationId || trainData?.stationId;
-    const trainNum = liveTrain?.servicio?.numero || trainData?.servicio?.numero;
-    if (!stationId) return;
+  // High-precision refresh from SOFSE with stationId auto-resolution
+  const refreshArrivals = useCallback(async (isManual = false) => {
+    let stationId = liveTrain?.stationId || trainData?.stationId;
+    const lineId = liveTrain?.servicio?.lineId || trainData?.servicio?.lineId || liveTrain?.lineId || trainData?.lineId;
+    const stName = liveTrain?.stationName || trainData?.stationName;
+
+    // Fallback: If stationId was not supplied by caller, resolve via master station catalog
+    if (!stationId && stName) {
+      const found = findStationByName(stName, lineId);
+      if (found) {
+        stationId = found.id;
+      }
+    }
+
+    if (!stationId) {
+      if (isManual) {
+        unlockAudio();
+        triggerHaptic('warning');
+        playChimeSound('alert');
+        setSyncNotice({ error: true, text: 'No se pudo identificar la estación para actualizar el arribo.' });
+        setTimeout(() => setSyncNotice(null), 3000);
+      }
+      return;
+    }
+
+    if (isManual) {
+      unlockAudio();
+      triggerHaptic('light');
+      playChimeSound('click');
+    }
 
     try {
       setIsRefreshing(true);
-      const data = await getStationArrivals(stationId);
+      const data = await getStationArrivals(stationId, {}, isManual);
       const arrivals = Array.isArray(data) ? data : (data?.results || data?.arribos || []);
-      
-      const matched = arrivals.find((arr) => String(arr.servicio?.numero) === String(trainNum))
-        || arrivals.find((arr) => arr.servicio?.sentido === (liveTrain?.servicio?.sentido || trainData?.servicio?.sentido));
+      const trainNum = liveTrain?.servicio?.numero || trainData?.servicio?.numero;
+      const sentido = liveTrain?.servicio?.sentido || trainData?.servicio?.sentido;
+
+      const matched = arrivals.find((arr) => String(arr.servicio?.numero).trim() === String(trainNum).trim())
+        || arrivals.find((arr) => arr.servicio?.sentido && arr.servicio?.sentido === sentido)
+        || arrivals[0];
 
       if (matched) {
         setLiveTrain((prev) => ({
           ...prev,
           ...matched,
-          stationName: trainData.stationName,
+          stationName: stName || trainData.stationName,
           stationId,
         }));
-        if (matched.arribo?.segundos !== undefined && matched.arribo?.segundos !== null) {
-          setCurrentSeconds(matched.arribo.segundos);
+        const newSec = matched.arribo?.segundos;
+        if (newSec !== undefined && newSec !== null) {
+          setCurrentSeconds(newSec);
+        }
+
+        if (isManual) {
+          triggerHaptic('success');
+          playChimeSound('success');
+          setJustRefreshed(true);
+          const arrivalText = (newSec !== undefined && newSec <= 30)
+            ? '¡Tren en andén o ingresando ahora!'
+            : `Arribo sincronizado: llega en ${formatArrivalSeconds(newSec ?? 180)}`;
+          setSyncNotice({ error: false, text: arrivalText });
+          setTimeout(() => {
+            setJustRefreshed(false);
+            setSyncNotice(null);
+          }, 3200);
+        }
+      } else {
+        if (isManual) {
+          triggerHaptic('medium');
+          playChimeSound('success');
+          setJustRefreshed(true);
+          setSyncNotice({ error: false, text: 'Horarios confirmados con la red en tiempo real' });
+          setTimeout(() => {
+            setJustRefreshed(false);
+            setSyncNotice(null);
+          }, 3200);
         }
       }
     } catch (err) {
-      console.warn('[TrainDetailSheet] Auto-refresh sync warning:', err);
+      console.warn('[TrainDetailSheet] Refresh sync warning:', err);
+      if (isManual) {
+        triggerHaptic('warning');
+        playChimeSound('alert');
+        setSyncNotice({ error: true, text: 'No se pudo sincronizar el arribo en este momento.' });
+        setTimeout(() => setSyncNotice(null), 3200);
+      }
     } finally {
       setIsRefreshing(false);
     }
-  }, [liveTrain?.stationId, liveTrain?.servicio?.numero, liveTrain?.servicio?.sentido, trainData?.stationId, trainData?.servicio?.numero, trainData?.servicio?.sentido, trainData?.stationName]);
+  }, [liveTrain, trainData]);
 
   useEffect(() => {
-    const interval = setInterval(refreshArrivals, 15000);
+    const interval = setInterval(() => refreshArrivals(false), 15000);
     return () => clearInterval(interval);
   }, [refreshArrivals]);
 
@@ -251,14 +314,27 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               className="fav-button"
-              style={{ width: '32px', height: '32px' }}
+              style={{
+                width: '32px',
+                height: '32px',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                borderColor: justRefreshed ? 'rgba(48, 209, 88, 0.6)' : undefined,
+                background: justRefreshed ? 'rgba(48, 209, 88, 0.15)' : undefined,
+                color: justRefreshed ? '#30d158' : undefined,
+                transform: justRefreshed ? 'scale(1.08)' : 'scale(1)',
+              }}
               onClick={() => {
-                triggerHaptic('light');
-                refreshArrivals();
+                if (isRefreshing) return;
+                refreshArrivals(true);
               }}
               title="Actualizar arribo ahora"
+              aria-label="Actualizar arribo ahora"
             >
-              <RotateCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+              {justRefreshed ? (
+                <Check size={14} style={{ strokeWidth: 2.8 }} />
+              ) : (
+                <RotateCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+              )}
             </button>
             <button className="close-round-btn" onClick={onClose} aria-label="Cerrar">
               <X size={16} />
@@ -267,6 +343,30 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
         </div>
 
         <div className="sheet-content">
+          {/* Real-time Sync Banner when updated */}
+          {syncNotice && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 12px',
+                borderRadius: '12px',
+                background: syncNotice.error ? 'rgba(255, 69, 58, 0.15)' : 'rgba(48, 209, 88, 0.15)',
+                border: `1px solid ${syncNotice.error ? 'rgba(255, 69, 58, 0.35)' : 'rgba(48, 209, 88, 0.35)'}`,
+                color: syncNotice.error ? '#ff453a' : '#30d158',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                marginBottom: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                animation: 'fadeIn 0.2s ease',
+              }}
+            >
+              <span>{syncNotice.error ? '⚠️' : '✓'}</span>
+              <span>{syncNotice.text}</span>
+            </div>
+          )}
+
           {/* Main Info Header */}
           <div style={{ marginBottom: '14px' }}>
             <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#f5f5f7' }}>

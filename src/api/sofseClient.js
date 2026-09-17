@@ -71,7 +71,7 @@ export async function searchStations(query) {
   return await res.json();
 }
 
-export async function getStationArrivals(stationId, params = {}) {
+export async function getStationArrivals(stationId, params = {}, forceRefresh = false) {
   const url = new URL(`${API_BASE}/arrivals/${stationId}`, window.location.origin);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== '') {
@@ -79,15 +79,33 @@ export async function getStationArrivals(stationId, params = {}) {
     }
   });
 
+  // Always append high-precision timestamp when force-refreshing or fetching live arrivals
+  if (forceRefresh) {
+    url.searchParams.append('_t', String(Date.now()));
+  }
+
+  const fetchOptions = {
+    cache: forceRefresh ? 'no-store' : 'default',
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+    },
+  };
+
   try {
-    const res = await fetchWithRetry(url.toString(), {}, 2, 1000);
+    const res = await fetchWithRetry(url.toString(), fetchOptions, 2, 1000);
     if (!res.ok) throw new Error(`Error fetching arrivals for station ${stationId}: ${res.status}`);
     const data = await res.json();
     try {
       sessionStorage.setItem(`arr_${stationId}`, JSON.stringify(data));
+      sessionStorage.setItem(`arr_${stationId}_ts`, String(Date.now()));
     } catch {}
     return data;
   } catch (err) {
+    // If user explicitly clicked refresh, do NOT return stale cache silently
+    if (forceRefresh) {
+      throw err;
+    }
     try {
       const saved = sessionStorage.getItem(`arr_${stationId}`);
       if (saved) return JSON.parse(saved);
