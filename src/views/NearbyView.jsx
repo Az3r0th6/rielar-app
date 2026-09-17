@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Navigation,
   Search,
@@ -34,12 +34,6 @@ export default function NearbyView({
   const [browseMode, setBrowseMode] = useState('nearby'); // 'nearby' or 'all'
   const [selectedCustomStation, setSelectedCustomStation] = useState(null);
 
-  const [stationsWithArrivals, setStationsWithArrivals] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
-  const [justRefreshed, setJustRefreshed] = useState(false);
-
   // Compute nearest stations
   const nearestStations = getNearestStations(
     userCoords.lat,
@@ -47,6 +41,29 @@ export default function NearbyView({
     PRELOADED_STATIONS,
     8
   );
+
+  // Pre-fill initial state with nearest stations and any cached arrivals from sessionStorage
+  const [stationsWithArrivals, setStationsWithArrivals] = useState(() => {
+    try {
+      const initial = nearestStations.slice(0, 4);
+      return initial.map((st) => {
+        const cached = sessionStorage.getItem(`arr_${st.id}`);
+        const arrivals = cached ? JSON.parse(cached) : [];
+        return {
+          ...st,
+          arrivals: Array.isArray(arrivals) ? arrivals : (arrivals?.results || arrivals?.arribos || []),
+        };
+      });
+    } catch {
+      return [];
+    }
+  });
+
+  const [loading, setLoading] = useState(() => stationsWithArrivals.length === 0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
+  const [justRefreshed, setJustRefreshed] = useState(false);
+  const abortControllerRef = useRef(null);
 
   // Determine active stations to query
   const getActiveStationsToQuery = () => {
@@ -58,19 +75,25 @@ export default function NearbyView({
       const matches = PRELOADED_STATIONS.filter(
         (s) => s.name.toLowerCase().includes(q) || s.ramal?.toLowerCase().includes(q)
       );
-      return matches.slice(0, 5);
+      return matches.slice(0, 4);
     }
     if (browseMode === 'all') {
       const filteredByLine = selectedLine === 'ALL'
         ? PRELOADED_STATIONS
         : PRELOADED_STATIONS.filter((s) => s.lineId === Number(selectedLine));
-      return filteredByLine.slice(0, 6);
+      return filteredByLine.slice(0, 4);
     }
     return nearestStations.slice(0, 4);
   };
 
-  // Fetch arrivals for active stations with high precision
+  // Fetch arrivals for active stations with high precision & non-blocking cancelation
   const fetchArrivals = async (isManual = false) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     if (isManual) {
       unlockAudio();
       triggerHaptic('light');
@@ -82,7 +105,7 @@ export default function NearbyView({
       const results = await Promise.all(
         targets.map(async (station) => {
           try {
-            const data = await getStationArrivals(station.id, {}, isManual);
+            const data = await getStationArrivals(station.id, {}, isManual, controller.signal);
             const arrivals = Array.isArray(data)
               ? data
               : data?.results || data?.arribos || [];
@@ -91,7 +114,7 @@ export default function NearbyView({
               arrivals: Array.isArray(arrivals) ? arrivals : [],
             };
           } catch (e) {
-            // Keep existing arrivals for this station if a single request hiccups
+            // Keep existing arrivals for this station if a single request hiccups or aborts
             const existing = stationsWithArrivals.find((st) => st.id === station.id);
             return {
               ...station,
@@ -100,33 +123,45 @@ export default function NearbyView({
           }
         })
       );
-      setStationsWithArrivals(results);
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      setLastUpdatedAt(timeStr);
 
-      if (isManual) {
-        triggerHaptic('success');
-        playChimeSound('success');
-        setJustRefreshed(true);
-        setTimeout(() => setJustRefreshed(false), 2000);
+      if (!controller.signal.aborted) {
+        setStationsWithArrivals(results);
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setLastUpdatedAt(timeStr);
+
+        if (isManual) {
+          triggerHaptic('success');
+          playChimeSound('success');
+          setJustRefreshed(true);
+          setTimeout(() => setJustRefreshed(false), 2000);
+        }
       }
     } catch (err) {
-      console.error('Error fetching arrivals:', err);
-      if (isManual) {
-        triggerHaptic('warning');
-        playChimeSound('alert');
+      if (err.name !== 'AbortError') {
+        console.error('Error fetching arrivals:', err);
+        if (isManual) {
+          triggerHaptic('warning');
+          playChimeSound('alert');
+        }
       }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   };
 
   useEffect(() => {
     fetchArrivals(false);
     const interval = setInterval(() => fetchArrivals(false), 20000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [userCoords.lat, userCoords.lng, selectedLine, searchQuery, browseMode, selectedCustomStation]);
 
   // Second-by-second countdown decrementer
@@ -186,7 +221,6 @@ export default function NearbyView({
         <button
           className="fav-button"
           onClick={() => {
-            if (refreshing) return;
             fetchArrivals(true);
           }}
           style={{

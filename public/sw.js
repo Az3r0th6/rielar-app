@@ -1,5 +1,5 @@
 // Service Worker for RielAR Web App (iOS & Android Zero-Install)
-const CACHE_NAME = 'rielar-v10';
+const CACHE_NAME = 'rielar-v11';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -31,31 +31,51 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Always fetch live API requests from network (real-time train data)
-  if (event.request.url.includes('/api/')) {
+  const url = new URL(event.request.url);
+
+  // 1. Live API requests: network first with offline fallback
+  if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // Network-First for document / page navigation (guarantees updates apply immediately when app opens)
+  // 2. Instant App Launch for Document / Page Navigation:
+  // Race network with a 1200ms timeout. If cellular network is slow or sleeping,
+  // serve cached index.html immediately so the app boots in <100ms with zero blank screen.
   if (event.request.mode === 'navigate' || event.request.destination === 'document') {
     event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const copy = networkResponse.clone();
+      (async () => {
+        try {
+          const networkPromise = fetch(event.request);
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Navigation timeout')), 1200)
+          );
+          const response = await Promise.race([networkPromise, timeoutPromise]);
+          if (response && response.status === 200) {
+            const copy = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+            return response;
           }
-          return networkResponse;
-        })
-        .catch(() => caches.match(event.request) || caches.match('/'))
+        } catch (e) {
+          // Network timed out or connection offline, fallback immediately to cache
+        }
+
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        const rootCached = await caches.match('/');
+        if (rootCached) return rootCached;
+        const indexCached = await caches.match('/index.html');
+        if (indexCached) return indexCached;
+
+        return fetch(event.request);
+      })()
     );
     return;
   }
 
-  // Stale-while-revalidate for other static assets
+  // 3. Stale-while-revalidate for static hashed JS/CSS assets and icons
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
@@ -72,3 +92,4 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+

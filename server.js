@@ -80,11 +80,15 @@ async function getValidToken() {
 
   try {
     const credentials = generateCredentials();
+    const authController = new AbortController();
+    const authTimeout = setTimeout(() => authController.abort(), 3500);
     const res = await fetch(`${SOFSE_BASE_URL}/auth/authorize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),
+      signal: authController.signal,
     });
+    clearTimeout(authTimeout);
 
     if (!res.ok) {
       throw new Error(`Auth failed with status ${res.status}`);
@@ -115,8 +119,10 @@ async function getValidToken() {
 async function fetchFromSofse(path, query = {}) {
   const token = await getValidToken();
 
-  // If token is available, query direct SOFSE API first
+  // If token is available, query direct SOFSE API first with strict 3.5s timeout
   if (token) {
+    const directController = new AbortController();
+    const directTimeout = setTimeout(() => directController.abort(), 3500);
     try {
       const url = new URL(`${SOFSE_BASE_URL}${path}`);
       Object.entries(query).forEach(([k, v]) => {
@@ -126,35 +132,49 @@ async function fetchFromSofse(path, query = {}) {
       });
 
       const response = await fetch(url.toString(), {
+        signal: directController.signal,
         headers: {
           Authorization: token,
           'Content-Type': 'application/json',
           'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X)',
         },
       });
+      clearTimeout(directTimeout);
 
       if (response.ok) {
         return await response.json();
       }
-      console.warn(`[SOFSE] Direct API returned ${response.status} for ${path}, trying fallback...`);
+      console.warn(`[SOFSE] Direct API returned ${response.status} for ${path}, trying fallback mirror...`);
     } catch (directErr) {
-      console.warn(`[SOFSE] Direct fetch failed for ${path}:`, directErr.message);
+      clearTimeout(directTimeout);
+      console.warn(`[SOFSE] Direct fetch failed/timeout for ${path}:`, directErr.message);
     }
   }
 
-  // Fallback to proxy mirror
-  const fallbackUrl = new URL(`${FALLBACK_BASE_URL}${path}`);
-  Object.entries(query).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') {
-      fallbackUrl.searchParams.append(k, String(v));
-    }
-  });
+  // Fallback to fast proxy mirror with 4s timeout
+  const fallbackController = new AbortController();
+  const fallbackTimeout = setTimeout(() => fallbackController.abort(), 4000);
+  try {
+    const fallbackUrl = new URL(`${FALLBACK_BASE_URL}${path}`);
+    Object.entries(query).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') {
+        fallbackUrl.searchParams.append(k, String(v));
+      }
+    });
 
-  const fallbackRes = await fetch(fallbackUrl.toString());
-  if (!fallbackRes.ok) {
-    throw new Error(`Fallback returned ${fallbackRes.status}`);
+    const fallbackRes = await fetch(fallbackUrl.toString(), {
+      signal: fallbackController.signal,
+    });
+    clearTimeout(fallbackTimeout);
+
+    if (!fallbackRes.ok) {
+      throw new Error(`Fallback returned ${fallbackRes.status}`);
+    }
+    return await fallbackRes.json();
+  } catch (fallbackErr) {
+    clearTimeout(fallbackTimeout);
+    throw fallbackErr;
   }
-  return await fallbackRes.json();
 }
 
 // In-memory cache for static catalog
@@ -319,21 +339,63 @@ app.get('/api/stations', async (req, res) => {
   }
 });
 
-// 4. Live Arrivals for Station (Strictly Real-time, No Cache)
+// 4. Live Arrivals for Station (High-performance with In-flight Deduplication & Micro-cache)
+const arrivalsMemoryCache = new Map(); // cacheKey -> { timestamp, data }
+const inFlightArrivals = new Map();   // cacheKey -> Promise
+
 app.get('/api/arrivals/:stationId', async (req, res) => {
-  try {
-    res.set({
-      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0',
-      'Surrogate-Control': 'no-store'
+  const { stationId } = req.params;
+  const { hasta, fecha, hora, cantidad, ramal, sentido, _t } = req.query;
+  const cacheKey = `${stationId}_${sentido || ''}_${ramal || ''}`;
+  const now = Date.now();
+
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'Surrogate-Control': 'no-store'
+  });
+
+  // Short TTL: 5s for background queries, 1.5s for forced user refresh
+  const isForced = Boolean(_t);
+  const maxCacheAge = isForced ? 1500 : 5000;
+  const cachedEntry = arrivalsMemoryCache.get(cacheKey);
+
+  if (cachedEntry && (now - cachedEntry.timestamp < maxCacheAge)) {
+    return res.json(cachedEntry.data);
+  }
+
+  // If another request for this exact station is already fetching upstream, share the Promise
+  if (inFlightArrivals.has(cacheKey)) {
+    try {
+      const sharedData = await inFlightArrivals.get(cacheKey);
+      return res.json(sharedData);
+    } catch {
+      // Fall through if in-flight failed
+    }
+  }
+
+  const query = { hasta, fecha, hora, cantidad, ramal, sentido, _t: _t || now };
+  const fetchPromise = fetchFromSofse(`/arribos/estacion/${stationId}`, query)
+    .then((data) => {
+      arrivalsMemoryCache.set(cacheKey, { timestamp: Date.now(), data });
+      return data;
+    })
+    .finally(() => {
+      inFlightArrivals.delete(cacheKey);
     });
-    const { stationId } = req.params;
-    const { hasta, fecha, hora, cantidad, ramal, sentido, _t } = req.query;
-    const query = { hasta, fecha, hora, cantidad, ramal, sentido, _t: _t || Date.now() };
-    const data = await fetchFromSofse(`/arribos/estacion/${stationId}`, query);
+
+  inFlightArrivals.set(cacheKey, fetchPromise);
+
+  try {
+    const data = await fetchPromise;
     res.json(data);
   } catch (err) {
+    // If upstream timed out or failed, but we have prior cache for this station, serve it gracefully
+    if (cachedEntry) {
+      console.warn(`[RielAR] Serving cached arrivals for station ${stationId} due to temporary network lag`);
+      return res.json(cachedEntry.data);
+    }
     res.status(500).json({ error: 'Failed to fetch arrivals', details: err.message });
   }
 });
@@ -501,8 +563,8 @@ app.listen(PORT, () => {
 
   // Render Free-Tier Keep-Alive Engine
   // Free tier instances sleep after 15 min of zero requests.
-  // Pinging /api/health every 12 minutes prevents cold starts 24/7.
-  const keepAliveUrl = process.env.RENDER_EXTERNAL_URL || process.env.APP_URL;
+  // Pinging /api/health every 10 minutes prevents cold starts 24/7.
+  const keepAliveUrl = process.env.RENDER_EXTERNAL_URL || process.env.APP_URL || 'https://rielar-app.onrender.com';
   if (keepAliveUrl) {
     console.log(`[RielAR Keep-Alive] Active for host: ${keepAliveUrl}`);
     setInterval(async () => {
@@ -513,6 +575,6 @@ app.listen(PORT, () => {
       } catch (err) {
         console.warn(`[RielAR Keep-Alive] Ping error:`, err.message);
       }
-    }, 12 * 60 * 1000);
+    }, 10 * 60 * 1000);
   }
 });

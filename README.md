@@ -104,7 +104,7 @@ graph TD
         UI --> Views[Vistas: Cercanías, Mapa, Estado, Planificador, Favoritos]
         Views --> Tracker[trainTracker.js Engine]
         Tracker --> AudioHaptics[Web Audio API + Haptic Engine]
-        UI --> SW[Service Worker - sw.js Cache v10]
+        UI --> SW[Service Worker - sw.js Cache v11]
     end
 
     Frontend -->|Solicitudes HTTP sin caché| Backend[Servidor Express - server.js]

@@ -2,15 +2,30 @@
 
 const API_BASE = '/api';
 
+function combineSignals(s1, s2) {
+  if (!s1) return s2;
+  if (!s2) return s1;
+  const controller = new AbortController();
+  const onAbort = () => controller.abort();
+  if (s1.aborted || s2.aborted) {
+    controller.abort();
+    return controller.signal;
+  }
+  s1.addEventListener('abort', onAbort, { once: true });
+  s2.addEventListener('abort', onAbort, { once: true });
+  return controller.signal;
+}
+
 /**
  * Resilient fetcher that handles Render cold starts, 502/503 statuses,
- * and temporary network hiccups gracefully.
+ * and temporary network hiccups gracefully without freezing UI.
  */
-async function fetchWithRetry(url, options = {}, retries = 2, delay = 1200) {
+async function fetchWithRetry(url, options = {}, retries = 1, delay = 600) {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
-    const res = await fetch(url, { ...options, signal: controller.signal });
+    const timeoutId = setTimeout(() => controller.abort(), 4500);
+    const signal = combineSignals(options.signal, controller.signal);
+    const res = await fetch(url, { ...options, signal });
     clearTimeout(timeoutId);
 
     // If server is returning gateway errors (Render waking up), retry automatically
@@ -71,7 +86,7 @@ export async function searchStations(query) {
   return await res.json();
 }
 
-export async function getStationArrivals(stationId, params = {}, forceRefresh = false) {
+export async function getStationArrivals(stationId, params = {}, forceRefresh = false, externalSignal = null) {
   const url = new URL(`${API_BASE}/arrivals/${stationId}`, window.location.origin);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== '') {
@@ -85,15 +100,16 @@ export async function getStationArrivals(stationId, params = {}, forceRefresh = 
   }
 
   const fetchOptions = {
+    signal: externalSignal,
     cache: forceRefresh ? 'no-store' : 'default',
     headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
+      'Cache-Control': forceRefresh ? 'no-cache, no-store, must-revalidate' : 'default',
+      'Pragma': forceRefresh ? 'no-cache' : 'default',
     },
   };
 
   try {
-    const res = await fetchWithRetry(url.toString(), fetchOptions, 2, 1000);
+    const res = await fetchWithRetry(url.toString(), fetchOptions, 1, 600);
     if (!res.ok) throw new Error(`Error fetching arrivals for station ${stationId}: ${res.status}`);
     const data = await res.json();
     try {
@@ -102,13 +118,16 @@ export async function getStationArrivals(stationId, params = {}, forceRefresh = 
     } catch {}
     return data;
   } catch (err) {
-    // If user explicitly clicked refresh, do NOT return stale cache silently
-    if (forceRefresh) {
+    if (err.name === 'AbortError') {
       throw err;
     }
+    // Gracefully serve cached arrivals from sessionStorage if available
     try {
       const saved = sessionStorage.getItem(`arr_${stationId}`);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        console.warn(`[RielAR] Usando arribos cacheados para estación ${stationId} por retraso de red`);
+        return JSON.parse(saved);
+      }
     } catch {}
     throw err;
   }

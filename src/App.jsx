@@ -86,13 +86,25 @@ export default function App() {
     }
   };
 
-  // User Geolocation Coordinates
-  const [userCoords, setUserCoords] = useState({
-    lat: -34.59091,
-    lng: -58.37505,
-    name: 'Retiro',
+  // User Geolocation Coordinates (reads last known coordinates from localStorage for instant launch)
+  const [userCoords, setUserCoords] = useState(() => {
+    try {
+      const saved = localStorage.getItem('rielar_last_coords');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      lat: -34.59091,
+      lng: -58.37505,
+      name: 'Retiro',
+    };
   });
-  const [locationPreset, setLocationPreset] = useState('Retiro');
+  const [locationPreset, setLocationPreset] = useState(() => {
+    try {
+      const saved = localStorage.getItem('rielar_last_coords');
+      if (saved) return 'GPS';
+    } catch {}
+    return 'Retiro';
+  });
 
   // Favorites in localStorage
   const [favorites, setFavorites] = useState(() => {
@@ -118,23 +130,35 @@ export default function App() {
     }
   }, [favorites]);
 
-  // Attempt real HTML5 Geolocation on mount (safe for any browser)
+  // Attempt real HTML5 Geolocation on mount (safe for any mobile/desktop browser)
   useEffect(() => {
     try {
       if (typeof navigator !== 'undefined' && 'geolocation' in navigator && (window.isSecureContext || window.location.hostname === 'localhost')) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             if (pos?.coords) {
-              setUserCoords({
+              const newCoords = {
                 lat: pos.coords.latitude,
                 lng: pos.coords.longitude,
                 name: 'GPS Real',
+              };
+              setUserCoords((prev) => {
+                // If coordinates shifted by less than ~50m, keep previous to avoid refetching
+                const distLat = Math.abs(prev.lat - newCoords.lat);
+                const distLng = Math.abs(prev.lng - newCoords.lng);
+                if (distLat < 0.0005 && distLng < 0.0005) {
+                  return prev;
+                }
+                try {
+                  localStorage.setItem('rielar_last_coords', JSON.stringify(newCoords));
+                } catch {}
+                return newCoords;
               });
               setLocationPreset('GPS');
             }
           },
           (err) => {
-            console.log('GPS not granted or unavailable, using default preset:', err.message);
+            console.log('GPS not granted or unavailable, using last known preset:', err.message);
           },
           { enableHighAccuracy: true, timeout: 5000 }
         );
