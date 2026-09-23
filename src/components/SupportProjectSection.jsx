@@ -82,7 +82,7 @@ export default function SupportProjectSection() {
       <div
         className="ios-card"
         style={{
-          padding: '22px 20px',
+          padding: '20px 16px',
           background: 'linear-gradient(145deg, rgba(0, 159, 227, 0.15) 0%, rgba(28, 28, 35, 0.98) 100%)',
           border: '1px solid rgba(0, 159, 227, 0.35)',
           boxShadow: '0 8px 30px rgba(0, 0, 0, 0.45)',
@@ -160,15 +160,15 @@ export default function SupportProjectSection() {
         {/* Mercado Pago Transfer Box */}
         <div
           style={{
-            background: 'rgba(0, 159, 227, 0.12)',
-            border: '1px solid rgba(0, 159, 227, 0.35)',
+            background: 'rgba(0, 159, 227, 0.1)',
+            border: '1px solid rgba(0, 159, 227, 0.3)',
             borderRadius: '16px',
-            padding: '16px',
+            padding: '14px',
             marginBottom: '14px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', color: '#8e8e93', fontWeight: 600 }}>
+            <span style={{ fontSize: '11.5px', color: '#8e8e93', fontWeight: 600 }}>
               Alias oficial de Mercado Pago
             </span>
             <span style={{ fontSize: '11px', color: '#009fe3', fontWeight: 700 }}>
@@ -176,16 +176,15 @@ export default function SupportProjectSection() {
             </span>
           </div>
 
+          {/* Alias Box */}
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '10px',
-              background: 'rgba(0, 0, 0, 0.35)',
-              padding: '10px 14px',
+              background: 'rgba(0, 0, 0, 0.45)',
+              border: '1px dashed rgba(0, 159, 227, 0.45)',
               borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              padding: '10px 12px',
+              textAlign: 'center',
+              marginBottom: '10px',
             }}
           >
             <span
@@ -194,37 +193,42 @@ export default function SupportProjectSection() {
                 fontSize: '16px',
                 fontWeight: 800,
                 color: '#009fe3',
-                letterSpacing: '0.03em',
+                letterSpacing: '0.04em',
+                userSelect: 'all',
+                display: 'block',
+                wordBreak: 'break-all',
               }}
             >
               {mercadoPago.alias}
             </span>
-
-            <button
-              onClick={handleCopyAlias}
-              style={{
-                background: copiedAlias ? '#30d158' : 'linear-gradient(135deg, #009fe3, #0077b6)',
-                color: copiedAlias ? '#000000' : '#ffffff',
-                border: 'none',
-                padding: '8px 14px',
-                borderRadius: '10px',
-                fontSize: '12.5px',
-                fontWeight: 800,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                flexShrink: 0,
-                boxShadow: copiedAlias ? 'none' : '0 2px 10px rgba(0, 159, 227, 0.4)',
-              }}
-            >
-              {copiedAlias ? <Check size={14} /> : <Copy size={14} />}
-              <span>{copiedAlias ? '¡Copiado!' : 'Copiar Alias'}</span>
-            </button>
           </div>
 
-          <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Full-width Responsive Copy Button */}
+          <button
+            onClick={handleCopyAlias}
+            style={{
+              width: '100%',
+              background: copiedAlias ? '#30d158' : 'linear-gradient(135deg, #009fe3, #0077b6)',
+              color: copiedAlias ? '#000000' : '#ffffff',
+              border: 'none',
+              padding: '11px',
+              borderRadius: '12px',
+              fontSize: '13px',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              boxShadow: copiedAlias ? 'none' : '0 3px 12px rgba(0, 159, 227, 0.35)',
+            }}
+          >
+            {copiedAlias ? <Check size={16} /> : <Copy size={16} />}
+            <span>{copiedAlias ? '¡Alias copiado en el portapapeles!' : 'Copiar Alias para transferir'}</span>
+          </button>
+
+          <div style={{ fontSize: '11.5px', color: '#a1a1aa', marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
             <span>Titular: <strong style={{ color: '#ffffff' }}>{mercadoPago.holder}</strong></span>
             <span style={{ color: '#8e8e93' }}>{mercadoPago.entity}</span>
           </div>
