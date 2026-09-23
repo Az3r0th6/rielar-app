@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Car, ExternalLink, Tag, X, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Car, ExternalLink, X } from 'lucide-react';
 import { MONETIZATION_CONFIG } from '../config/monetizationConfig';
 import { triggerHaptic } from '../utils/notifications';
 
@@ -10,21 +10,10 @@ export default function RideAffiliateCard({
   onDismiss,
 }) {
   const [dismissed, setDismissed] = useState(false);
-  const [copiedCode, setCopiedCode] = useState(false);
 
   if (dismissed) return null;
 
   const { cabify, uber, didi } = MONETIZATION_CONFIG.affiliates;
-
-  const handleCopyCode = (code) => {
-    triggerHaptic('light');
-    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(code).then(() => {
-        setCopiedCode(true);
-        setTimeout(() => setCopiedCode(false), 2000);
-      });
-    }
-  };
 
   const handleDismiss = (e) => {
     e.stopPropagation();
@@ -149,7 +138,7 @@ export default function RideAffiliateCard({
         >
           <div>
             <div style={{ fontWeight: 800, fontSize: '13px' }}>{cabify.name}</div>
-            <div style={{ fontSize: '10px', opacity: 0.9 }}>{cabify.discount}</div>
+            <div style={{ fontSize: '10px', opacity: 0.9 }}>{cabify.tagline}</div>
           </div>
           <ExternalLink size={14} style={{ opacity: 0.8 }} />
         </a>
@@ -206,41 +195,6 @@ export default function RideAffiliateCard({
           </div>
           <ExternalLink size={14} style={{ opacity: 0.8 }} />
         </a>
-      </div>
-
-      {/* Promo Code Info Footer */}
-      <div
-        style={{
-          marginTop: '10px',
-          paddingTop: '8px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          fontSize: '11px',
-          color: '#8e8e93',
-        }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <Tag size={12} style={{ color: '#ffd60a' }} />
-          <span>Cupón sugerido de bienvenida:</span>
-          <strong style={{ color: '#ffffff' }}>{cabify.promoCode}</strong>
-        </span>
-
-        <button
-          onClick={() => handleCopyCode(cabify.promoCode)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: copiedCode ? '#30d158' : '#0a84ff',
-            fontWeight: 700,
-            fontSize: '10.5px',
-            cursor: 'pointer',
-            padding: '2px 4px',
-          }}
-        >
-          {copiedCode ? '¡Copiado!' : 'Copiar código'}
-        </button>
       </div>
     </div>
   );

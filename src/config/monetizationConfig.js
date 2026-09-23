@@ -34,31 +34,29 @@ export const MONETIZATION_CONFIG = {
   affiliates: {
     cabify: {
       name: 'Cabify',
-      tagline: 'Viajes seguros y con tarifa fija',
-      // Enlace de descarga o referido
+      tagline: 'Tarifa fija y segura',
+      actionText: 'Pedir auto en Cabify',
       url: 'https://cabify.com/download',
-      promoCode: 'RIELAR',
-      discount: 'Hasta 50% OFF primer viaje',
+      promoCode: '', // Cargá tu código de invitación personal cuando quieras
       brandColor: '#7152f8',
       textColor: '#ffffff',
     },
     uber: {
       name: 'Uber',
-      tagline: 'Pedí un auto en minutos',
-      // Enlace directo / deep link para pedir un viaje
+      tagline: 'Llega en pocos minutos',
+      actionText: 'Pedir viaje en Uber',
       url: 'https://m.uber.com/ul/?action=setPickup',
-      promoCode: 'RIELAR',
-      discount: 'Descuento en viajes iniciales',
+      promoCode: '', // Cargá tu código de invitación personal cuando quieras
       brandColor: '#1a1a1a',
       textColor: '#ffffff',
       borderColor: 'rgba(255, 255, 255, 0.2)',
     },
     didi: {
       name: 'DiDi',
-      tagline: 'Tarifas accesibles para llegar a tiempo',
+      tagline: 'Tarifas accesibles',
+      actionText: 'Pedir viaje en DiDi',
       url: 'https://argentina.didiglobal.com/',
-      promoCode: 'RIELAR',
-      discount: 'Cupón de bienvenida disponible',
+      promoCode: '', // Cargá tu código de invitación personal cuando quieras
       brandColor: '#ff7700',
       textColor: '#ffffff',
     },
