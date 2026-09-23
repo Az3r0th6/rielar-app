@@ -9,7 +9,7 @@ export const MONETIZATION_CONFIG = {
 
     // Alias o CVU de Mercado Pago para transferencias directas en pesos
     mercadoPago: {
-      alias: 'rielar.trenes.mp',
+      alias: 'martincalvoruiz.mp',
       holder: 'Martin Calvo Ruiz',
       entity: 'Mercado Pago',
       cuit: '', // Opcional
