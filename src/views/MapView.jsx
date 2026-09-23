@@ -28,6 +28,13 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain }) 
   const [mapZoom, setMapZoom] = useState(13);
   const [liveNetworkTrains, setLiveNetworkTrains] = useState([]);
 
+  // Auto-center map when GPS user coordinates are detected
+  useEffect(() => {
+    if (userCoords?.lat && userCoords?.lng) {
+      setMapCenter([userCoords.lat, userCoords.lng]);
+    }
+  }, [userCoords?.lat, userCoords?.lng]);
+
   // Fetch real-time circulating trains across the network every 20 seconds
   useEffect(() => {
     let isMounted = true;

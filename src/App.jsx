@@ -139,11 +139,94 @@ export default function App() {
     }
   }, [favorites]);
 
-  // Attempt real HTML5 Geolocation on mount (safe for any mobile/desktop browser)
-  useEffect(() => {
-    try {
-      if (typeof navigator !== 'undefined' && 'geolocation' in navigator && (window.isSecureContext || window.location.hostname === 'localhost')) {
+  const [gpsState, setGpsState] = useState('idle'); // 'idle' | 'requesting' | 'active' | 'denied' | 'timeout'
+  const [gpsErrorMsg, setGpsErrorMsg] = useState('');
+
+  // Robust Geolocation Engine for Mobile Android & Brave
+  const requestGpsLocation = (isUserClick = false) => {
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+      setGpsState('denied');
+      setGpsErrorMsg('Este navegador no soporta geolocalización.');
+      return;
+    }
+
+    if (isUserClick) {
+      triggerHaptic('medium');
+    }
+    setGpsState('requesting');
+    setGpsErrorMsg('');
+
+    const applyCoords = (pos) => {
+      if (pos?.coords) {
+        const newCoords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          name: 'GPS Real',
+        };
+        setUserCoords(newCoords);
+        setLocationPreset('GPS');
+        setGpsState('active');
+        setGpsErrorMsg('');
+        try {
+          localStorage.setItem('rielar_last_coords', JSON.stringify(newCoords));
+        } catch {}
+      }
+    };
+
+    const handleGpsError = (err) => {
+      console.warn('Geolocation error:', err.code, err.message);
+      if (err.code === 1) {
+        // PERMISSION_DENIED
+        setGpsState('denied');
+        setGpsErrorMsg('Permiso de ubicación denegado en Brave / Android.');
+      } else if (err.code === 3) {
+        // TIMEOUT: Try fallback with cached / network location
         navigator.geolocation.getCurrentPosition(
+          (pos) => applyCoords(pos),
+          (fallbackErr) => {
+            setGpsState('timeout');
+            setGpsErrorMsg('Tiempo de espera agotado buscando señal GPS.');
+          },
+          { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 }
+        );
+      } else {
+        setGpsState('denied');
+        setGpsErrorMsg('Ubicación no disponible en este dispositivo.');
+      }
+    };
+
+    // Phase 1: Fast cached / network position (maximumAge: 5 mins, timeout: 8s, low accuracy)
+    // On Android Brave, this resolves instantly from cell towers / WiFi without freezing on GPS satellites
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        applyCoords(pos);
+        // Phase 2: Refine with High Accuracy GPS once coarse position is already loaded
+        navigator.geolocation.getCurrentPosition(
+          (precisePos) => applyCoords(precisePos),
+          () => {}, // Non-blocking if fine fix fails, coarse is already active
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 }
+        );
+      },
+      (fastErr) => {
+        // Fallback to high accuracy with generous timeout (20s instead of 5s)
+        navigator.geolocation.getCurrentPosition(
+          (pos) => applyCoords(pos),
+          handleGpsError,
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
+        );
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
+    );
+  };
+
+  // Attempt real Geolocation on mount & register continuous watcher
+  useEffect(() => {
+    requestGpsLocation(false);
+
+    let watchId = null;
+    try {
+      if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+        watchId = navigator.geolocation.watchPosition(
           (pos) => {
             if (pos?.coords) {
               const newCoords = {
@@ -152,50 +235,41 @@ export default function App() {
                 name: 'GPS Real',
               };
               setUserCoords((prev) => {
-                // If coordinates shifted by less than ~50m, keep previous to avoid refetching
                 const distLat = Math.abs(prev.lat - newCoords.lat);
                 const distLng = Math.abs(prev.lng - newCoords.lng);
-                if (distLat < 0.0005 && distLng < 0.0005) {
-                  return prev;
+                if (distLat > 0.0003 || distLng > 0.0003) {
+                  try {
+                    localStorage.setItem('rielar_last_coords', JSON.stringify(newCoords));
+                  } catch {}
+                  return newCoords;
                 }
-                try {
-                  localStorage.setItem('rielar_last_coords', JSON.stringify(newCoords));
-                } catch {}
-                return newCoords;
+                return prev;
               });
-              setLocationPreset('GPS');
+              setGpsState('active');
             }
           },
           (err) => {
-            console.log('GPS not granted or unavailable, using last known preset:', err.message);
+            console.debug('watchPosition info:', err.message);
           },
-          { enableHighAccuracy: true, timeout: 5000 }
+          { enableHighAccuracy: false, timeout: 25000, maximumAge: 60000 }
         );
       }
-    } catch (geoErr) {
-      console.warn('Geolocation check bypassed:', geoErr);
+    } catch (e) {
+      console.warn('watchPosition setup error:', e);
     }
+
+    return () => {
+      if (watchId !== null && typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
   }, []);
 
   // Handle location simulation switcher
   const handleSimulateLocation = (presetName) => {
     setLocationPreset(presetName);
     if (presetName === 'GPS') {
-      try {
-        if ('geolocation' in navigator) {
-          navigator.geolocation.getCurrentPosition((pos) => {
-            if (pos?.coords) {
-              setUserCoords({
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude,
-                name: 'GPS Real',
-              });
-            }
-          });
-        }
-      } catch (err) {
-        console.warn('GPS query error:', err);
-      }
+      requestGpsLocation(true);
       return;
     }
 
@@ -205,10 +279,17 @@ export default function App() {
       Once: { lat: -34.60861, lng: -58.40694, name: 'Once' },
       'San Isidro': { lat: -34.47179, lng: -58.51379, name: 'San Isidro' },
       Constitución: { lat: -34.62778, lng: -58.38139, name: 'Constitución' },
+      Morón: { lat: -34.6517, lng: -58.6206, name: 'Morón' },
+      Quilmes: { lat: -34.7239, lng: -58.2589, name: 'Quilmes' },
+      'La Plata': { lat: -34.9044, lng: -57.9497, name: 'La Plata' },
     };
 
     if (presets[presetName]) {
       setUserCoords(presets[presetName]);
+      setGpsState('idle');
+      try {
+        localStorage.setItem('rielar_last_coords', JSON.stringify(presets[presetName]));
+      } catch {}
     }
   };
 
@@ -292,6 +373,11 @@ export default function App() {
             favorites={favorites}
             onToggleFavorite={handleToggleFavorite}
             onSelectTrain={(train) => setSelectedTrain(train)}
+            locationPreset={locationPreset}
+            gpsState={gpsState}
+            gpsErrorMsg={gpsErrorMsg}
+            onRequestGps={() => requestGpsLocation(true)}
+            onSetLocationPreset={handleSimulateLocation}
           />
         )}
 

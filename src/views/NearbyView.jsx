@@ -27,12 +27,18 @@ export default function NearbyView({
   favorites,
   onToggleFavorite,
   onSelectTrain,
+  locationPreset = 'Retiro',
+  gpsState = 'idle',
+  gpsErrorMsg = '',
+  onRequestGps,
+  onSetLocationPreset,
 }) {
   const [selectedLine, setSelectedLine] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [directionFilter, setDirectionFilter] = useState('ALL'); // 'ALL', '1' (Provincia), '2' (CABA/Retiro)
   const [browseMode, setBrowseMode] = useState('nearby'); // 'nearby' or 'all'
   const [selectedCustomStation, setSelectedCustomStation] = useState(null);
+  const [showZonePicker, setShowZonePicker] = useState(false);
 
   // Compute nearest stations
   const nearestStations = getNearestStations(
@@ -58,6 +64,23 @@ export default function NearbyView({
       return [];
     }
   });
+
+  // When userCoords changes, immediately reorder stationsWithArrivals
+  // with the new nearest stations so the UI reflects the real location instantaneously
+  useEffect(() => {
+    if (browseMode === 'nearby' && !selectedCustomStation && searchQuery.trim().length < 2) {
+      const freshNearest = getNearestStations(userCoords.lat, userCoords.lng, PRELOADED_STATIONS, 8).slice(0, 4);
+      setStationsWithArrivals((prev) => {
+        return freshNearest.map((st) => {
+          const existing = prev.find((p) => p.id === st.id);
+          return {
+            ...st,
+            arrivals: existing?.arrivals || [],
+          };
+        });
+      });
+    }
+  }, [userCoords.lat, userCoords.lng, browseMode, selectedCustomStation, searchQuery]);
 
   const [loading, setLoading] = useState(() => stationsWithArrivals.length === 0);
   const [refreshing, setRefreshing] = useState(false);
@@ -248,6 +271,7 @@ export default function NearbyView({
             triggerHaptic('light');
             setBrowseMode('nearby');
             setSelectedCustomStation(null);
+            if (onRequestGps) onRequestGps();
           }}
           style={{
             flex: 1,
@@ -296,6 +320,174 @@ export default function NearbyView({
           <span>Explorar Red Completa</span>
         </button>
       </div>
+
+      {/* GPS Status & Location Controls for Android & Brave */}
+      {browseMode === 'nearby' && (
+        <div style={{ padding: '4px 16px 6px' }}>
+          {gpsState === 'active' ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'rgba(10, 132, 255, 0.12)',
+                border: '1px solid rgba(10, 132, 255, 0.3)',
+                borderRadius: '12px',
+                padding: '7px 12px',
+                fontSize: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0a84ff', fontWeight: 600 }}>
+                <Navigation size={13} style={{ fill: '#0a84ff' }} />
+                <span>
+                  GPS Activo: Más cercana <strong>{nearestStations[0]?.name || 'Detectada'}</strong> ({nearestStations[0]?.formattedDistance})
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  triggerHaptic('light');
+                  if (onRequestGps) onRequestGps();
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#0a84ff',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '2px',
+                }}
+                title="Actualizar GPS"
+              >
+                <RotateCw size={13} />
+              </button>
+            </div>
+          ) : gpsState === 'requesting' ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(255, 214, 10, 0.12)',
+                border: '1px solid rgba(255, 214, 10, 0.3)',
+                borderRadius: '12px',
+                padding: '8px 12px',
+                fontSize: '12px',
+                color: '#ffd60a',
+                fontWeight: 600,
+              }}
+            >
+              <RotateCw size={14} className="animate-spin" />
+              <span>Buscando tu ubicación en Brave / Android...</span>
+            </div>
+          ) : (
+            <div
+              className="ios-card"
+              style={{
+                padding: '12px 14px',
+                background: 'linear-gradient(135deg, rgba(28, 28, 35, 0.95), rgba(20, 20, 25, 0.98))',
+                border: '1px solid rgba(255, 159, 10, 0.3)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MapPin size={17} style={{ color: '#ff9f0a', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
+                    Zona actual: {locationPreset || 'Retiro (Predeterminado)'}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#8e8e93', marginTop: '2px' }}>
+                    {gpsState === 'denied'
+                      ? 'Brave tiene bloqueada la ubicación. Tocá el candado 🔒 o escudo en la barra del navegador para permitir.'
+                      : 'Activá el GPS para detectar tu estación más cercana automáticamente.'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                <button
+                  onClick={() => {
+                    if (onRequestGps) onRequestGps();
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: '#0a84ff',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Navigation size={13} />
+                  <span>{gpsState === 'denied' ? 'Reintentar GPS' : 'Activar mi GPS'}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    triggerHaptic('light');
+                    setShowZonePicker(!showZonePicker);
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: '#f5f5f7',
+                    fontWeight: 600,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  📍 Elegir zona
+                </button>
+              </div>
+
+              {showZonePicker && (
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '6px',
+                    flexWrap: 'wrap',
+                    marginTop: '10px',
+                    paddingTop: '8px',
+                    borderTop: '1px solid rgba(255,255,255,0.08)',
+                  }}
+                >
+                  {['Retiro', 'Once', 'Constitución', 'Morón', 'San Isidro', 'Quilmes', 'La Plata'].map((zone) => (
+                    <button
+                      key={zone}
+                      onClick={() => {
+                        triggerHaptic('light');
+                        if (onSetLocationPreset) onSetLocationPreset(zone);
+                        setShowZonePicker(false);
+                      }}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        border: 'none',
+                        background: locationPreset === zone ? '#0a84ff' : 'rgba(255,255,255,0.1)',
+                        color: locationPreset === zone ? '#ffffff' : '#d1d1d6',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {zone}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Universal Search Bar */}
       <div style={{ padding: '8px 16px 4px' }}>
