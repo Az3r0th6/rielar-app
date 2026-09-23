@@ -2,11 +2,8 @@
 // Podés editar estos valores en cualquier momento con tus propios usuarios y links reales.
 
 export const MONETIZATION_CONFIG = {
-  // Configuración de Cafecito & Donaciones
+  // Configuración de Donaciones y Apoyo por Mercado Pago
   donations: {
-    // Tu enlace de Cafecito (ej: 'https://cafecito.app/tu_usuario')
-    cafecitoUrl: 'https://cafecito.app/rielar',
-
     // Alias o CVU de Mercado Pago para transferencias directas en pesos
     mercadoPago: {
       alias: 'martincalvoruiz.mp',
@@ -15,10 +12,10 @@ export const MONETIZATION_CONFIG = {
       cuit: '', // Opcional
     },
 
-    // Montos sugeridos en pesos argentinos para mostrar
+    // Montos sugeridos en pesos argentinos para transferencias voluntarias
     tiers: [
-      { amount: 1000, label: '1 Café', icon: '☕' },
-      { amount: 2000, label: '2 Cafés', icon: '☕☕' },
+      { amount: 1000, label: 'Aporte Básico', icon: '💙' },
+      { amount: 2000, label: 'Aporte Impulso', icon: '⚡' },
       { amount: 5000, label: 'Súper Aporte', icon: '🚀' },
     ],
 

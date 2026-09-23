@@ -86,7 +86,7 @@ export default function MoreView({ onInstallApp }) {
             <span>
               {activeSection === 'download' && 'Descarga e instalación directa en tu dispositivo'}
               {activeSection === 'notifications' && 'Preferencias de alertas sonoras y push'}
-              {activeSection === 'support' && 'Aporte voluntario para mantener la app activa y sin publicidad'}
+              {activeSection === 'support' && 'Aporte voluntario por Mercado Pago para mantener la app activa y sin publicidad'}
               {activeSection === 'reports' && 'Reportes de fallos en horarios, estaciones o la app'}
               {activeSection === 'credits' && 'Desarrollo oficial por Martin Calvo Ruiz'}
             </span>
@@ -135,7 +135,7 @@ export default function MoreView({ onInstallApp }) {
             setActiveSection('support');
           }}
         >
-          ☕ Apoyar
+          💙 Apoyar
         </button>
 
         <button
@@ -659,8 +659,8 @@ export default function MoreView({ onInstallApp }) {
               className="ios-card"
               style={{
                 padding: '16px',
-                background: 'linear-gradient(135deg, rgba(255, 149, 0, 0.12), rgba(28, 28, 35, 0.95))',
-                border: '1px solid rgba(255, 149, 0, 0.3)',
+                background: 'linear-gradient(135deg, rgba(0, 159, 227, 0.12), rgba(28, 28, 35, 0.95))',
+                border: '1px solid rgba(0, 159, 227, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -668,13 +668,13 @@ export default function MoreView({ onInstallApp }) {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '24px' }}>☕</span>
+                <span style={{ fontSize: '24px' }}>💙</span>
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '14px', color: '#ffffff' }}>
                     ¿Te resulta útil RielAR?
                   </div>
                   <div style={{ fontSize: '11.5px', color: '#8e8e93' }}>
-                    Invitale un café al desarrollador para mantener los servidores
+                    Hacé un aporte voluntario por Mercado Pago para los servidores
                   </div>
                 </div>
               </div>
@@ -684,9 +684,9 @@ export default function MoreView({ onInstallApp }) {
                   setActiveSection('support');
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, #ff9500, #e08500)',
+                  background: 'linear-gradient(135deg, #009fe3, #0077b6)',
                   border: 'none',
-                  color: '#000000',
+                  color: '#ffffff',
                   padding: '8px 14px',
                   borderRadius: '10px',
                   fontSize: '12px',

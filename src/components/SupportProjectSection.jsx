@@ -1,23 +1,19 @@
 import React, { useState } from 'react';
 import {
-  Coffee,
   Heart,
   Copy,
   Check,
-  ExternalLink,
   Share2,
-  Sparkles,
   Server,
   ShieldCheck,
-  Send,
+  Sparkles,
 } from 'lucide-react';
 import { MONETIZATION_CONFIG } from '../config/monetizationConfig';
 import { triggerHaptic } from '../utils/notifications';
 
 export default function SupportProjectSection() {
   const [copiedAlias, setCopiedAlias] = useState(false);
-  const [activeTab, setActiveTab] = useState('cafecito'); // 'cafecito' | 'mercadopago'
-  const { cafecitoUrl, mercadoPago, tiers, benefitsText } = MONETIZATION_CONFIG.donations;
+  const { mercadoPago, tiers, benefitsText } = MONETIZATION_CONFIG.donations;
 
   const handleCopyAlias = () => {
     triggerHaptic('medium');
@@ -87,31 +83,31 @@ export default function SupportProjectSection() {
         className="ios-card"
         style={{
           padding: '22px 20px',
-          background: 'linear-gradient(145deg, rgba(255, 149, 0, 0.15) 0%, rgba(28, 28, 35, 0.98) 100%)',
-          border: '1px solid rgba(255, 149, 0, 0.35)',
+          background: 'linear-gradient(145deg, rgba(0, 159, 227, 0.15) 0%, rgba(28, 28, 35, 0.98) 100%)',
+          border: '1px solid rgba(0, 159, 227, 0.35)',
           boxShadow: '0 8px 30px rgba(0, 0, 0, 0.45)',
           marginBottom: '16px',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '16px' }}>
           <div
             style={{
               width: '52px',
               height: '52px',
               borderRadius: '16px',
-              background: 'linear-gradient(135deg, #ff9500, #ff5e3a)',
+              background: 'linear-gradient(135deg, #009fe3, #0077b6)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#ffffff',
-              boxShadow: '0 4px 18px rgba(255, 149, 0, 0.45)',
+              boxShadow: '0 4px 18px rgba(0, 159, 227, 0.45)',
               flexShrink: 0,
               fontSize: '26px',
             }}
           >
-            ☕
+            💙
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -122,20 +118,20 @@ export default function SupportProjectSection() {
                 style={{
                   fontSize: '10px',
                   fontWeight: 800,
-                  background: 'rgba(255, 149, 0, 0.2)',
-                  color: '#ff9f0a',
-                  border: '1px solid rgba(255, 149, 0, 0.4)',
+                  background: 'rgba(0, 159, 227, 0.2)',
+                  color: '#009fe3',
+                  border: '1px solid rgba(0, 159, 227, 0.4)',
                   padding: '2px 8px',
                   borderRadius: '8px',
                   letterSpacing: '0.04em',
                 }}
               >
-                100% INDEPENDIENTE
+                MERCADO PAGO
               </span>
             </div>
             <div style={{ fontSize: '13px', color: '#a1a1aa', marginTop: '4px', lineHeight: 1.45 }}>
-              RielAR fue desarrollada para que los pasajeros viajen mejor, sin publicidad invasiva ni trabas.
-              Tu aporte voluntario mantiene los servidores y la API en vivo activos todos los días.
+              RielAR es un desarrollo independiente creado para la comunidad de pasajeros, sin publicidad molesta.
+              Tu aporte voluntario mantiene los servidores activos y el soporte continuo de datos en vivo.
             </div>
           </div>
         </div>
@@ -161,185 +157,103 @@ export default function SupportProjectSection() {
           ))}
         </div>
 
-        {/* Payment Method Switcher */}
+        {/* Mercado Pago Transfer Box */}
         <div
           style={{
-            display: 'flex',
-            background: 'rgba(255, 255, 255, 0.08)',
-            borderRadius: '12px',
-            padding: '3px',
+            background: 'rgba(0, 159, 227, 0.12)',
+            border: '1px solid rgba(0, 159, 227, 0.35)',
+            borderRadius: '16px',
+            padding: '16px',
             marginBottom: '14px',
-            gap: '4px',
           }}
         >
-          <button
-            onClick={() => {
-              triggerHaptic('light');
-              setActiveTab('cafecito');
-            }}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '12px', color: '#8e8e93', fontWeight: 600 }}>
+              Alias oficial de Mercado Pago
+            </span>
+            <span style={{ fontSize: '11px', color: '#009fe3', fontWeight: 700 }}>
+              Cualquier monto ayuda
+            </span>
+          </div>
+
+          <div
             style={{
-              flex: 1,
-              padding: '9px',
-              borderRadius: '9px',
-              border: 'none',
-              background: activeTab === 'cafecito' ? '#ff9500' : 'transparent',
-              color: activeTab === 'cafecito' ? '#000000' : '#ffffff',
-              fontWeight: 800,
-              fontSize: '12.5px',
-              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'all 0.15s ease',
+              justifyContent: 'space-between',
+              gap: '10px',
+              background: 'rgba(0, 0, 0, 0.35)',
+              padding: '10px 14px',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
             }}
           >
-            <span>☕ Cafecito</span>
-          </button>
-
-          <button
-            onClick={() => {
-              triggerHaptic('light');
-              setActiveTab('mercadopago');
-            }}
-            style={{
-              flex: 1,
-              padding: '9px',
-              borderRadius: '9px',
-              border: 'none',
-              background: activeTab === 'mercadopago' ? '#009fe3' : 'transparent',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '12.5px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <span>💙 Mercado Pago</span>
-          </button>
-        </div>
-
-        {/* TAB: CAFECITO */}
-        {activeTab === 'cafecito' && (
-          <div>
-            {/* Quick suggested tiers */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
-              {tiers.map((t, idx) => (
-                <a
-                  key={idx}
-                  href={cafecitoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => triggerHaptic('light')}
-                  style={{
-                    textDecoration: 'none',
-                    background: 'rgba(255, 149, 0, 0.12)',
-                    border: '1px solid rgba(255, 149, 0, 0.3)',
-                    borderRadius: '12px',
-                    padding: '10px 6px',
-                    textAlign: 'center',
-                    display: 'block',
-                    transition: 'transform 0.15s',
-                  }}
-                >
-                  <div style={{ fontSize: '18px', marginBottom: '2px' }}>{t.icon}</div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#f5f5f7' }}>{t.label}</div>
-                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#ff9f0a', marginTop: '2px' }}>
-                    ${t.amount.toLocaleString('es-AR')}
-                  </div>
-                </a>
-              ))}
-            </div>
-
-            {/* Direct Cafecito CTA Button */}
-            <a
-              href={cafecitoUrl}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => triggerHaptic('medium')}
+            <span
               style={{
+                fontFamily: 'monospace',
+                fontSize: '16px',
+                fontWeight: 800,
+                color: '#009fe3',
+                letterSpacing: '0.03em',
+              }}
+            >
+              {mercadoPago.alias}
+            </span>
+
+            <button
+              onClick={handleCopyAlias}
+              style={{
+                background: copiedAlias ? '#30d158' : 'linear-gradient(135deg, #009fe3, #0077b6)',
+                color: copiedAlias ? '#000000' : '#ffffff',
+                border: 'none',
+                padding: '8px 14px',
+                borderRadius: '10px',
+                fontSize: '12.5px',
+                fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                width: '100%',
-                padding: '14px',
-                borderRadius: '14px',
-                background: 'linear-gradient(135deg, #ff9500, #e08500)',
-                color: '#000000',
-                fontWeight: 800,
-                fontSize: '14.5px',
-                textDecoration: 'none',
-                boxShadow: '0 4px 18px rgba(255, 149, 0, 0.4)',
+                gap: '6px',
                 cursor: 'pointer',
+                transition: 'all 0.2s',
+                flexShrink: 0,
+                boxShadow: copiedAlias ? 'none' : '0 2px 10px rgba(0, 159, 227, 0.4)',
               }}
             >
-              <span>Invitar un Cafecito en cafecito.app</span>
-              <ExternalLink size={16} />
-            </a>
+              {copiedAlias ? <Check size={14} /> : <Copy size={14} />}
+              <span>{copiedAlias ? '¡Copiado!' : 'Copiar Alias'}</span>
+            </button>
           </div>
-        )}
 
-        {/* TAB: MERCADO PAGO */}
-        {activeTab === 'mercadopago' && (
-          <div>
+          <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Titular: <strong style={{ color: '#ffffff' }}>{mercadoPago.holder}</strong></span>
+            <span style={{ color: '#8e8e93' }}>{mercadoPago.entity}</span>
+          </div>
+        </div>
+
+        {/* Suggested amounts to copy */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+          {tiers.map((t, idx) => (
             <div
+              key={idx}
+              onClick={handleCopyAlias}
               style={{
-                background: 'rgba(0, 159, 227, 0.12)',
-                border: '1px solid rgba(0, 159, 227, 0.3)',
-                borderRadius: '14px',
-                padding: '14px',
-                marginBottom: '12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '12px',
+                padding: '10px 6px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                transition: 'transform 0.15s',
               }}
             >
-              <div style={{ fontSize: '11.5px', color: '#8e8e93', fontWeight: 600, marginBottom: '4px' }}>
-                Transferencia directa por Alias o CVU
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                <span
-                  style={{
-                    fontFamily: 'monospace',
-                    fontSize: '15px',
-                    fontWeight: 800,
-                    color: '#009fe3',
-                    letterSpacing: '0.02em',
-                  }}
-                >
-                  {mercadoPago.alias}
-                </span>
-
-                <button
-                  onClick={handleCopyAlias}
-                  style={{
-                    background: copiedAlias ? '#30d158' : 'rgba(0, 159, 227, 0.25)',
-                    color: copiedAlias ? '#000000' : '#ffffff',
-                    border: '1px solid rgba(0, 159, 227, 0.5)',
-                    padding: '7px 12px',
-                    borderRadius: '10px',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {copiedAlias ? <Check size={14} /> : <Copy size={14} />}
-                  <span>{copiedAlias ? 'Copiado' : 'Copiar Alias'}</span>
-                </button>
-              </div>
-
-              <div style={{ fontSize: '11.5px', color: '#a1a1aa', marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px' }}>
-                Titular: <strong style={{ color: '#ffffff' }}>{mercadoPago.holder}</strong> ({mercadoPago.entity})
+              <div style={{ fontSize: '18px', marginBottom: '2px' }}>{t.icon}</div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#f5f5f7' }}>{t.label}</div>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#009fe3', marginTop: '2px' }}>
+                ${t.amount.toLocaleString('es-AR')}
               </div>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
       {/* Free alternative to help: Share the app */}
