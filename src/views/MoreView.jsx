@@ -22,9 +22,10 @@ import {
   requestNotificationPermission,
 } from '../utils/notifications';
 import BugReportSection from '../components/BugReportSection';
+import SupportProjectSection from '../components/SupportProjectSection';
 
 export default function MoreView({ onInstallApp }) {
-  const [activeSection, setActiveSection] = useState('download'); // 'download' | 'notifications' | 'reports' | 'credits'
+  const [activeSection, setActiveSection] = useState('download'); // 'download' | 'notifications' | 'support' | 'reports' | 'credits'
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [copiedDownload, setCopiedDownload] = useState(false);
@@ -85,6 +86,7 @@ export default function MoreView({ onInstallApp }) {
             <span>
               {activeSection === 'download' && 'Descarga e instalación directa en tu dispositivo'}
               {activeSection === 'notifications' && 'Preferencias de alertas sonoras y push'}
+              {activeSection === 'support' && 'Aporte voluntario para mantener la app activa y sin publicidad'}
               {activeSection === 'reports' && 'Reportes de fallos en horarios, estaciones o la app'}
               {activeSection === 'credits' && 'Desarrollo oficial por Martin Calvo Ruiz'}
             </span>
@@ -123,6 +125,17 @@ export default function MoreView({ onInstallApp }) {
           }}
         >
           🔔 Alertas
+        </button>
+
+        <button
+          className={`segmented-option ${activeSection === 'support' ? 'active' : ''}`}
+          style={{ padding: '8px 10px', fontSize: '12px', flexShrink: 0 }}
+          onClick={() => {
+            triggerHaptic('light');
+            setActiveSection('support');
+          }}
+        >
+          ☕ Apoyar
         </button>
 
         <button
@@ -513,6 +526,11 @@ export default function MoreView({ onInstallApp }) {
         )}
 
         {/* ========================================================
+            SECCIÓN: APOYAR AL PROYECTO (CAFECITO / MERCADO PAGO)
+            ======================================================== */}
+        {activeSection === 'support' && <SupportProjectSection />}
+
+        {/* ========================================================
             SECCIÓN: REPORTAR FALLOS O PROBLEMAS
             ======================================================== */}
         {activeSection === 'reports' && <BugReportSection />}
@@ -634,6 +652,51 @@ export default function MoreView({ onInstallApp }) {
                   <span style={{ color: '#f5f5f7', fontWeight: 600 }}>Buenos Aires, Argentina 🇦🇷</span>
                 </div>
               </div>
+            </div>
+
+            {/* Quick Support Callout in Credits */}
+            <div
+              className="ios-card"
+              style={{
+                padding: '16px',
+                background: 'linear-gradient(135deg, rgba(255, 149, 0, 0.12), rgba(28, 28, 35, 0.95))',
+                border: '1px solid rgba(255, 149, 0, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '24px' }}>☕</span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '14px', color: '#ffffff' }}>
+                    ¿Te resulta útil RielAR?
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#8e8e93' }}>
+                    Invitale un café al desarrollador para mantener los servidores
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  triggerHaptic('light');
+                  setActiveSection('support');
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #ff9500, #e08500)',
+                  border: 'none',
+                  color: '#000000',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                Apoyar
+              </button>
             </div>
           </div>
         )}

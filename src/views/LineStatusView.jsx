@@ -22,6 +22,7 @@ import { getNetworkStatus } from '../api/sofseClient';
 import { LINES_DATA } from '../data/linesData';
 import LineBadge from '../components/LineBadge';
 import LastTrainsSection from '../components/LastTrainsSection';
+import RideAffiliateCard from '../components/RideAffiliateCard';
 import { triggerHaptic, playChimeSound, sendAppNotification } from '../utils/notifications';
 
 export default function LineStatusView({ onNavigateToPlanner }) {
@@ -312,6 +313,12 @@ export default function LineStatusView({ onNavigateToPlanner }) {
             <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase', marginBottom: '8px', paddingLeft: '4px' }}>
               Afectaciones Operativas Activas en Vía
             </div>
+
+            {criticalIncidents.length > 0 && (
+              <RideAffiliateCard
+                reason="Servicios con demoras, obras o cancelaciones en la red"
+              />
+            )}
 
             {criticalIncidents.length === 0 ? (
               <div className="ios-card" style={{ textAlign: 'center', padding: '30px', color: '#30d158' }}>

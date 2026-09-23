@@ -13,6 +13,7 @@ import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import { getStationArrivals } from '../api/sofseClient';
 import LineBadge from '../components/LineBadge';
 import LastTrainsSection from '../components/LastTrainsSection';
+import RideAffiliateCard from '../components/RideAffiliateCard';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { triggerHaptic, playChimeSound } from '../utils/notifications';
 
@@ -312,8 +313,19 @@ export default function TripPlannerView({ onSelectTrain, initialOriginId, initia
                   <div>Buscando conexiones y horarios...</div>
                 </div>
               ) : hasSearched && results.length === 0 ? (
-                <div className="ios-card" style={{ textAlign: 'center', padding: '24px', color: '#8e8e93' }}>
-                  <div>No hay servicios directos programados entre estas dos estaciones en este momento.</div>
+                <div>
+                  <div className="ios-card" style={{ textAlign: 'center', padding: '24px 18px', color: '#8e8e93', marginBottom: '14px' }}>
+                    <div style={{ fontWeight: 800, fontSize: '15px', color: '#f5f5f7', marginBottom: '6px' }}>
+                      Sin trenes directos en este horario
+                    </div>
+                    <div style={{ fontSize: '12.5px', lineHeight: 1.4 }}>
+                      No se encontraron salidas programadas entre <strong>{originStation?.name || 'Origen'}</strong> y <strong>{destStation?.name || 'Destino'}</strong> en los próximos minutos.
+                    </div>
+                  </div>
+
+                  <RideAffiliateCard
+                    reason={`Sin trenes directos entre ${originStation?.name || 'origen'} y ${destStation?.name || 'destino'}`}
+                  />
                 </div>
               ) : (
                 results.map((train, idx) => {
