@@ -8,6 +8,7 @@ import {
   RotateCw,
   Sparkles,
   Moon,
+  Info,
 } from 'lucide-react';
 import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import { getStationArrivals } from '../api/sofseClient';
@@ -17,7 +18,13 @@ import RideAffiliateCard from '../components/RideAffiliateCard';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { triggerHaptic, playChimeSound } from '../utils/notifications';
 
-export default function TripPlannerView({ onSelectTrain, initialOriginId, initialDestId, initialTab = 'departures' }) {
+export default function TripPlannerView({
+  onSelectTrain,
+  onOpenStationInfo,
+  initialOriginId,
+  initialDestId,
+  initialTab = 'departures',
+}) {
   const [activePlannerTab, setActivePlannerTab] = useState(initialTab); // 'departures' | 'last_trains'
   const [originId, setOriginId] = useState(initialOriginId || '332'); // Default Retiro (Mitre)
   const [destId, setDestId] = useState(initialDestId || '389'); // Default Tigre
@@ -155,9 +162,35 @@ export default function TripPlannerView({ onSelectTrain, initialOriginId, initia
             <div className="ios-card" style={{ padding: '16px' }}>
               {/* Origin Picker */}
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 700, textTransform: 'uppercase' }}>
-                  Punto de Partida
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Punto de Partida
+                  </label>
+                  {originStation && (
+                    <button
+                      onClick={() => {
+                        triggerHaptic('light');
+                        if (onOpenStationInfo) onOpenStationInfo(originStation);
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#0a84ff',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        padding: '2px 4px',
+                      }}
+                      title="Ver boleterías, colectivos y accesibilidad de esta estación"
+                    >
+                      <Info size={12} />
+                      <span>Info estación</span>
+                    </button>
+                  )}
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0a84ff' }} />
                   <select
@@ -208,9 +241,35 @@ export default function TripPlannerView({ onSelectTrain, initialOriginId, initia
 
               {/* Destination Picker */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 700, textTransform: 'uppercase' }}>
-                  Estación de Llegada
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Estación de Llegada
+                  </label>
+                  {destStation && (
+                    <button
+                      onClick={() => {
+                        triggerHaptic('light');
+                        if (onOpenStationInfo) onOpenStationInfo(destStation);
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#30d158',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        padding: '2px 4px',
+                      }}
+                      title="Ver boleterías, colectivos y accesibilidad de esta estación"
+                    >
+                      <Info size={12} />
+                      <span>Info estación</span>
+                    </button>
+                  )}
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#30d158' }} />
                   <select

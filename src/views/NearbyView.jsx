@@ -14,6 +14,7 @@ import {
   SlidersHorizontal,
   X,
   Check,
+  Info,
 } from 'lucide-react';
 import LineBadge from '../components/LineBadge';
 import { LINES_DATA, PRELOADED_STATIONS } from '../data/linesData';
@@ -27,6 +28,7 @@ export default function NearbyView({
   favorites,
   onToggleFavorite,
   onSelectTrain,
+  onOpenStationInfo,
   locationPreset = 'Retiro',
   gpsState = 'idle',
   gpsErrorMsg = '',
@@ -653,9 +655,17 @@ export default function NearbyView({
               <div key={station.id} className="ios-card">
                 {/* Station Card Header */}
                 <div className="station-header">
-                  <div className="station-title-group">
+                  <div
+                    className="station-title-group"
+                    onClick={() => {
+                      triggerHaptic('light');
+                      if (onOpenStationInfo) onOpenStationInfo(station);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                    title="Ver horarios de boletería, colectivos y servicios"
+                  >
                     <div className="station-name">
-                      <span>{station.name}</span>
+                      <span style={{ textDecoration: 'none' }}>{station.name}</span>
                       <LineBadge lineId={station.lineId} size="small" />
                     </div>
                     <div className="station-distance">
@@ -668,17 +678,44 @@ export default function NearbyView({
                     </div>
                   </div>
 
-                  <button
-                    className={`fav-button ${isFav ? 'active' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      triggerHaptic('medium');
-                      onToggleFavorite(station);
-                    }}
-                    title={isFav ? 'Quitar de favoritos' : 'Guardar en favoritos'}
-                  >
-                    <Star size={17} fill={isFav ? '#ffd60a' : 'none'} />
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerHaptic('light');
+                        if (onOpenStationInfo) onOpenStationInfo(station);
+                      }}
+                      style={{
+                        padding: '5px 8px',
+                        borderRadius: '9px',
+                        background: 'rgba(10, 132, 255, 0.12)',
+                        border: '1px solid rgba(10, 132, 255, 0.25)',
+                        color: '#0a84ff',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        cursor: 'pointer',
+                      }}
+                      title="Ver información de boletería, colectivos y servicios"
+                    >
+                      <Info size={13} />
+                      <span>Info</span>
+                    </button>
+
+                    <button
+                      className={`fav-button ${isFav ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerHaptic('medium');
+                        onToggleFavorite(station);
+                      }}
+                      title={isFav ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+                    >
+                      <Star size={17} fill={isFav ? '#ffd60a' : 'none'} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Arrivals List */}

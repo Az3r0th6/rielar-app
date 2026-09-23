@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import IPhoneFrame from './components/iPhoneFrame';
 import TabBar from './components/TabBar';
 import TrainDetailSheet from './components/TrainDetailSheet';
+import StationDetailSheet from './components/StationDetailSheet';
 import ErrorBoundary from './components/ErrorBoundary';
 import NearbyView from './views/NearbyView';
 import MapView from './views/MapView';
@@ -16,6 +17,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('nearby');
   const [selectedTrain, setSelectedTrain] = useState(null);
   const [trackingTrain, setTrackingTrain] = useState(null);
+  const [selectedStationForInfo, setSelectedStationForInfo] = useState(null);
   const [networkAlertsCount, setNetworkAlertsCount] = useState(0);
   const [isTabBarHidden, setIsTabBarHidden] = useState(false);
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
@@ -373,6 +375,7 @@ export default function App() {
             favorites={favorites}
             onToggleFavorite={handleToggleFavorite}
             onSelectTrain={(train) => setSelectedTrain(train)}
+            onOpenStationInfo={(st) => setSelectedStationForInfo(st)}
             locationPreset={locationPreset}
             gpsState={gpsState}
             gpsErrorMsg={gpsErrorMsg}
@@ -388,6 +391,7 @@ export default function App() {
               setActiveTab('nearby');
             }}
             onSelectTrain={(train) => setSelectedTrain(train)}
+            onOpenStationInfo={(st) => setSelectedStationForInfo(st)}
           />
         )}
 
@@ -398,6 +402,7 @@ export default function App() {
         {activeTab === 'planner' && (
           <TripPlannerView
             onSelectTrain={(train) => setSelectedTrain(train)}
+            onOpenStationInfo={(st) => setSelectedStationForInfo(st)}
             initialOriginId={plannerPreset?.originId}
             initialDestId={plannerPreset?.destId}
           />
@@ -408,6 +413,7 @@ export default function App() {
             favorites={favorites}
             onRemoveFavorite={handleRemoveFavorite}
             onSelectStation={(st) => setActiveTab('nearby')}
+            onOpenStationInfo={(st) => setSelectedStationForInfo(st)}
           />
         )}
 
@@ -422,6 +428,15 @@ export default function App() {
         onClose={() => setSelectedTrain(null)}
         onTrackTrain={handleTrackTrain}
         isTracked={trackingTrain?.servicio?.numero === selectedTrain?.servicio?.numero}
+      />
+
+      {/* Station Information & Amenities Bottom Sheet */}
+      <StationDetailSheet
+        station={selectedStationForInfo}
+        onClose={() => setSelectedStationForInfo(null)}
+        onSelectTrain={(train) => setSelectedTrain(train)}
+        isFavorite={Boolean(selectedStationForInfo && favorites.some((f) => f.id === selectedStationForInfo.id))}
+        onToggleFavorite={handleToggleFavorite}
       />
     </IPhoneFrame>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Trash2 } from 'lucide-react';
+import { Star, Trash2, Info } from 'lucide-react';
 import LineBadge from '../components/LineBadge';
 import { getStationArrivals } from '../api/sofseClient';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
@@ -9,6 +9,7 @@ export default function FavoritesView({
   favorites,
   onRemoveFavorite,
   onSelectStation,
+  onOpenStationInfo,
 }) {
   const [favoriteArrivals, setFavoriteArrivals] = useState({});
   const [loading, setLoading] = useState(false);
@@ -123,17 +124,42 @@ export default function FavoritesView({
                     </div>
                   </div>
 
-                  <button
-                    className="close-round-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      triggerHaptic('medium');
-                      onRemoveFavorite(station.id);
-                    }}
-                    title="Eliminar de favoritos"
-                  >
-                    <Trash2 size={15} style={{ color: '#ff453a' }} />
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerHaptic('light');
+                        if (onOpenStationInfo) onOpenStationInfo(station);
+                      }}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: 'rgba(10, 132, 255, 0.12)',
+                        border: '1px solid rgba(10, 132, 255, 0.25)',
+                        color: '#0a84ff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                      }}
+                      title="Ver información de boletería, colectivos y servicios"
+                    >
+                      <Info size={15} />
+                    </button>
+
+                    <button
+                      className="close-round-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerHaptic('medium');
+                        onRemoveFavorite(station.id);
+                      }}
+                      title="Eliminar de favoritos"
+                    >
+                      <Trash2 size={15} style={{ color: '#ff453a' }} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Next Arrival Quick Capsule */}

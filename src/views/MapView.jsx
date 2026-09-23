@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Navigation, Layers, MapPin, Eye } from 'lucide-react';
+import { Navigation, Layers, MapPin, Eye, Info } from 'lucide-react';
 import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import LineBadge from '../components/LineBadge';
 import { getDistanceMeters, formatDistance } from '../utils/geo';
@@ -22,7 +22,7 @@ function ChangeMapView({ center, zoom }) {
   return null;
 }
 
-export default function MapView({ userCoords, onSelectStation, onSelectTrain }) {
+export default function MapView({ userCoords, onSelectStation, onSelectTrain, onOpenStationInfo }) {
   const [selectedLine, setSelectedLine] = useState('ALL');
   const [mapCenter, setMapCenter] = useState([userCoords.lat, userCoords.lng]);
   const [mapZoom, setMapZoom] = useState(13);
@@ -383,6 +383,32 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain }) 
                   >
                     <Eye size={13} />
                     <span>Ver próximos arribos</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      triggerHaptic('light');
+                      if (onOpenStationInfo) onOpenStationInfo(st);
+                    }}
+                    style={{
+                      width: '100%',
+                      marginTop: '6px',
+                      background: 'rgba(0, 122, 255, 0.1)',
+                      color: '#007aff',
+                      border: '1px solid rgba(0, 122, 255, 0.3)',
+                      borderRadius: '8px',
+                      padding: '6px 10px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <Info size={13} />
+                    <span>Boletería, Colectivos & Info</span>
                   </button>
                 </div>
               </Popup>
