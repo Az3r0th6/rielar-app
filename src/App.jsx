@@ -86,6 +86,15 @@ export default function App() {
     }
   };
 
+  const [plannerPreset, setPlannerPreset] = useState(null);
+
+  const handleNavigateToPlanner = (origId, destId) => {
+    if (origId && destId) {
+      setPlannerPreset({ originId: String(origId), destId: String(destId) });
+    }
+    handleTabChange('planner');
+  };
+
   // User Geolocation Coordinates (reads last known coordinates from localStorage for instant launch)
   const [userCoords, setUserCoords] = useState(() => {
     try {
@@ -296,10 +305,16 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'lines' && <LineStatusView />}
+        {activeTab === 'lines' && (
+          <LineStatusView onNavigateToPlanner={handleNavigateToPlanner} />
+        )}
 
         {activeTab === 'planner' && (
-          <TripPlannerView onSelectTrain={(train) => setSelectedTrain(train)} />
+          <TripPlannerView
+            onSelectTrain={(train) => setSelectedTrain(train)}
+            initialOriginId={plannerPreset?.originId}
+            initialDestId={plannerPreset?.destId}
+          />
         )}
 
         {activeTab === 'favorites' && (

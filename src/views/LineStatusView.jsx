@@ -21,12 +21,13 @@ import {
 import { getNetworkStatus } from '../api/sofseClient';
 import { LINES_DATA } from '../data/linesData';
 import LineBadge from '../components/LineBadge';
+import LastTrainsSection from '../components/LastTrainsSection';
 import { triggerHaptic, playChimeSound, sendAppNotification } from '../utils/notifications';
 
-export default function LineStatusView() {
+export default function LineStatusView({ onNavigateToPlanner }) {
   const [networkData, setNetworkData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('incidents'); // 'incidents', 'lines', 'all_alerts'
+  const [activeTab, setActiveTab] = useState('incidents'); // 'incidents', 'lines', 'all_alerts', 'last_trains'
   const [searchFilter, setSearchFilter] = useState('');
   const [expandedLineIds, setExpandedLineIds] = useState(new Set([11, 1, 5, 31, 21, 41, 501])); // All lines expanded by default
   const [subscribedLines, setSubscribedLines] = useState(() => {
@@ -220,66 +221,90 @@ export default function LineStatusView() {
         </div>
 
         {/* View Segmented Tabs */}
-        <div className="ios-segmented-control" style={{ margin: '0 0 14px' }}>
+        <div
+          className="ios-segmented-control"
+          style={{
+            margin: '0 0 14px',
+            display: 'flex',
+            overflowX: 'auto',
+            gap: '4px',
+            padding: '4px',
+          }}
+        >
           <button
             className={`segmented-option ${activeTab === 'incidents' ? 'active' : ''}`}
+            style={{ flexShrink: 0, fontSize: '11.5px', padding: '8px 10px' }}
             onClick={() => {
               triggerHaptic('light');
               setActiveTab('incidents');
             }}
           >
-            🚨 Afectaciones en Vivo ({summary.criticalCount})
+            🚨 Afectaciones ({summary.criticalCount})
           </button>
           <button
             className={`segmented-option ${activeTab === 'lines' ? 'active' : ''}`}
+            style={{ flexShrink: 0, fontSize: '11.5px', padding: '8px 10px' }}
             onClick={() => {
               triggerHaptic('light');
               setActiveTab('lines');
             }}
           >
-            🚆 Todas las Líneas (7)
+            🚆 Líneas (7)
           </button>
           <button
             className={`segmented-option ${activeTab === 'all_alerts' ? 'active' : ''}`}
+            style={{ flexShrink: 0, fontSize: '11.5px', padding: '8px 10px' }}
             onClick={() => {
               triggerHaptic('light');
               setActiveTab('all_alerts');
             }}
           >
-            📋 Todos los Avisos ({summary.activeAlertsCount})
+            📋 Avisos ({summary.activeAlertsCount})
+          </button>
+          <button
+            className={`segmented-option ${activeTab === 'last_trains' ? 'active' : ''}`}
+            style={{ flexShrink: 0, fontSize: '11.5px', padding: '8px 10px' }}
+            onClick={() => {
+              triggerHaptic('light');
+              setActiveTab('last_trains');
+            }}
+          >
+            🌙 Últimos Trenes
           </button>
         </div>
 
-        {/* Search Bar for Ramales & Alerts */}
-        <div style={{ marginBottom: '14px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'rgba(118, 118, 128, 0.2)',
-              padding: '8px 12px',
-              borderRadius: '12px',
-            }}
-          >
-            <Search size={15} style={{ color: '#8e8e93' }} />
-            <input
-              type="text"
-              placeholder="Filtrar por ramal, estación o motivo (ej: Retiro, Zárate, Obras)..."
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
+        {/* Search Bar for Ramales & Alerts (hidden in last_trains tab) */}
+        {activeTab !== 'last_trains' && (
+          <div style={{ marginBottom: '14px' }}>
+            <div
               style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#f5f5f7',
-                fontSize: '13px',
-                width: '100%',
-                outline: 'none',
-                fontFamily: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(118, 118, 128, 0.2)',
+                padding: '8px 12px',
+                borderRadius: '12px',
               }}
-            />
+            >
+              <Search size={15} style={{ color: '#8e8e93' }} />
+              <input
+                type="text"
+                placeholder="Filtrar por ramal, estación o motivo (ej: Retiro, Zárate, Obras)..."
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#f5f5f7',
+                  fontSize: '13px',
+                  width: '100%',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                }}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* TAB 1: CRITICAL INCIDENTS & DISRUPTIONS */}
         {activeTab === 'incidents' && (
@@ -623,6 +648,17 @@ export default function LineStatusView() {
               );
             })}
           </div>
+        )}
+
+        {/* TAB 4: PRIMER Y ÚLTIMO TREN POR CABECERA */}
+        {activeTab === 'last_trains' && (
+          <LastTrainsSection
+            onSelectRoute={(origId, destId) => {
+              if (onNavigateToPlanner) {
+                onNavigateToPlanner(origId, destId);
+              }
+            }}
+          />
         )}
       </div>
     </div>
