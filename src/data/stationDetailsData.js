@@ -758,6 +758,292 @@ export const CURATED_STATIONS = {
       notes: 'Baños modernos accesibles, Wi-Fi Trenes Argentinos, tótem de seguridad SOS y monitoreo.',
     },
   },
+
+  sanmartin: {
+    name: 'San Martín',
+    summary: 'Estación neurálgica del partido de General San Martín (Línea Mitre - Ramal José León Suárez), con acceso al centro comercial y la UNSAM.',
+    ticketing: {
+      open: true,
+      status: 'Abierta de 06:00 a 20:00 hs',
+      weekdays: '06:00 a 20:00 hs',
+      saturdays: '07:00 a 14:00 hs',
+      sundays: 'Guardia reducida',
+      subeTas: true,
+      subeTasCount: 3,
+      subeReload: true,
+      notes: 'Boleterías sobre calle Lincoln y Moreno. Terminales TAS activas para validación de cargas electrónicas SUBE.',
+    },
+    multimodal: {
+      busLines: ['161', '169', '176', '252', '310', '328', '343', '670', 'UNSAM Bus'],
+      subway: [],
+      metrobus: [],
+      trainTransfers: ['Línea Mitre (Retiro - José León Suárez)'],
+    },
+    accessibility: {
+      ramps: true,
+      elevators: false,
+      elevatedPlatforms: true,
+      accessibleTurnstiles: true,
+      tactilePaving: true,
+      notes: 'Rampas de acceso peatonal en andenes, andén elevado nivelado al tren y molinetes PMR de ancho especial.',
+    },
+    services: {
+      bathrooms: true,
+      wifi: true,
+      bikeParking: true,
+      security: true,
+      kiosks: true,
+      atm: true,
+      chargingTotem: false,
+      notes: 'Baños públicos habilitados, Wi-Fi libre Trenes Argentinos, tótem de seguridad SOS y bicicletero.',
+    },
+  },
+
+  villaballester: {
+    name: 'Villa Ballester',
+    summary: 'Estación de transbordo clave del Mitre donde empalma el servicio diésel hacia Zárate.',
+    ticketing: {
+      open: true,
+      status: 'Abierta de 05:30 a 21:00 hs',
+      weekdays: '05:30 a 21:00 hs',
+      saturdays: '06:00 a 20:00 hs',
+      sundays: '07:00 a 19:00 hs',
+      subeTas: true,
+      subeTasCount: 4,
+      subeReload: true,
+      notes: 'Boleterías sobre calle San Martín y Vicente López. Terminales TAS disponibles.',
+    },
+    multimodal: {
+      busLines: ['78', '87', '127', '204A', '237', '252', '304', '314', '343', '670'],
+      subway: [],
+      metrobus: [],
+      trainTransfers: ['Línea Mitre Eléctrico (a Retiro / J.L. Suárez)', 'Línea Mitre Diésel (a Zárate)'],
+    },
+    accessibility: {
+      ramps: true,
+      elevators: false,
+      elevatedPlatforms: true,
+      accessibleTurnstiles: true,
+      tactilePaving: true,
+      notes: 'Rampas en pasos peatonales, andenes elevados y molinete accesible.',
+    },
+    services: {
+      bathrooms: true,
+      wifi: true,
+      bikeParking: true,
+      security: true,
+      kiosks: true,
+      atm: true,
+      chargingTotem: false,
+      notes: 'Baños públicos en andén 1, bicicletero, Wi-Fi libre y vigilancia continua.',
+    },
+  },
+
+  ramosmejia: {
+    name: 'Ramos Mejía',
+    summary: 'Uno de los centros comerciales y de transbordo más importantes del oeste sobre Av. Rivadavia y Av. de Mayo.',
+    ticketing: {
+      open: true,
+      status: 'Abierta de 05:30 a 21:30 hs',
+      weekdays: '05:30 a 21:30 hs',
+      saturdays: '06:00 a 20:30 hs',
+      sundays: '07:00 a 19:30 hs',
+      subeTas: true,
+      subeTasCount: 5,
+      subeReload: true,
+      notes: 'Boleterías en ambos accesos (Av. Rivadavia y Leandro N. Alem). Terminales TAS en hall.',
+    },
+    multimodal: {
+      busLines: [
+        '1', '88', '96', '136', '153', '163', '166', '172', '181',
+        '182', '205', '242', '298', '302', '326', '343', '378', '382', '624'
+      ],
+      subway: [],
+      metrobus: [],
+      trainTransfers: ['Línea Sarmiento (Once - Moreno)'],
+    },
+    accessibility: {
+      ramps: true,
+      elevators: false,
+      elevatedPlatforms: true,
+      accessibleTurnstiles: true,
+      tactilePaving: true,
+      notes: 'Túnel peatonal con rampas adaptadas para sillas de ruedas, andenes elevados y molinetes PMR.',
+    },
+    services: {
+      bathrooms: true,
+      wifi: true,
+      bikeParking: true,
+      security: true,
+      kiosks: true,
+      atm: true,
+      chargingTotem: false,
+      notes: 'Baños públicos, Wi-Fi libre Trenes Argentinos, bicicletero y área comercial de alto flujo.',
+    },
+  },
+
+  haedo: {
+    name: 'Haedo',
+    summary: 'Empalme de talleres ferroviarios y combinación clave entre el Sarmiento y el ramal transversal a Temperley (Roca).',
+    ticketing: {
+      open: true,
+      status: 'Abierta de 06:00 a 20:30 hs',
+      weekdays: '06:00 a 20:30 hs',
+      saturdays: '07:00 a 19:30 hs',
+      sundays: '08:00 a 18:00 hs',
+      subeTas: true,
+      subeTasCount: 3,
+      subeReload: true,
+      notes: 'Boleterías en hall central sobre Av. Rivadavia. Carga SUBE y terminales TAS.',
+    },
+    multimodal: {
+      busLines: ['136', '153', '163', '166', '236', '238', '242', '253', '269', '395', '443'],
+      subway: [],
+      metrobus: [],
+      trainTransfers: ['Línea Sarmiento', 'Línea Roca (Ramal Haedo - Temperley)'],
+    },
+    accessibility: {
+      ramps: true,
+      elevators: false,
+      elevatedPlatforms: true,
+      accessibleTurnstiles: true,
+      tactilePaving: true,
+      notes: 'Rampas de acceso, andenes nivelados y molinete adaptado PMR.',
+    },
+    services: {
+      bathrooms: true,
+      wifi: true,
+      bikeParking: true,
+      security: true,
+      kiosks: true,
+      atm: false,
+      chargingTotem: false,
+      notes: 'Baños públicos habilitados, Wi-Fi libre y bicicletero.',
+    },
+  },
+
+  caseros: {
+    name: 'Caseros',
+    summary: 'Cabecera de partido de Tres de Febrero en la Línea San Martín con gran centro comercial y administrativo.',
+    ticketing: {
+      open: true,
+      status: 'Abierta de 06:00 a 20:00 hs',
+      weekdays: '06:00 a 20:00 hs',
+      saturdays: '07:00 a 14:00 hs',
+      sundays: 'Guardia reducida',
+      subeTas: true,
+      subeTasCount: 3,
+      subeReload: true,
+      notes: 'Boleterías en túnel peatonal de Av. San Martín. Terminales TAS activas.',
+    },
+    multimodal: {
+      busLines: ['53', '105', '123', '181', '237', '328', '343'],
+      subway: [],
+      metrobus: [],
+      trainTransfers: ['Línea San Martín (Retiro - Pilar / Cabred)'],
+    },
+    accessibility: {
+      ramps: true,
+      elevators: false,
+      elevatedPlatforms: true,
+      accessibleTurnstiles: true,
+      tactilePaving: true,
+      notes: 'Túnel con rampas de acceso para sillas de ruedas, andén elevado nivelado y molinete ancho.',
+    },
+    services: {
+      bathrooms: true,
+      wifi: true,
+      bikeParking: true,
+      security: true,
+      kiosks: true,
+      atm: true,
+      chargingTotem: false,
+      notes: 'Baños públicos, Wi-Fi libre, bicicletero seguro y cámaras del Centro de Operaciones Municipal.',
+    },
+  },
+
+  sanmiguel: {
+    name: 'San Miguel',
+    summary: 'Nodo central de transporte del noroeste bonaerense en la Línea San Martín sobre Av. Pte. Perón y Av. Balbín.',
+    ticketing: {
+      open: true,
+      status: 'Abierta de 05:30 a 21:30 hs',
+      weekdays: '05:30 a 21:30 hs',
+      saturdays: '06:00 a 20:30 hs',
+      sundays: '07:00 a 19:30 hs',
+      subeTas: true,
+      subeTasCount: 4,
+      subeReload: true,
+      notes: 'Boleterías sobre Av. Pte. Perón. Terminales TAS disponibles en andenes.',
+    },
+    multimodal: {
+      busLines: ['53', '163', '176', '182', '203', '269', '303', '315', '365', '371', '440', '740'],
+      subway: [],
+      metrobus: [],
+      trainTransfers: ['Línea San Martín'],
+    },
+    accessibility: {
+      ramps: true,
+      elevators: false,
+      elevatedPlatforms: true,
+      accessibleTurnstiles: true,
+      tactilePaving: true,
+      notes: 'Rampas de acceso, andenes elevados nivelados y molinetes adaptados PMR.',
+    },
+    services: {
+      bathrooms: true,
+      wifi: true,
+      bikeParking: true,
+      security: true,
+      kiosks: true,
+      atm: true,
+      chargingTotem: false,
+      notes: 'Baños públicos, Wi-Fi Trenes Argentinos, guardería de bicicletas y locales comerciales.',
+    },
+  },
+
+  avellaneda: {
+    name: 'Santillán y Kosteki (Avellaneda)',
+    summary: 'Primera estación de la Línea Roca saliendo de CABA y principal portal de acceso a zona sur.',
+    ticketing: {
+      open: true,
+      status: 'Abierta de 05:30 a 21:30 hs',
+      weekdays: '05:30 a 21:30 hs',
+      saturdays: '06:00 a 20:30 hs',
+      sundays: '07:00 a 19:30 hs',
+      subeTas: true,
+      subeTasCount: 4,
+      subeReload: true,
+      notes: 'Boleterías en puente peatonal sobre Av. Hipólito Yrigoyen. Terminales TAS activas.',
+    },
+    multimodal: {
+      busLines: [
+        '10', '17', '22', '24', '33', '45', '51', '74', '79', '93',
+        '95', '98', '100', '129', '148', '154', '178', '247', '271', '293'
+      ],
+      subway: [],
+      metrobus: [],
+      trainTransfers: ['Línea Roca (Todos los ramales eléctricos)'],
+    },
+    accessibility: {
+      ramps: true,
+      elevators: false,
+      elevatedPlatforms: true,
+      accessibleTurnstiles: true,
+      tactilePaving: true,
+      notes: 'Puente peatonal con rampas, andenes elevados y molinete accesible.',
+    },
+    services: {
+      bathrooms: true,
+      wifi: true,
+      bikeParking: true,
+      security: true,
+      kiosks: true,
+      atm: true,
+      chargingTotem: false,
+      notes: 'Baños públicos, Wi-Fi Trenes Argentinos, tótem de seguridad y comercios.',
+    },
+  },
 };
 
 // Aliases para resolver variaciones de nombres (ej: "Retiro (LGM)" -> "retiro")
@@ -788,15 +1074,68 @@ const STATION_ALIASES = {
   'dr. antonio saenz': 'antoniosaenz',
   'saenz': 'antoniosaenz',
   'antonio saenz': 'antoniosaenz',
+  'san martin': 'sanmartin',
+  'gral. san martin': 'sanmartin',
+  'general san martin': 'sanmartin',
+  'villa ballester': 'villaballester',
+  'ballester': 'villaballester',
+  'ramos mejia': 'ramosmejia',
+  'haedo': 'haedo',
+  'caseros': 'caseros',
+  'san miguel': 'sanmiguel',
+  'santillan y kosteki': 'avellaneda',
+  'avellaneda': 'avellaneda',
 };
 
-// Líneas de colectivos contextuales por zona geográfica para estaciones intermedias
+// Líneas de colectivos contextuales por zona geográfica y corredor
 const DEFAULT_BUSES_BY_ZONE = {
   'CABA': ['10', '12', '15', '29', '34', '39', '41', '59', '60', '68', '118', '152'],
+  'Zona Norte': ['60', '168', '203', '333', '343', '365', '371', '407', '437', '707'],
   'GBA Norte': ['60', '168', '203', '333', '343', '365', '371', '407', '437', '707'],
   'GBA Oeste': ['136', '153', '166', '236', '238', '242', '269', '395', '462', '634'],
   'GBA Sur': ['51', '79', '160', '164', '278', '318', '338', '406', '540', '542'],
+  'La Plata': ['129', '195', '202', '214', '273', '275', '307', '338'],
 };
+
+/**
+ * Resuelve las líneas de colectivo por defecto según la línea de tren y su zona real
+ */
+function resolveDefaultBuses(lineId, rawZone) {
+  const normZone = (rawZone || '').trim();
+
+  if (normZone.toUpperCase() === 'CABA') {
+    return DEFAULT_BUSES_BY_ZONE['CABA'];
+  }
+
+  // Corredor Mitre / Tren de la Costa (Zona Norte / Noroeste)
+  if (lineId === 5 || lineId === 41) {
+    return DEFAULT_BUSES_BY_ZONE['Zona Norte'];
+  }
+
+  // Corredor San Martín (Zona Noroeste / Oeste)
+  if (lineId === 31) {
+    return ['53', '176', '182', '203', '237', '310', '328', '343', '365', '440'];
+  }
+
+  // Corredor Sarmiento (GBA Oeste)
+  if (lineId === 1) {
+    return DEFAULT_BUSES_BY_ZONE['GBA Oeste'];
+  }
+
+  // Corredor Roca (GBA Sur / La Plata)
+  if (lineId === 11) {
+    return normZone.toLowerCase().includes('plata')
+      ? DEFAULT_BUSES_BY_ZONE['La Plata']
+      : DEFAULT_BUSES_BY_ZONE['GBA Sur'];
+  }
+
+  // Corredor Belgrano Sur (GBA Sudoeste)
+  if (lineId === 21) {
+    return ['86', '88', '96', '180', '205', '621', '622'];
+  }
+
+  return DEFAULT_BUSES_BY_ZONE[normZone] || DEFAULT_BUSES_BY_ZONE['Zona Norte'];
+}
 
 /**
  * Retorna los metadatos completos y enriquecidos de una estación (horarios, servicios, colectivos, accesibilidad).
@@ -824,8 +1163,8 @@ export function getStationDetails(station) {
 
   // Smart Fallback contextual según zona y tipo de línea
   const isCaba = (station.zone || '').toUpperCase() === 'CABA';
-  const zone = station.zone || 'GBA';
-  const defaultBuses = DEFAULT_BUSES_BY_ZONE[zone] || DEFAULT_BUSES_BY_ZONE['GBA Oeste'];
+  const zone = station.zone || (station.lineId === 5 ? 'Zona Norte' : 'GBA');
+  const defaultBuses = resolveDefaultBuses(station.lineId, station.zone);
 
   const isElectrified = [1, 5, 11].includes(Number(station.lineId)); // Sarmiento, Mitre, Roca Electrificado
 
@@ -851,7 +1190,7 @@ export function getStationDetails(station) {
       notes: 'Boletería habilitada para venta de pasajes y carga SUBE. Terminal TAS en andén.',
     },
     multimodal: {
-      busLines: defaultBuses.slice(0, 7),
+      busLines: defaultBuses.slice(0, 8),
       subway: [],
       metrobus: [],
       trainTransfers: station.ramal ? [station.ramal] : [],
