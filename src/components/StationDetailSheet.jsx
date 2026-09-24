@@ -100,7 +100,8 @@ export default function StationDetailSheet({
       <div
         style={{
           width: '100%',
-          maxHeight: '90%',
+          maxHeight: '92vh',
+          height: '90%',
           background: 'linear-gradient(180deg, #1c1c24 0%, #121218 100%)',
           borderTopLeftRadius: '24px',
           borderTopRightRadius: '24px',
@@ -115,7 +116,7 @@ export default function StationDetailSheet({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag Pill Handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '10px', paddingBottom: '6px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '10px', paddingBottom: '6px', flexShrink: 0 }}>
           <div
             style={{
               width: '40px',
@@ -135,6 +136,7 @@ export default function StationDetailSheet({
             alignItems: 'flex-start',
             justifyContent: 'space-between',
             gap: '12px',
+            flexShrink: 0,
           }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -241,6 +243,7 @@ export default function StationDetailSheet({
             gap: '8px',
             borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
             overflowX: 'auto',
+            flexShrink: 0,
           }}
         >
           {mapsUrl && (
@@ -298,7 +301,7 @@ export default function StationDetailSheet({
         </div>
 
         {/* iOS Segmented Tabs */}
-        <div style={{ padding: '10px 16px 6px' }}>
+        <div style={{ padding: '10px 16px 6px', flexShrink: 0 }}>
           <div
             className="ios-segmented-control"
             style={{
@@ -384,10 +387,14 @@ export default function StationDetailSheet({
 
         {/* Tab Content Container */}
         <div
+          className="station-sheet-content"
           style={{
-            flex: 1,
+            flex: '1 1 auto',
+            minHeight: 0,
             overflowY: 'auto',
-            padding: '12px 16px calc(36px + env(safe-area-inset-bottom, 20px))',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+            padding: '12px 16px calc(40px + env(safe-area-inset-bottom, 24px))',
             display: 'flex',
             flexDirection: 'column',
             gap: '14px',
@@ -398,12 +405,17 @@ export default function StationDetailSheet({
             <>
               {/* Boletería y Carga SUBE */}
               <div
-                className="ios-card"
+                className="ios-card station-sheet-card"
                 style={{
                   padding: '14px 16px',
                   background: 'rgba(255, 255, 255, 0.04)',
                   borderRadius: '16px',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
+                  margin: 0,
+                  flexShrink: 0,
+                  minHeight: 'min-content',
+                  height: 'auto',
+                  overflow: 'visible',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -494,12 +506,17 @@ export default function StationDetailSheet({
 
               {/* Pase Libre CUD & Beneficios Sociales */}
               <div
-                className="ios-card"
+                className="ios-card station-sheet-card"
                 style={{
                   padding: '12px 14px',
                   background: 'linear-gradient(135deg, rgba(48, 209, 88, 0.12) 0%, rgba(20, 20, 26, 0.95) 100%)',
                   borderRadius: '16px',
                   border: '1px solid rgba(48, 209, 88, 0.3)',
+                  margin: 0,
+                  flexShrink: 0,
+                  minHeight: 'min-content',
+                  height: 'auto',
+                  overflow: 'visible',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -525,12 +542,17 @@ export default function StationDetailSheet({
 
               {/* Accesibilidad PMR */}
               <div
-                className="ios-card"
+                className="ios-card station-sheet-card"
                 style={{
                   padding: '14px 16px',
                   background: 'rgba(255, 255, 255, 0.04)',
                   borderRadius: '16px',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
+                  margin: 0,
+                  flexShrink: 0,
+                  minHeight: 'min-content',
+                  height: 'auto',
+                  overflow: 'visible',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
@@ -648,12 +670,17 @@ export default function StationDetailSheet({
 
               {/* Servicios e Infraestructura */}
               <div
-                className="ios-card"
+                className="ios-card station-sheet-card"
                 style={{
                   padding: '14px 16px',
                   background: 'rgba(255, 255, 255, 0.04)',
                   borderRadius: '16px',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
+                  margin: 0,
+                  flexShrink: 0,
+                  minHeight: 'min-content',
+                  height: 'auto',
+                  overflow: 'visible',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
@@ -769,12 +796,17 @@ export default function StationDetailSheet({
               {/* Combinaciones con Subte y Premetro si existen */}
               {details.multimodal?.subway && details.multimodal.subway.length > 0 && (
                 <div
-                  className="ios-card"
+                  className="ios-card station-sheet-card"
                   style={{
                     padding: '14px 16px',
                     background: 'rgba(255, 255, 255, 0.04)',
                     borderRadius: '16px',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
+                    margin: 0,
+                    flexShrink: 0,
+                    minHeight: 'min-content',
+                    height: 'auto',
+                    overflow: 'visible',
                   }}
                 >
                   <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
@@ -837,12 +869,17 @@ export default function StationDetailSheet({
               {/* Metrobus y Centros de Transbordo */}
               {details.multimodal?.metrobus && details.multimodal.metrobus.length > 0 && (
                 <div
-                  className="ios-card"
+                  className="ios-card station-sheet-card"
                   style={{
                     padding: '14px 16px',
                     background: 'rgba(255, 255, 255, 0.04)',
                     borderRadius: '16px',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
+                    margin: 0,
+                    flexShrink: 0,
+                    minHeight: 'min-content',
+                    height: 'auto',
+                    overflow: 'visible',
                   }}
                 >
                   <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
@@ -872,12 +909,17 @@ export default function StationDetailSheet({
               {/* Conexiones con otros trenes y ramales */}
               {details.multimodal?.trainTransfers && details.multimodal.trainTransfers.length > 0 && (
                 <div
-                  className="ios-card"
+                  className="ios-card station-sheet-card"
                   style={{
                     padding: '14px 16px',
                     background: 'rgba(255, 255, 255, 0.04)',
                     borderRadius: '16px',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
+                    margin: 0,
+                    flexShrink: 0,
+                    minHeight: 'min-content',
+                    height: 'auto',
+                    overflow: 'visible',
                   }}
                 >
                   <div
@@ -938,12 +980,17 @@ export default function StationDetailSheet({
 
               {/* Líneas de Colectivos Cercanas */}
               <div
-                className="ios-card"
+                className="ios-card station-sheet-card"
                 style={{
                   padding: '14px 16px',
                   background: 'rgba(255, 255, 255, 0.04)',
                   borderRadius: '16px',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
+                  margin: 0,
+                  flexShrink: 0,
+                  minHeight: 'min-content',
+                  height: 'auto',
+                  overflow: 'visible',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
@@ -998,7 +1045,7 @@ export default function StationDetailSheet({
 
           {/* TAB 3: PRÓXIMOS TRENES EN VIVO */}
           {activeTab === 'arrivals' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0, minHeight: 'min-content' }}>
               <div
                 style={{
                   display: 'flex',

@@ -497,6 +497,8 @@ html, body {
   transition: all 0.25s var(--ios-ease);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
+  min-height: min-content;
 }
 
 .ios-card:hover {
@@ -506,6 +508,30 @@ html, body {
 
 .ios-card:active {
   transform: scale(0.985);
+}
+
+/* Station Detail Sheet Content & Card Expansion (Prevents card squashing/truncating on mobile) */
+.station-sheet-content {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+}
+
+.station-sheet-content > * {
+  flex-shrink: 0 !important;
+  min-height: min-content !important;
+}
+
+.station-sheet-card {
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  min-height: min-content !important;
+  height: auto !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
 }
 
 /* Line Badge */
