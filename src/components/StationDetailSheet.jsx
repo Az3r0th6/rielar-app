@@ -755,7 +755,7 @@ export default function StationDetailSheet({
           {/* TAB 2: COLECTIVOS Y COMBINACIONES MULTIMODALES */}
           {activeTab === 'multimodal' && (
             <>
-              {/* Combinaciones con Subte si existen */}
+              {/* Combinaciones con Subte y Premetro si existen */}
               {details.multimodal?.subway && details.multimodal.subway.length > 0 && (
                 <div
                   className="ios-card"
@@ -767,54 +767,58 @@ export default function StationDetailSheet({
                   }}
                 >
                   <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
-                    🚇 Combinación directa con Subte
+                    🚇 Combinación con Subte y Premetro
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {details.multimodal.subway.map((sub, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 12px',
-                          borderRadius: '12px',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div
-                            style={{
-                              width: '28px',
-                              height: '28px',
-                              borderRadius: '50%',
-                              background: sub.color || '#0070ba',
-                              color: sub.textColor || '#ffffff',
-                              fontWeight: 900,
-                              fontSize: '13px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                            }}
-                          >
-                            {sub.line.replace('Línea ', '')}
-                          </div>
-                          <div>
-                            <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
-                              {sub.line}
+                    {details.multimodal.subway.map((sub, idx) => {
+                      const isPremetro = (sub.line || '').toLowerCase().includes('premetro');
+                      const badgeLabel = isPremetro ? 'P' : (sub.line || '').replace('Línea ', '');
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 12px',
+                            borderRadius: '12px',
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div
+                              style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: isPremetro ? '8px' : '50%',
+                                background: sub.color || '#0070ba',
+                                color: sub.textColor || '#ffffff',
+                                fontWeight: 900,
+                                fontSize: '13px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                              }}
+                            >
+                              {badgeLabel}
                             </div>
-                            <div style={{ fontSize: '11px', color: '#8e8e93' }}>
-                              Hacia {sub.destination}
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                                {sub.line}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#8e8e93' }}>
+                                Hacia {sub.destination}
+                              </div>
                             </div>
                           </div>
+                          <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#30d158' }}>
+                            Conectado
+                          </span>
                         </div>
-                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#30d158' }}>
-                          Conectado
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -849,6 +853,73 @@ export default function StationDetailSheet({
                       >
                         {mb}
                       </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Conexiones con otros trenes y ramales */}
+              {details.multimodal?.trainTransfers && details.multimodal.trainTransfers.length > 0 && (
+                <div
+                  className="ios-card"
+                  style={{
+                    padding: '14px 16px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: '#ffffff',
+                      marginBottom: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <Train size={17} style={{ color: '#8ac53f' }} />
+                    <span>Conexión con otros trenes y ramales</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {details.multimodal.trainTransfers.map((transfer, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '9px 12px',
+                          borderRadius: '12px',
+                          background: 'rgba(138, 197, 63, 0.08)',
+                          border: '1px solid rgba(138, 197, 63, 0.25)',
+                          gap: '8px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '14px' }}>🚆</span>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#f5f5f7', lineHeight: 1.3 }}>
+                            {transfer}
+                          </span>
+                        </div>
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            color: '#8ac53f',
+                            background: 'rgba(138, 197, 63, 0.16)',
+                            padding: '3px 7px',
+                            borderRadius: '6px',
+                            flexShrink: 0,
+                            letterSpacing: '0.3px',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          Transbordo
+                        </span>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -911,28 +982,6 @@ export default function StationDetailSheet({
                   Paradas ubicadas en el perímetro de la estación y calles adyacentes.
                 </div>
               </div>
-
-              {/* Conexiones con otros trenes */}
-              {details.multimodal?.trainTransfers && details.multimodal.trainTransfers.length > 0 && (
-                <div
-                  className="ios-card"
-                  style={{
-                    padding: '12px 14px',
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    borderRadius: '14px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
-                >
-                  <Train size={16} style={{ color: '#8ac53f', flexShrink: 0 }} />
-                  <div style={{ fontSize: '12px', color: '#f5f5f7' }}>
-                    <strong>Transbordo ferroviario:</strong>{' '}
-                    {details.multimodal.trainTransfers.join(' • ')}
-                  </div>
-                </div>
-              )}
             </>
           )}
 
