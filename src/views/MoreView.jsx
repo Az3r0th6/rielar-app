@@ -23,9 +23,10 @@ import {
 } from '../utils/notifications';
 import BugReportSection from '../components/BugReportSection';
 import SupportProjectSection from '../components/SupportProjectSection';
+import PassengerGuideSection from '../components/PassengerGuideSection';
 
 export default function MoreView({ onInstallApp }) {
-  const [activeSection, setActiveSection] = useState('download'); // 'download' | 'notifications' | 'support' | 'reports' | 'credits'
+  const [activeSection, setActiveSection] = useState('download'); // 'download' | 'guide' | 'notifications' | 'support' | 'reports' | 'credits'
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [copiedDownload, setCopiedDownload] = useState(false);
@@ -85,6 +86,7 @@ export default function MoreView({ onInstallApp }) {
           <div className="ios-subtitle">
             <span>
               {activeSection === 'download' && 'Descarga e instalación directa en tu dispositivo'}
+              {activeSection === 'guide' && 'Pases libres CUD, tarifas sociales, estudiantes y normativa oficial'}
               {activeSection === 'notifications' && 'Preferencias de alertas sonoras y push'}
               {activeSection === 'support' && 'Aporte voluntario por Mercado Pago para mantener la app activa y sin publicidad'}
               {activeSection === 'reports' && 'Reportes de fallos en horarios, estaciones o la app'}
@@ -114,6 +116,17 @@ export default function MoreView({ onInstallApp }) {
           }}
         >
           📲 Descarga
+        </button>
+
+        <button
+          className={`segmented-option ${activeSection === 'guide' ? 'active' : ''}`}
+          style={{ padding: '8px 10px', fontSize: '12px', flexShrink: 0 }}
+          onClick={() => {
+            triggerHaptic('light');
+            setActiveSection('guide');
+          }}
+        >
+          ♿ Guía & CUD
         </button>
 
         <button
@@ -400,6 +413,13 @@ export default function MoreView({ onInstallApp }) {
               </div>
             </div>
           </div>
+        )}
+
+        {/* ========================================================
+            SECCIÓN: GUÍA DEL PASAJERO, CUD Y BENEFICIOS SOCIALES
+            ======================================================== */}
+        {activeSection === 'guide' && (
+          <PassengerGuideSection />
         )}
 
         {/* ========================================================

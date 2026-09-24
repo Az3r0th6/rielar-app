@@ -481,6 +481,37 @@ export default function StationDetailSheet({
                 )}
               </div>
 
+              {/* Pase Libre CUD & Beneficios Sociales */}
+              <div
+                className="ios-card"
+                style={{
+                  padding: '12px 14px',
+                  background: 'linear-gradient(135deg, rgba(48, 209, 88, 0.12) 0%, rgba(20, 20, 26, 0.95) 100%)',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(48, 209, 88, 0.3)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '18px' }}>♿</span>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
+                      Pase Libre con CUD & Beneficios
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#30d158', fontWeight: 600 }}>
+                      Viajes 100% gratuitos por Ley 22.431
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '11.5px', color: '#c7c7cc', lineHeight: 1.4 }}>
+                  Las personas con <strong>CUD</strong> (formato papel o digital en <strong>Mi Argentina</strong>) y su acompañante (si lo indica) viajan <strong>gratis</strong> presentando DNI en molinetes. También podés tramitar el Pase Libre en tu tarjeta SUBE.
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', fontSize: '11px', color: '#ffd60a', fontWeight: 600 }}>
+                  <span>👵 Jubilados: 55% de descuento en SUBE (Tarifa Social)</span>
+                </div>
+              </div>
+
               {/* Accesibilidad PMR */}
               <div
                 className="ios-card"
