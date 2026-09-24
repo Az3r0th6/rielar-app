@@ -85,13 +85,13 @@ export default function StationDetailSheet({
   return (
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
         zIndex: 1200,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
-        background: 'rgba(0, 0, 0, 0.65)',
+        background: 'rgba(0, 0, 0, 0.72)',
         backdropFilter: 'blur(10px)',
         animation: 'fadeIn 0.2s ease-out',
       }}
@@ -100,7 +100,7 @@ export default function StationDetailSheet({
       <div
         style={{
           width: '100%',
-          maxHeight: '88vh',
+          maxHeight: '90%',
           background: 'linear-gradient(180deg, #1c1c24 0%, #121218 100%)',
           borderTopLeftRadius: '24px',
           borderTopRightRadius: '24px',
@@ -137,7 +137,7 @@ export default function StationDetailSheet({
             gap: '12px',
           }}
         >
-          <div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <h2
                 style={{
@@ -146,6 +146,7 @@ export default function StationDetailSheet({
                   color: '#ffffff',
                   margin: 0,
                   letterSpacing: '-0.3px',
+                  wordBreak: 'break-word',
                 }}
               >
                 {details.name}
@@ -159,6 +160,7 @@ export default function StationDetailSheet({
                   borderRadius: '12px',
                   background: 'rgba(255, 255, 255, 0.1)',
                   color: '#8e8e93',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {details.zone || 'AMBA'}
@@ -173,6 +175,7 @@ export default function StationDetailSheet({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
+                flexWrap: 'wrap',
               }}
             >
               <span>{details.ramal || `Línea ${details.lineName}`}</span>
@@ -182,7 +185,7 @@ export default function StationDetailSheet({
           </div>
 
           {/* Action buttons (Favorite & Close) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             {onToggleFavorite && (
               <button
                 onClick={() => {
@@ -303,7 +306,9 @@ export default function StationDetailSheet({
               background: 'rgba(255, 255, 255, 0.08)',
               borderRadius: '12px',
               padding: '3px',
-              gap: '2px',
+              gap: '3px',
+              overflowX: 'auto',
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             <button
@@ -313,7 +318,8 @@ export default function StationDetailSheet({
               }}
               style={{
                 flex: 1,
-                padding: '8px 6px',
+                minWidth: '96px',
+                padding: '8px 8px',
                 border: 'none',
                 borderRadius: '9px',
                 background: activeTab === 'services' ? '#ffffff' : 'transparent',
@@ -321,10 +327,11 @@ export default function StationDetailSheet({
                 fontWeight: activeTab === 'services' ? 800 : 600,
                 fontSize: '12px',
                 cursor: 'pointer',
+                whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
               }}
             >
-              🎟️ Boletería & Servicios
+              🎟️ Servicios
             </button>
 
             <button
@@ -334,7 +341,8 @@ export default function StationDetailSheet({
               }}
               style={{
                 flex: 1,
-                padding: '8px 6px',
+                minWidth: '96px',
+                padding: '8px 8px',
                 border: 'none',
                 borderRadius: '9px',
                 background: activeTab === 'multimodal' ? '#ffffff' : 'transparent',
@@ -342,10 +350,11 @@ export default function StationDetailSheet({
                 fontWeight: activeTab === 'multimodal' ? 800 : 600,
                 fontSize: '12px',
                 cursor: 'pointer',
+                whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
               }}
             >
-              🚌 Colectivos & Subte
+              🚌 Colectivos
             </button>
 
             <button
@@ -355,7 +364,8 @@ export default function StationDetailSheet({
               }}
               style={{
                 flex: 1,
-                padding: '8px 6px',
+                minWidth: '96px',
+                padding: '8px 8px',
                 border: 'none',
                 borderRadius: '9px',
                 background: activeTab === 'arrivals' ? '#ffffff' : 'transparent',
@@ -363,10 +373,11 @@ export default function StationDetailSheet({
                 fontWeight: activeTab === 'arrivals' ? 800 : 600,
                 fontSize: '12px',
                 cursor: 'pointer',
+                whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
               }}
             >
-              ⚡ Trenes en Vivo
+              ⚡ En Vivo
             </button>
           </div>
         </div>
@@ -376,7 +387,7 @@ export default function StationDetailSheet({
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '12px 16px 28px',
+            padding: '12px 16px calc(36px + env(safe-area-inset-bottom, 20px))',
             display: 'flex',
             flexDirection: 'column',
             gap: '14px',
@@ -438,17 +449,17 @@ export default function StationDetailSheet({
 
                 {/* Horarios discriminados */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span style={{ color: '#8e8e93' }}>Lunes a Viernes</span>
-                    <strong style={{ color: '#ffffff' }}>{details.ticketing?.weekdays}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <span style={{ color: '#8e8e93', flexShrink: 0 }}>Lunes a Viernes</span>
+                    <strong style={{ color: '#ffffff', textAlign: 'right', wordBreak: 'break-word' }}>{details.ticketing?.weekdays}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span style={{ color: '#8e8e93' }}>Sábados</span>
-                    <strong style={{ color: '#ffffff' }}>{details.ticketing?.saturdays}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <span style={{ color: '#8e8e93', flexShrink: 0 }}>Sábados</span>
+                    <strong style={{ color: '#ffffff', textAlign: 'right', wordBreak: 'break-word' }}>{details.ticketing?.saturdays}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span style={{ color: '#8e8e93' }}>Domingos y Feriados</span>
-                    <strong style={{ color: '#ffffff' }}>{details.ticketing?.sundays}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <span style={{ color: '#8e8e93', flexShrink: 0 }}>Domingos y Feriados</span>
+                    <strong style={{ color: '#ffffff', textAlign: 'right', wordBreak: 'break-word' }}>{details.ticketing?.sundays}</strong>
                   </div>
                 </div>
 
@@ -1070,12 +1081,13 @@ export default function StationDetailSheet({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
+                        gap: '8px',
                       }}
                     >
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ flex: 1, minWidth: 0, paddingRight: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '13px' }}>{isTowardsCABA ? '🏙️' : '🌲'}</span>
-                          <span style={{ fontWeight: 800, fontSize: '14px', color: '#ffffff' }}>
+                          <span style={{ fontWeight: 800, fontSize: '14px', color: '#ffffff', wordBreak: 'break-word' }}>
                             {dest}
                           </span>
                           <span
@@ -1086,24 +1098,25 @@ export default function StationDetailSheet({
                               fontWeight: 700,
                               background: isTowardsCABA ? 'rgba(10, 132, 255, 0.15)' : 'rgba(48, 209, 88, 0.15)',
                               color: isTowardsCABA ? '#0a84ff' : '#30d158',
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             {isTowardsCABA ? 'A Retiro/CABA' : 'A Provincia'}
                           </span>
                         </div>
 
-                        <div style={{ fontSize: '11px', color: '#8e8e93', marginTop: '4px', display: 'flex', gap: '8px' }}>
+                        <div style={{ fontSize: '11px', color: '#8e8e93', marginTop: '4px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                           <span>Andén {platform}</span>
                           {train.servicio?.numero && <span>• Tren #{train.servicio.numero}</span>}
                           <span>• Desde {origin}</span>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                        <div className={`countdown-badge ${badgeClass}`} style={{ fontSize: '13px', padding: '4px 10px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
+                        <div className={`countdown-badge ${badgeClass}`} style={{ fontSize: '13px', padding: '4px 10px', whiteSpace: 'nowrap' }}>
                           {formatArrivalSeconds(seconds)}
                         </div>
-                        <span style={{ fontSize: '10px', color: '#0a84ff', fontWeight: 600 }}>
+                        <span style={{ fontSize: '10px', color: '#0a84ff', fontWeight: 600, whiteSpace: 'nowrap' }}>
                           Rastrear ➔
                         </span>
                       </div>

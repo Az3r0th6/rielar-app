@@ -24,6 +24,7 @@ import { playChimeSound, triggerHaptic } from '../utils/notifications';
 export default function iPhoneFrame({
   children,
   tabBar,
+  modals,
   onContentScroll,
   isHeaderHidden,
   showDownloadModal,
@@ -219,6 +220,9 @@ export default function iPhoneFrame({
 
         {/* Home Indicator Bar (Desktop only, real phones have their own native gesture bar) */}
         {!isMobile && <div className="ios-home-indicator" />}
+
+        {/* Full-screen bottom sheet modals (Placed AFTER tabBar so they always layer ABOVE tabBar!) */}
+        {modals}
       </div>
 
       {/* Modal: Download & Install App on iOS / Android (Zero Install) */}

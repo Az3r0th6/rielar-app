@@ -363,8 +363,28 @@ export default function App() {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           alertsCount={networkAlertsCount}
-          isHidden={isTabBarHidden}
+          isHidden={isTabBarHidden || !!selectedStationForInfo || !!selectedTrain}
         />
+      }
+      modals={
+        <>
+          {/* Train Detail Modal Bottom Sheet */}
+          <TrainDetailSheet
+            trainData={selectedTrain}
+            onClose={() => setSelectedTrain(null)}
+            onTrackTrain={handleTrackTrain}
+            isTracked={trackingTrain?.servicio?.numero === selectedTrain?.servicio?.numero}
+          />
+
+          {/* Station Information & Amenities Bottom Sheet */}
+          <StationDetailSheet
+            station={selectedStationForInfo}
+            onClose={() => setSelectedStationForInfo(null)}
+            onSelectTrain={(train) => setSelectedTrain(train)}
+            isFavorite={Boolean(selectedStationForInfo && favorites.some((f) => f.id === selectedStationForInfo.id))}
+            onToggleFavorite={handleToggleFavorite}
+          />
+        </>
       }
     >
       {/* Active Tab View with Error Boundary protection */}
@@ -421,23 +441,6 @@ export default function App() {
           <MoreView onInstallApp={handleInstallApp} />
         )}
       </ErrorBoundary>
-
-      {/* Train Detail Modal Bottom Sheet */}
-      <TrainDetailSheet
-        trainData={selectedTrain}
-        onClose={() => setSelectedTrain(null)}
-        onTrackTrain={handleTrackTrain}
-        isTracked={trackingTrain?.servicio?.numero === selectedTrain?.servicio?.numero}
-      />
-
-      {/* Station Information & Amenities Bottom Sheet */}
-      <StationDetailSheet
-        station={selectedStationForInfo}
-        onClose={() => setSelectedStationForInfo(null)}
-        onSelectTrain={(train) => setSelectedTrain(train)}
-        isFavorite={Boolean(selectedStationForInfo && favorites.some((f) => f.id === selectedStationForInfo.id))}
-        onToggleFavorite={handleToggleFavorite}
-      />
     </IPhoneFrame>
   );
 }

@@ -113,18 +113,18 @@ export default function FavoritesView({
                   if (onSelectStation) onSelectStation(station);
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '17px', fontWeight: 800 }}>{station.name}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '17px', fontWeight: 800, wordBreak: 'break-word' }}>{station.name}</span>
                       <LineBadge lineId={station.lineId} size="small" />
                     </div>
-                    <div style={{ fontSize: '12px', color: '#8e8e93', marginTop: '2px' }}>
+                    <div style={{ fontSize: '12px', color: '#8e8e93', marginTop: '2px', wordBreak: 'break-word' }}>
                       {station.ramal || 'Ramal urbano'}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

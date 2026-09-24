@@ -661,11 +661,11 @@ export default function NearbyView({
                       triggerHaptic('light');
                       if (onOpenStationInfo) onOpenStationInfo(station);
                     }}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', flex: 1, minWidth: 0 }}
                     title="Ver horarios de boletería, colectivos y servicios"
                   >
                     <div className="station-name">
-                      <span style={{ textDecoration: 'none' }}>{station.name}</span>
+                      <span style={{ textDecoration: 'none', wordBreak: 'break-word' }}>{station.name}</span>
                       <LineBadge lineId={station.lineId} size="small" />
                     </div>
                     <div className="station-distance">
@@ -678,7 +678,7 @@ export default function NearbyView({
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -697,6 +697,7 @@ export default function NearbyView({
                         alignItems: 'center',
                         gap: '4px',
                         cursor: 'pointer',
+                        whiteSpace: 'nowrap',
                       }}
                       title="Ver información de boletería, colectivos y servicios"
                     >
@@ -755,12 +756,12 @@ export default function NearbyView({
                             });
                           }}
                         >
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                               <span style={{ fontSize: '13px' }}>
                                 {isTowardsCABA ? '🏙️' : '🌲'}
                               </span>
-                              <span className="arrival-dest">{dest}</span>
+                              <span className="arrival-dest" style={{ wordBreak: 'break-word' }}>{dest}</span>
                               <span
                                 style={{
                                   fontSize: '10.5px',
@@ -771,13 +772,14 @@ export default function NearbyView({
                                     ? 'rgba(10, 132, 255, 0.15)'
                                     : 'rgba(48, 209, 88, 0.15)',
                                   color: isTowardsCABA ? '#0a84ff' : '#30d158',
+                                  whiteSpace: 'nowrap',
                                 }}
                               >
                                 {isTowardsCABA ? 'A Retiro/CABA' : 'A Provincia'}
                               </span>
                             </div>
 
-                            <div className="arrival-meta">
+                            <div className="arrival-meta" style={{ flexWrap: 'wrap' }}>
                               <span className="platform-badge">Andén {platform}</span>
                               {train.servicio?.numero && (
                                 <span>Tren #{train.servicio.numero}</span>
@@ -794,6 +796,7 @@ export default function NearbyView({
                                   background: 'rgba(48, 209, 88, 0.12)',
                                   padding: '1px 6px',
                                   borderRadius: '6px',
+                                  whiteSpace: 'nowrap',
                                 }}
                               >
                                 <span
@@ -815,7 +818,7 @@ export default function NearbyView({
                             </div>
                           </div>
 
-                          <div className={`arrival-countdown ${badgeClass}`}>
+                          <div className={`arrival-countdown ${badgeClass}`} style={{ flexShrink: 0 }}>
                             {isCancelled ? (
                               <span style={{ color: '#ff453a', fontWeight: 800, fontSize: '14px' }}>
                                 CANCELADO
