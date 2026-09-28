@@ -99,6 +99,10 @@ export default function SwipeableAlertCard({
           fontWeight: 800,
           fontSize: '13px',
           gap: '8px',
+          opacity: Math.abs(translateX) > 6 ? Math.min(1, Math.abs(translateX) / 45) : 0,
+          visibility: Math.abs(translateX) > 6 ? 'visible' : 'hidden',
+          pointerEvents: 'none',
+          transition: isDragging ? 'none' : 'opacity 0.2s ease',
         }}
       >
         <Trash2 size={20} />
@@ -112,7 +116,7 @@ export default function SwipeableAlertCard({
         onTouchEnd={handleTouchEnd}
         style={{
           position: 'relative',
-          background: 'var(--ios-card)',
+          background: 'var(--ios-card-solid, #1c1c22)',
           borderRadius: '16px',
           border: `1px solid ${badge.border}`,
           borderLeft: `5px solid ${badge.border}`,
@@ -131,16 +135,27 @@ export default function SwipeableAlertCard({
             justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: '8px',
+            gap: '8px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
             <LineBadge lineId={incident.lineId} lineName={incident.lineName} size="small" />
-            <span style={{ fontWeight: 800, fontSize: '15px', color: 'var(--ios-text-primary)' }}>
+            <span
+              style={{
+                fontWeight: 800,
+                fontSize: '14px',
+                color: 'var(--ios-text-primary)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+              title={incident.ramalName}
+            >
               {incident.ramalName}
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
             {/* Status Pill */}
             <span
               style={{

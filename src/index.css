@@ -8,6 +8,7 @@
   --ios-bg: #000000;
   --ios-surface: #121216;
   --ios-card: rgba(26, 26, 32, 0.75);
+  --ios-card-solid: #1c1c22;
   --ios-card-hover: rgba(36, 36, 46, 0.85);
   --ios-card-border: rgba(255, 255, 255, 0.08);
   --ios-card-border-active: rgba(255, 255, 255, 0.18);
@@ -54,6 +55,7 @@
   --ios-bg: #f2f2f7;
   --ios-surface: #ffffff;
   --ios-card: rgba(255, 255, 255, 0.95);
+  --ios-card-solid: #ffffff;
   --ios-card-hover: #ffffff;
   --ios-card-border: rgba(0, 0, 0, 0.08);
   --ios-card-border-active: rgba(0, 0, 0, 0.16);

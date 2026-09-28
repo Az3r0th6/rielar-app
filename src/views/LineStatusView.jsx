@@ -180,7 +180,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
     const hasCancel = allAlerts.some((a) => a.contenido?.toLowerCase().includes('cancel'));
     if (hasCancel) {
       return {
-        text: 'Cancelaciones',
+        text: 'Cancelación',
         color: '#ff453a',
         bg: 'rgba(255, 69, 58, 0.15)',
         border: '#ff453a',
@@ -190,7 +190,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
     const hasReduced = allAlerts.some((a) => a.contenido?.toLowerCase().includes('reducido'));
     if (hasReduced) {
       return {
-        text: 'Servicio Reducido',
+        text: 'Reducido',
         color: '#ff9f0a',
         bg: 'rgba(255, 159, 10, 0.15)',
         border: '#ff9f0a',
@@ -198,7 +198,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
       };
     }
     return {
-      text: 'Demoras / Obras',
+      text: 'Demora',
       color: '#ffd60a',
       bg: 'rgba(255, 214, 10, 0.15)',
       border: '#ffd60a',
@@ -426,26 +426,30 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                       gap: '8px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
                       <LineBadge lineId={line.id} lineName={line.nombre} />
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
-                          Línea {line.nombre}
-                        </div>
-                        <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)', marginTop: '1px' }}>
-                          {branches.length} ramales monitoreados
-                        </div>
-                      </div>
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--ios-text-secondary)',
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {branches.length} ramales
+                      </span>
                     </div>
 
                     {/* Floating Color Status Badge */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                       <span
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '5px',
-                          padding: '4px 10px',
+                          gap: '4px',
+                          padding: '4px 9px',
                           borderRadius: '12px',
                           background: statusPill.bg,
                           border: `1px solid ${statusPill.border}`,
@@ -453,19 +457,21 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                           fontSize: '11.5px',
                           fontWeight: 800,
                           boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                          whiteSpace: 'nowrap',
                         }}
                       >
-                        <StatusIcon size={13} />
+                        <StatusIcon size={12} />
                         <span>{statusPill.text}</span>
                       </span>
 
                       <button
                         className="fav-button"
                         style={{
-                          width: '32px',
-                          height: '32px',
+                          width: '30px',
+                          height: '30px',
                           color: isSubscribed ? '#0a84ff' : 'var(--ios-text-secondary)',
                           background: isSubscribed ? 'rgba(10,132,255,0.15)' : 'rgba(118, 118, 128, 0.1)',
+                          flexShrink: 0,
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -473,10 +479,10 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                         }}
                         title={isSubscribed ? 'Alertas activas' : 'Activar alertas push'}
                       >
-                        {isSubscribed ? <Bell size={15} /> : <BellOff size={15} />}
+                        {isSubscribed ? <Bell size={14} /> : <BellOff size={14} />}
                       </button>
 
-                      <div style={{ color: 'var(--ios-text-secondary)' }}>
+                      <div style={{ color: 'var(--ios-text-secondary)', flexShrink: 0 }}>
                         {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                       </div>
                     </div>
@@ -498,9 +504,19 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                               border: hasAlert ? '1px solid rgba(255, 159, 10, 0.35)' : '1px solid transparent',
                             }}
                           >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div>
-                                <div style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--ios-text-primary)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div
+                                  style={{
+                                    fontSize: '13.5px',
+                                    fontWeight: 700,
+                                    color: 'var(--ios-text-primary)',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                  }}
+                                  title={`Ramal ${branch.nombre}`}
+                                >
                                   Ramal {branch.nombre}
                                 </div>
                                 <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)', marginTop: '2px' }}>
@@ -517,6 +533,8 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                                   borderRadius: '8px',
                                   background: hasAlert ? 'rgba(255, 69, 58, 0.15)' : 'rgba(48, 209, 88, 0.15)',
                                   color: hasAlert ? '#ff453a' : '#30d158',
+                                  flexShrink: 0,
+                                  whiteSpace: 'nowrap',
                                 }}
                               >
                                 {hasAlert ? 'Con Alerta' : 'Normal'}
