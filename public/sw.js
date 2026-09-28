@@ -1,5 +1,5 @@
 // Service Worker for RielAR Web App (iOS & Android Zero-Install)
-const CACHE_NAME = 'rielar-v15';
+const CACHE_NAME = 'rielar-v20';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -30,14 +30,14 @@ self.addEventListener('activate', (event) => {
       // Notify mobile installed clients about new version
       try {
         if (self.Notification && self.Notification.permission === 'granted') {
-          self.registration.showNotification('🎉 ¡RielAR se ha actualizado!', {
-            body: 'Nueva Grilla de Horarios Oficiales, mapa en vivo optimizado y gestión limpia de alertas.',
+          self.registration.showNotification('🎉 ¡RielAR se actualizó a la versión 2.0!', {
+            body: 'Horarios por línea y ramal, grilla completa de trenes, modo claro de alto contraste y alertas optimizadas.',
             icon: '/icon.svg',
             badge: '/icon.svg',
             vibrate: [100, 50, 100],
-            tag: 'rielar-app-update-v15',
+            tag: 'rielar-app-update-v20',
             renotify: true,
-            data: { url: '/' }
+            data: { url: '/?tab=planner' }
           });
         }
       } catch (e) {

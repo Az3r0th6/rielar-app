@@ -10,6 +10,7 @@ import LineStatusView from './views/LineStatusView';
 import TripPlannerView from './views/TripPlannerView';
 import FavoritesView from './views/FavoritesView';
 import MoreView from './views/MoreView';
+import ChangelogModal from './components/ChangelogModal';
 import { PRELOADED_STATIONS } from './data/linesData';
 import { triggerHaptic, playChimeSound, sendAppNotification } from './utils/notifications';
 import {
@@ -158,40 +159,29 @@ export default function App() {
     } catch {}
   }, [theme]);
 
-  // App Version & Update Notification for Installed PWA / Mobile users
-  const [updateNotice, setUpdateNotice] = useState(null);
+  // App Version & Update Announcement Modal for Installed PWA / Mobile users
+  const [showChangelogModal, setShowChangelogModal] = useState(false);
 
   useEffect(() => {
-    const CURRENT_VERSION = '1.5.0';
+    const CURRENT_VERSION = '2.0.0';
     try {
-      const savedVersion = localStorage.getItem('rielar_app_version');
-      if (savedVersion !== CURRENT_VERSION) {
-        localStorage.setItem('rielar_app_version', CURRENT_VERSION);
-        // If user already used or installed the app previously, alert them
-        if (savedVersion) {
-          setUpdateNotice({
-            version: CURRENT_VERSION,
-            title: '🎉 ¡RielAR se actualizó a la versión 1.5!',
-            body: 'Se incorporó la Grilla Completa de Horarios de todos los ramales, mapa en vivo optimizado y gestión limpia de alertas.',
-          });
-          sendAppNotification(
-            '🎉 ¡RielAR Actualizado a v1.5!',
-            'Nueva Grilla de Horarios Oficiales y mejoras en el mapa en vivo.',
-            { type: 'updated' }
-          );
-        }
+      const seenChangelog = localStorage.getItem('rielar_changelog_v20_viewed');
+      // If user hasn't seen the v2.0 changelog yet, show pop-up modal!
+      if (seenChangelog !== 'true') {
+        setShowChangelogModal(true);
+        sendAppNotification(
+          '🎉 ¡RielAR se actualizó a la versión 2.0!',
+          'Horarios por línea y ramal, grilla completa de trenes, modo claro y alertas optimizadas.',
+          { type: 'updated' }
+        );
       }
     } catch {}
 
     const handleAppUpdated = () => {
-      setUpdateNotice({
-        version: CURRENT_VERSION,
-        title: '🎉 ¡Nueva actualización disponible!',
-        body: 'Nueva Grilla de Horarios y mejoras de rendimiento listas para usar.',
-      });
+      setShowChangelogModal(true);
       sendAppNotification(
-        '🎉 ¡Actualización instalada en RielAR!',
-        'Disfrutá de la nueva Grilla de Horarios Oficiales.',
+        '🎉 ¡Actualización lista en RielAR v2.0!',
+        'Horarios por ramal y nuevas mejoras disponibles.',
         { type: 'updated' }
       );
     };
@@ -469,71 +459,14 @@ export default function App() {
       }
       modals={
         <>
-          {/* Update Notification Pill for Mobile & Web Users */}
-          {updateNotice && (
-            <div
-              style={{
-                position: 'fixed',
-                top: '56px',
-                left: '12px',
-                right: '12px',
-                zIndex: 99999,
-                background: 'rgba(28, 28, 30, 0.95)',
-                backdropFilter: 'blur(25px)',
-                WebkitBackdropFilter: 'blur(25px)',
-                border: '1px solid rgba(48, 209, 88, 0.4)',
-                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(48, 209, 88, 0.25)',
-                borderRadius: '16px',
-                padding: '12px 14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-              }}
-            >
-              <div
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '10px',
-                  background: 'rgba(48, 209, 88, 0.18)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '20px',
-                  flexShrink: 0,
-                }}
-              >
-                🎉
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
-                  {updateNotice.title}
-                </div>
-                <div style={{ fontSize: '11px', color: '#a1a1aa', marginTop: '2px', lineHeight: 1.35 }}>
-                  {updateNotice.body}
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  triggerHaptic('light');
-                  setUpdateNotice(null);
-                }}
-                style={{
-                  background: '#30d158',
-                  color: '#000000',
-                  border: 'none',
-                  borderRadius: '10px',
-                  padding: '7px 12px',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                }}
-              >
-                Entendido
-              </button>
-            </div>
-          )}
+          {/* Version 2.0 Changelog / Update Pop-up Modal */}
+          <ChangelogModal
+            isOpen={showChangelogModal}
+            onClose={() => setShowChangelogModal(false)}
+            onNavigateToPlanner={() => {
+              handleNavigateToPlanner(null, null, 'departures');
+            }}
+          />
 
           {/* Train Detail Modal Bottom Sheet */}
           <TrainDetailSheet
@@ -622,6 +555,7 @@ export default function App() {
             onInstallApp={handleInstallApp}
             theme={theme}
             onToggleTheme={handleToggleTheme}
+            onOpenChangelog={() => setShowChangelogModal(true)}
           />
         )}
       </ErrorBoundary>
