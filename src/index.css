@@ -13,10 +13,10 @@
   --ios-card-border: rgba(255, 255, 255, 0.08);
   --ios-card-border-active: rgba(255, 255, 255, 0.18);
   
-  --ios-text-primary: #f5f5f7;
-  --ios-text-secondary: #8e8e93;
-  --ios-text-tertiary: #636366;
-  --ios-separator: rgba(84, 84, 88, 0.35);
+  --ios-text-primary: #ffffff;
+  --ios-text-secondary: #e2e8f0;
+  --ios-text-tertiary: #cbd5e1;
+  --ios-separator: rgba(255, 255, 255, 0.16);
 
   /* iOS Accent Palette */
   --ios-blue: #0a84ff;
@@ -48,6 +48,66 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 20px rgba(10, 132, 255, 0.35);
+}
+
+/* High-Contrast Dark Mode Enhancements for Secondary & Body Texts */
+:root:not([data-theme='light']) {
+  color-scheme: dark;
+}
+
+:root:not([data-theme='light']) .ios-subtitle,
+:root:not([data-theme='light']) .arrival-meta,
+:root:not([data-theme='light']) .countdown-scheduled,
+:root:not([data-theme='light']) span[style*="#8e8e93"],
+:root:not([data-theme='light']) span[style*="#8E8E93"],
+:root:not([data-theme='light']) div[style*="#8e8e93"],
+:root:not([data-theme='light']) div[style*="#8E8E93"],
+:root:not([data-theme='light']) p[style*="#8e8e93"],
+:root:not([data-theme='light']) p[style*="#8E8E93"],
+:root:not([data-theme='light']) span[style*="#98989f"],
+:root:not([data-theme='light']) div[style*="#98989f"],
+:root:not([data-theme='light']) p[style*="#98989f"] {
+  color: #e2e8f0 !important;
+}
+
+:root:not([data-theme='light']) span[style*="#636366"],
+:root:not([data-theme='light']) div[style*="#636366"],
+:root:not([data-theme='light']) p[style*="#636366"] {
+  color: #cbd5e1 !important;
+}
+
+/* Select, Optgroup and Option Dark/Light styling for maximum contrast */
+select {
+  color: var(--ios-text-primary);
+  background-color: var(--ios-card-solid);
+}
+
+select optgroup {
+  background-color: #18181f;
+  color: #64d2ff;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 6px 0;
+}
+
+select option {
+  background-color: #1c1c24;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 8px 12px;
+}
+
+[data-theme='light'] select optgroup {
+  background-color: #f2f2f7;
+  color: #0056b3;
+  font-weight: 800;
+}
+
+[data-theme='light'] select option {
+  background-color: #ffffff;
+  color: #000000;
+  font-weight: 600;
 }
 
 /* Light Mode Overrides */

@@ -25,6 +25,7 @@ export default function iPhoneFrame({
   children,
   tabBar,
   modals,
+  overlayModals,
   onContentScroll,
   isHeaderHidden,
   showDownloadModal,
@@ -229,6 +230,9 @@ export default function iPhoneFrame({
         {/* Full-screen bottom sheet modals (Placed AFTER tabBar so they always layer ABOVE tabBar!) */}
         {modals}
       </div>
+
+      {/* Full-screen Application Overlay Modals (Rendered outside frame to prevent overlap by simulator bar) */}
+      {overlayModals}
 
       {/* Modal: Download & Install App on iOS / Android (Zero Install) */}
       {(showShareModal || showDownloadModal) && (

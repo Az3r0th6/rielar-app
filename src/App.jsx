@@ -457,17 +457,17 @@ export default function App() {
           isHidden={isTabBarHidden || !!selectedStationForInfo || !!selectedTrain}
         />
       }
+      overlayModals={
+        <ChangelogModal
+          isOpen={showChangelogModal}
+          onClose={() => setShowChangelogModal(false)}
+          onNavigateToPlanner={() => {
+            handleNavigateToPlanner(null, null, 'departures');
+          }}
+        />
+      }
       modals={
         <>
-          {/* Version 2.0 Changelog / Update Pop-up Modal */}
-          <ChangelogModal
-            isOpen={showChangelogModal}
-            onClose={() => setShowChangelogModal(false)}
-            onNavigateToPlanner={() => {
-              handleNavigateToPlanner(null, null, 'departures');
-            }}
-          />
-
           {/* Train Detail Modal Bottom Sheet */}
           <TrainDetailSheet
             trainData={selectedTrain}

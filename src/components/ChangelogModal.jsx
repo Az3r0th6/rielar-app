@@ -162,9 +162,9 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
                 width: '32px',
                 height: '32px',
                 borderRadius: '50%',
-                background: 'var(--ios-control-bg, rgba(255, 255, 255, 0.1))',
+                background: 'rgba(255, 255, 255, 0.14)',
                 border: 'none',
-                color: 'var(--ios-text-secondary, #8e8e93)',
+                color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -183,7 +183,7 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
               fontSize: '22px',
               fontWeight: 800,
               letterSpacing: '-0.02em',
-              color: 'var(--ios-text-primary, #ffffff)',
+              color: '#ffffff',
             }}
           >
             🎉 ¡Nuevas funciones en RielAR!
@@ -191,9 +191,9 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
           <p
             style={{
               margin: 0,
-              fontSize: '13px',
-              color: 'var(--ios-text-secondary, #8e8e93)',
-              lineHeight: 1.4,
+              fontSize: '13.5px',
+              color: '#e2e8f0',
+              lineHeight: 1.45,
             }}
           >
             Actualizamos la aplicación con las mejoras que pediste para organizar mejor tus viajes en tren.
@@ -216,10 +216,10 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
               style={{
                 display: 'flex',
                 gap: '14px',
-                padding: '14px',
+                padding: '14px 16px',
                 borderRadius: '16px',
-                background: 'var(--ios-control-bg, rgba(255, 255, 255, 0.04))',
-                border: '1px solid var(--ios-card-border, rgba(255, 255, 255, 0.06))',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
                 alignItems: 'flex-start',
               }}
             >
@@ -239,21 +239,21 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
                   <span
                     style={{
-                      fontSize: '14px',
-                      fontWeight: 700,
-                      color: 'var(--ios-text-primary, #ffffff)',
+                      fontSize: '14.5px',
+                      fontWeight: 800,
+                      color: '#ffffff',
                     }}
                   >
                     {item.title}
                   </span>
                   <span
                     style={{
-                      fontSize: '9.5px',
+                      fontSize: '10px',
                       fontWeight: 800,
-                      padding: '2px 6px',
+                      padding: '2px 7px',
                       borderRadius: '6px',
                       background: item.badgeBg,
                       color: item.badgeColor,
@@ -266,9 +266,10 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
                 <p
                   style={{
                     margin: 0,
-                    fontSize: '12.5px',
-                    color: 'var(--ios-text-secondary, #98989f)',
-                    lineHeight: 1.45,
+                    fontSize: '13px',
+                    color: '#f8fafc',
+                    lineHeight: 1.5,
+                    fontWeight: 400,
                   }}
                 >
                   {item.description}
@@ -298,8 +299,8 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
               border: 'none',
               background: '#0a84ff',
               color: '#ffffff',
-              fontSize: '14px',
-              fontWeight: 700,
+              fontSize: '14.5px',
+              fontWeight: 800,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -317,13 +318,13 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
             onClick={handleDismiss}
             style={{
               width: '100%',
-              padding: '11px 18px',
+              padding: '12px 18px',
               borderRadius: '14px',
-              border: '1px solid var(--ios-card-border, rgba(255, 255, 255, 0.15))',
-              background: 'transparent',
-              color: 'var(--ios-text-primary, #ffffff)',
-              fontSize: '13.5px',
-              fontWeight: 600,
+              border: '1px solid rgba(255, 255, 255, 0.28)',
+              background: 'rgba(255, 255, 255, 0.08)',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: 700,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -331,7 +332,7 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
               gap: '6px',
             }}
           >
-            <CheckCircle2 size={15} color="#30d158" />
+            <CheckCircle2 size={16} color="#30d158" />
             <span>¡Entendido! Continuar a la app</span>
           </button>
         </div>
