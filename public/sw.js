@@ -1,5 +1,5 @@
 // Service Worker for RielAR Web App (iOS & Android Zero-Install)
-const CACHE_NAME = 'rielar-v14';
+const CACHE_NAME = 'rielar-v15';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -26,7 +26,40 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()).then(() => {
+      // Notify mobile installed clients about new version
+      try {
+        if (self.Notification && self.Notification.permission === 'granted') {
+          self.registration.showNotification('🎉 ¡RielAR se ha actualizado!', {
+            body: 'Nueva Grilla de Horarios Oficiales, mapa en vivo optimizado y gestión limpia de alertas.',
+            icon: '/icon.svg',
+            badge: '/icon.svg',
+            vibrate: [100, 50, 100],
+            tag: 'rielar-app-update-v15',
+            renotify: true,
+            data: { url: '/' }
+          });
+        }
+      } catch (e) {
+        // Notification attempt ignored if unsupported
+      }
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow('/');
+      }
+    })
   );
 });
 

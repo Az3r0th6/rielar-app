@@ -216,12 +216,14 @@ app.get('/api/network-status', async (req, res) => {
       return res.status(500).json({ error: 'Could not retrieve lines' });
     }
 
+    // Filter out 501 (Regionales) to only monitor operational AMBA lines
+    const ambaLines = lines.filter((l) => l.id !== 501);
+
     let totalBranches = 0;
     let operationalAlerts = [];
-    let criticalIncidents = [];
 
     const enrichedLines = await Promise.all(
-      lines.map(async (line) => {
+      ambaLines.map(async (line) => {
         try {
           const branches = await fetchFromSofse('/infraestructura/ramales', { idGerencia: line.id });
           const safeBranches = Array.isArray(branches) ? branches : [];
@@ -231,7 +233,8 @@ app.get('/api/network-status', async (req, res) => {
           safeBranches.forEach((b) => {
             if (b.alerta && Array.isArray(b.alerta)) {
               b.alerta.forEach((al) => {
-                const text = al.contenido || '';
+                const text = (al.contenido || '').trim();
+                if (!text) return;
                 const lower = text.toLowerCase();
                 let type = 'AVISO';
                 let severity = 'info';
@@ -247,11 +250,11 @@ app.get('/api/network-status', async (req, res) => {
                   severity = 'warning';
                 } else if (lower.includes('obra')) {
                   type = 'OBRAS EN VÍA';
-                  severity = 'info';
+                  severity = 'warning';
                 }
 
                 const alertObj = {
-                  id: al.id,
+                  id: al.id || `${line.id}_${b.id}_${Math.random()}`,
                   lineId: line.id,
                   lineName: line.nombre,
                   ramalId: b.id,
@@ -266,9 +269,6 @@ app.get('/api/network-status', async (req, res) => {
                 };
 
                 operationalAlerts.push(alertObj);
-                if (severity === 'critical' || severity === 'warning') {
-                  criticalIncidents.push(alertObj);
-                }
               });
             }
           });
@@ -290,11 +290,11 @@ app.get('/api/network-status', async (req, res) => {
     const payload = {
       timestamp: new Date().toISOString(),
       summary: {
-        totalLines: lines.length,
+        totalLines: ambaLines.length,
         totalBranches,
         activeAlertsCount: operationalAlerts.length,
-        criticalCount: criticalIncidents.length,
-        criticalIncidents,
+        criticalCount: operationalAlerts.length,
+        criticalIncidents: operationalAlerts,
       },
       lines: enrichedLines,
       allAlerts: operationalAlerts,
@@ -418,7 +418,20 @@ app.get('/api/network-trains', async (req, res) => {
     }
 
     // Comprehensive transit hubs and terminals spanning Mitre, Sarmiento, Roca, San Martín, Belgrano Sur and TDC
-    const hubs = [332, 360, 353, 190, 400, 290, 280, 254, 98, 390, 218, 131, 330, 60, 309, 349, 158, 99, 244];
+    const hubs = [
+      // San Martín (31): Retiro, Palermo, Caseros, Hurlingham, José C. Paz, Pilar
+      463, 297, 67, 177, 194, 306,
+      // Mitre (5): Retiro, Tigre, Victoria, San Isidro, J.L. Suárez, Villa Ballester, Bmé. Mitre, Belgrano R
+      332, 389, 409, 357, 190, 412, 273, 35,
+      // Sarmiento (1): Once, Liniers, Morón, Castelar, Merlo, Moreno, Luján, Mercedes
+      293, 234, 279, 70, 269, 278, 247, 268,
+      // Roca (11): Constitución, Santillán y Kosteki, Temperley, Quilmes, Berazategui, La Plata, Ezeiza, Alejandro Korn, Bosques
+      93, 368, 386, 322, 38, 217, 132, 13, 43,
+      // Belgrano Sur (21): Dr. Sáenz, Tapiales, González Catán, Marinos C. G Belgrano
+      525, 385, 154, 259,
+      // Tren de la Costa (41): Maipú, Delta
+      248, 104,
+    ];
     const trainMap = new Map();
 
     await Promise.all(
@@ -428,6 +441,8 @@ app.get('/api/network-trains', async (req, res) => {
           const list = Array.isArray(data) ? data : data?.results || [];
           for (const item of list) {
             const num = item.servicio?.numero;
+            const lineId = item.servicio?.gerencia?.id || item.servicio?.lineId;
+            if (lineId === 501) continue; // Exclude Line 501 Regionales
             if (num && !trainMap.has(String(num))) {
               trainMap.set(String(num), item);
             }

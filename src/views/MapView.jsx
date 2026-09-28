@@ -111,7 +111,19 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
   };
 
   const fallbackTrains = getActiveNetworkTrains();
-  const activeTrains = liveNetworkTrains.length > 0 ? liveNetworkTrains : fallbackTrains;
+  // For each line, if live SOFSE trains are present, use live data.
+  // If any line temporarily has 0 trains (e.g. late night or temporary API gap), supplement with fallback trains so the map is never empty
+  const activeTrains = React.useMemo(() => {
+    if (!liveNetworkTrains || liveNetworkTrains.length === 0) {
+      return fallbackTrains;
+    }
+    const lineCounts = {};
+    liveNetworkTrains.forEach((t) => {
+      lineCounts[t.lineId] = (lineCounts[t.lineId] || 0) + 1;
+    });
+    const supplemental = fallbackTrains.filter((t) => !lineCounts[t.lineId]);
+    return [...liveNetworkTrains, ...supplemental];
+  }, [liveNetworkTrains, fallbackTrains]);
   const filteredTrains = activeTrains.filter((t) => selectedLine === 'ALL' || t.lineId === Number(selectedLine));
 
   const filteredStations = PRELOADED_STATIONS.filter((st) => {
@@ -123,6 +135,10 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
     setMapCenter([userCoords.lat, userCoords.lng]);
     setMapZoom(14);
   };
+
+  const activeMapLines = LINES_DATA.filter(
+    (l) => l.id !== 501 && PRELOADED_STATIONS.some((st) => st.lineId === l.id)
+  );
 
   return (
     <div className="map-view-wrapper">
@@ -147,19 +163,19 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
       >
         <button
           className={`segmented-option ${selectedLine === 'ALL' ? 'active' : ''}`}
-          style={{ padding: '5px 10px', fontSize: '11.5px' }}
+          style={{ padding: '6px 12px', fontSize: '12px' }}
           onClick={() => {
             triggerHaptic('light');
             setSelectedLine('ALL');
           }}
         >
-          Todas ({PRELOADED_STATIONS.length})
+          Todas ({filteredStations.length})
         </button>
-        {LINES_DATA.map((l) => (
+        {activeMapLines.map((l) => (
           <button
             key={l.id}
             className={`segmented-option ${selectedLine === String(l.id) ? 'active' : ''}`}
-            style={{ padding: '5px 10px', fontSize: '11.5px' }}
+            style={{ padding: '6px 12px', fontSize: '12px' }}
             onClick={() => {
               triggerHaptic('light');
               setSelectedLine(String(l.id));
@@ -241,7 +257,7 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
         <Marker position={[userCoords.lat, userCoords.lng]} icon={userIcon}>
           <Popup className="ios-popup">
             <div style={{ padding: '4px', textAlign: 'center' }}>
-              <div style={{ fontWeight: 800, color: '#1c1c1e' }}>Estás aquí</div>
+              <div style={{ fontWeight: 800, color: 'var(--ios-text-primary, #ffffff)' }}>Estás aquí</div>
               <div style={{ fontSize: '11px', color: '#8e8e93' }}>
                 {userCoords.name || 'Ubicación actual'}
               </div>
@@ -261,7 +277,7 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
               <Popup className="ios-popup">
                 <div style={{ padding: '6px', minWidth: '180px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 800, fontSize: '13px', color: '#1c1c1e' }}>
+                    <span style={{ fontWeight: 800, fontSize: '13px', color: 'var(--ios-text-primary, #ffffff)' }}>
                       Tren #{train.number}
                     </span>
                     <span style={{
@@ -279,17 +295,17 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                     <LineBadge lineId={train.lineId} size="small" />
-                    <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 600 }}>
-                      {train.origin} ➔ {train.destination}
+                    <span style={{ fontSize: '12px', color: 'var(--ios-text-primary, #ffffff)', fontWeight: 700 }}>
+                      Desde {train.origin} ➔ {train.destination}
                     </span>
                   </div>
 
-                  <div style={{ fontSize: '11.5px', color: '#3a3a3c', margin: '4px 0 8px', background: 'rgba(0,0,0,0.04)', padding: '5px 8px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary, #8e8e93)', margin: '4px 0 8px', background: 'rgba(255,255,255,0.06)', padding: '5px 8px', borderRadius: '6px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <span style={{ fontSize: '12px' }}>📍</span>
                       <span>Próxima: <strong>{train.nextStation}</strong></span>
                     </div>
-                    <div style={{ color: '#007aff', fontSize: '11px', fontWeight: 700, marginTop: '2px' }}>
+                    <div style={{ color: '#0a84ff', fontSize: '11px', fontWeight: 700, marginTop: '2px' }}>
                       Llega en ~{train.etaNextMin} min
                     </div>
                   </div>
@@ -345,46 +361,37 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
 
         {/* Stations Pins */}
         {filteredStations.map((st) => {
-          const dist = getDistanceMeters(userCoords.lat, userCoords.lng, st.lat, st.lng);
+          // Detect transfer stations sharing identical coordinates (e.g. Haedo, Empalme Lobos)
+          // and offset them slightly (~25m) so both pins are distinctly visible and clickable
+          const isTransferOverlap = filteredStations.some(
+            (other) => other !== st && other.id === st.id && Math.abs(other.lat - st.lat) < 0.0001
+          );
+          const stLat = isTransferOverlap && st.lineId === 11 ? st.lat - 0.00025 : st.lat;
+          const stLng = isTransferOverlap && st.lineId === 11 ? st.lng + 0.00025 : st.lng;
+          const dist = getDistanceMeters(userCoords.lat, userCoords.lng, stLat, stLng);
+
           return (
             <Marker
-              key={st.id}
-              position={[st.lat, st.lng]}
+              key={`st-${st.lineId}-${st.id}-${st.ramal || ''}`}
+              position={[stLat, stLng]}
               icon={createStationIcon(st.lineId)}
             >
               <Popup>
-                <div style={{ padding: '6px', minWidth: '160px' }}>
-                  <div style={{ fontWeight: 800, fontSize: '15px', color: '#1c1c1e' }}>
+                <div style={{ padding: '4px 2px', minWidth: '185px' }}>
+                  <div style={{ fontWeight: 800, fontSize: '15.5px', color: 'var(--ios-text-primary, #ffffff)', marginBottom: '3px' }}>
                     {st.name}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '4px 0 8px' }}>
+                  {st.ramal && (
+                    <div style={{ fontSize: '11px', color: '#8e8e93', marginBottom: '6px' }}>
+                      Ramal {st.ramal}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '4px 0 10px' }}>
                     <LineBadge lineId={st.lineId} size="small" />
-                    <span style={{ fontSize: '11px', color: '#8e8e93' }}>
+                    <span style={{ fontSize: '11.5px', color: '#8e8e93', fontWeight: 600 }}>
                       A {formatDistance(dist)}
                     </span>
                   </div>
-                  <button
-                    onClick={() => onSelectStation(st)}
-                    style={{
-                      width: '100%',
-                      background: '#0a84ff',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '6px 10px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '4px',
-                    }}
-                  >
-                    <Eye size={13} />
-                    <span>Ver próximos arribos</span>
-                  </button>
-
                   <button
                     onClick={() => {
                       triggerHaptic('light');
@@ -392,23 +399,49 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
                     }}
                     style={{
                       width: '100%',
+                      background: 'linear-gradient(135deg, #0a84ff, #0056b3)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '10px',
+                      padding: '8px 12px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 6px rgba(10, 132, 255, 0.3)',
+                    }}
+                  >
+                    <Info size={14} />
+                    <span>Ver Arribos, Colectivos e Info</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      triggerHaptic('light');
+                      if (onSelectStation) onSelectStation(st);
+                    }}
+                    style={{
+                      width: '100%',
                       marginTop: '6px',
-                      background: 'rgba(0, 122, 255, 0.1)',
-                      color: '#007aff',
-                      border: '1px solid rgba(0, 122, 255, 0.3)',
-                      borderRadius: '8px',
-                      padding: '6px 10px',
+                      background: 'rgba(10, 132, 255, 0.12)',
+                      color: '#0a84ff',
+                      border: '1px solid rgba(10, 132, 255, 0.25)',
+                      borderRadius: '10px',
+                      padding: '7px 12px',
                       fontSize: '11.5px',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '4px',
+                      gap: '6px',
                     }}
                   >
-                    <Info size={13} />
-                    <span>Boletería, Colectivos & Info</span>
+                    <Eye size={14} />
+                    <span>Minimizar mapa y ver en Lista</span>
                   </button>
                 </div>
               </Popup>

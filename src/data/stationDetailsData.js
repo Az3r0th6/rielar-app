@@ -4021,25 +4021,25 @@ function resolveDefaultBuses(lineId, rawZone, stationName = '') {
   if (normZone === 'CABA') {
     // Sarmiento en CABA (Av. Rivadavia)
     if (lineId === 1) {
-      return ['1', '2', '5', '8', '25', '36', '49', '53', '55', '85', '86', '88', '92', '96', '113', '136', '153', '163', '180'];
+      return ['1', '2', '5', '8', '25', '36', '49', '53', '55', '85', '86', '88', '92', '96', '113', '136', '153', '163', '172', '180', '181'];
     }
-    // Mitre Ramal Tigre en CABA (Palermo / Belgrano / Núñez)
-    if (lineId === 5 && (lowerName.includes('tigre') || lowerName.includes('belgrano') || lowerName.includes('nunez') || lowerName.includes('torre') || lowerName.includes('febrero'))) {
-      return ['15', '29', '42', '55', '60', '64', '118', '130', '152', '168'];
+    // Mitre Ramal Tigre en CABA (Retiro, 3 de Febrero, Carranza, Colegiales, Belgrano C, Núñez, Rivadavia)
+    if (lineId === 5 && (lowerName.includes('tigre') || lowerName.includes('belgrano') || lowerName.includes('nunez') || lowerName.includes('torre') || lowerName.includes('febrero') || lowerName.includes('rivadavia'))) {
+      return ['15', '29', '42', '55', '60', '64', '107', '118', '130', '152', '161', '168'];
     }
-    // Mitre Ramales Suárez / Mitre en CABA (Colegiales / Urquiza / Saavedra / Coghlan / Drago)
+    // Mitre Ramales Suárez / Mitre en CABA (Colegiales, Urquiza, Saavedra, Coghlan, Drago)
     if (lineId === 5) {
       return ['19', '71', '76', '90', '107', '114', '127', '133', '140', '169', '175', '176'];
     }
-    // San Martín en CABA (Palermo / Villa Crespo / Paternal / Villa del Parque / Devoto)
+    // San Martín en CABA (Palermo, Villa Crespo, Paternal, Villa del Parque, Devoto)
     if (lineId === 31) {
       return ['24', '34', '44', '47', '80', '84', '105', '108', '109', '110', '114', '124', '134', '146', '166'];
     }
-    // Belgrano Sur en CABA (Pompeya / Soldati / Lugano)
+    // Belgrano Sur en CABA (Sáenz, Villa Soldati, Presidente Illia, Villa Lugano)
     if (lineId === 21) {
       return ['6', '23', '28', '47', '76', '80', '91', '101', '115', '117', '143', '145', '150', '185'];
     }
-    // Roca en CABA (Constitución / Barracas)
+    // Roca en CABA (Constitución, Hipólito Yrigoyen)
     if (lineId === 11) {
       return ['12', '20', '28', '45', '70', '98', '100', '134', '148', '154'];
     }
@@ -4048,52 +4048,95 @@ function resolveDefaultBuses(lineId, rawZone, stationName = '') {
 
   // ================= ZONA NORTE =================
   if (normZone === 'ZONA NORTE' || normZone === 'GBA NORTE') {
-    // Ramal Suárez / San Martín
+    // San Martín / Villa Ballester / Suárez / Malaver / Chilavert
     if (lowerName.includes('san martin') || lowerName.includes('suarez') || lowerName.includes('ballester') || lowerName.includes('malaver') || lowerName.includes('chilavert')) {
       return ['78', '87', '127', '130', '161', '169', '176', '237', '252', '314', '338', '343', '670'];
     }
-    // Ramal Zárate / Campana
+    // Zárate / Campana / Escobar / Maschwitz
     if (lowerName.includes('campana') || lowerName.includes('zarate') || lowerName.includes('escobar') || lowerName.includes('maschwitz')) {
       return ['204', '228', '276', '350', '503', '505'];
     }
-    // Corredor Tigre / San Isidro / Vicente López / Tren de la Costa
+    // Tigre / Delta / San Fernando / Virreyes / Victoria
+    if (lowerName.includes('tigre') || lowerName.includes('delta') || lowerName.includes('fernando') || lowerName.includes('virreyes') || lowerName.includes('victoria')) {
+      return ['60', '203', '343', '365', '371', '710', '720', '721', '722', '723'];
+    }
+    // San Isidro / Beccar / Acassuso / Martínez
+    if (lowerName.includes('isidro') || lowerName.includes('beccar') || lowerName.includes('acassuso') || lowerName.includes('martinez')) {
+      return ['60', '168', '203', '314', '333', '343', '365', '371', '407', '437', '707'];
+    }
+    // Vicente López / Olivos / La Lucila / Florida
+    if (lowerName.includes('vicente') || lowerName.includes('olivos') || lowerName.includes('lucila') || lowerName.includes('florida')) {
+      return ['19', '21', '59', '60', '71', '130', '152', '161', '168', '365'];
+    }
+    // Corredor Tren de la Costa
     return ['60', '168', '203', '314', '333', '343', '365', '371', '407', '437', '707', '710', '720'];
   }
 
   // ================= GBA OESTE =================
   if (normZone === 'GBA OESTE') {
-    // San Martín (Caseros, Palomar, Hurlingham, San Miguel, José C. Paz, Pilar)
+    // San Martín (Caseros, Palomar, Hurlingham, San Miguel, José C. Paz, Derqui, Pilar)
     if (lineId === 31) {
+      if (lowerName.includes('caseros')) return ['53', '105', '123', '135', '181', '237', '252', '328', '343', '386'];
+      if (lowerName.includes('palomar')) return ['53', '123', '182', '237', '252', '320', '326', '386', '634'];
+      if (lowerName.includes('hurlingham') || lowerName.includes('morris')) return ['53', '182', '237', '244', '338', '390', '462', '463', '464'];
+      if (lowerName.includes('miguel') || lowerName.includes('muniz') || lowerName.includes('bella vista')) return ['53', '57', '163', '176', '182', '203', '269', '303', '315', '340', '343', '365', '371', '440', '448'];
+      if (lowerName.includes('paz')) return ['53', '57', '176', '182', '315', '340', '365', '391', '440', '448', '449'];
+      if (lowerName.includes('pilar') || lowerName.includes('derqui') || lowerName.includes('cabred')) return ['57', '203', '276', '350', '429', '501', '503', '510', '511', '520'];
       return ['53', '57', '163', '176', '182', '203', '237', '310', '315', '328', '340', '343', '365', '440', '448'];
     }
-    // Belgrano Sur (La Matanza Oeste / Merlo Gómez / Libertad / Catán)
+    // Belgrano Sur (Laferrere, Catán, Castillo, Villegas, Casanova, Evita, Merlo Gómez, Libertad, Marinos)
     if (lineId === 21) {
-      return ['86', '88', '96', '180', '193', '205', '218', '236', '242', '378', '382', '620', '621', '622', '624', '630'];
+      return ['86', '88', '96', '180', '193', '205', '218', '236', '242', '378', '382', '620', '621', '622', '624', '628', '630'];
     }
-    // Sarmiento (Ramos, Haedo, Morón, Castelar, Merlo, Moreno, Luján)
+    // Sarmiento (Ramos Mejía, Haedo, Morón, Castelar, Ituzaingó, Padua, Merlo, Paso del Rey, Moreno, Luján)
+    if (lowerName.includes('ramos')) return ['88', '96', '136', '153', '163', '166', '172', '181', '182', '205', '242', '298', '302', '325', '326', '378', '382', '620', '621', '624'];
+    if (lowerName.includes('haedo')) return ['136', '153', '163', '166', '236', '238', '242', '253', '269', '386', '395', '464', '634'];
+    if (lowerName.includes('moron')) return ['97', '136', '153', '163', '166', '236', '238', '242', '244', '253', '269', '298', '302', '317', '320', '336', '338', '386', '392', '395', '441', '443', '462', '463', '464', '634', '635'];
+    if (lowerName.includes('castelar')) return ['136', '153', '236', '238', '269', '392', '395', '441', '443', '634'];
+    if (lowerName.includes('ituzaingo')) return ['136', '153', '236', '253', '395', '441', '443', '504'];
+    if (lowerName.includes('padua') || lowerName.includes('merlo')) return ['136', '236', '297', '312', '322', '327', '329', '336', '392', '422', '500', '503', '504'];
+    if (lowerName.includes('moreno') || lowerName.includes('paso del rey')) return ['57', '203', '269', '302', '311', '329', '350', '365', '410', '422', '500', '501', '503'];
+    if (lowerName.includes('lujan') || lowerName.includes('mercedes') || lowerName.includes('rodriguez')) return ['57', '203', '276', '350', '365', '410', '500', '501', '502', '503'];
     return ['88', '96', '136', '153', '163', '166', '236', '238', '242', '253', '269', '322', '327', '329', '336', '392', '395', '422', '441', '462', '500', '501', '634'];
   }
 
   // ================= GBA SUR =================
   if (normZone === 'GBA SUR') {
-    // Vía Quilmes / Berazategui
-    if (lowerName.includes('sarandi') || lowerName.includes('dominico') || lowerName.includes('wilde') || lowerName.includes('don bosco') || lowerName.includes('bernal') || lowerName.includes('quilmes') || lowerName.includes('ezpeleta') || lowerName.includes('berazategui') || lowerName.includes('hudson')) {
+    // Vía Quilmes / Berazategui (Sarandí, Domínico, Wilde, Don Bosco, Bernal, Quilmes, Ezpeleta, Berazategui, Plátanos, Hudson)
+    if (lowerName.includes('sarandi') || lowerName.includes('dominico') || lowerName.includes('wilde') || lowerName.includes('don bosco') || lowerName.includes('bernal') || lowerName.includes('quilmes') || lowerName.includes('ezpeleta') || lowerName.includes('berazategui') || lowerName.includes('hudson') || lowerName.includes('platanos')) {
+      if (lowerName.includes('quilmes')) return ['22', '85', '98', '129', '148', '159', '219', '257', '263', '266', '278', '281', '300', '324', '372', '580', '582', '583', '584'];
+      if (lowerName.includes('bernal')) return ['22', '85', '98', '159', '263', '266', '278', '324', '584'];
+      if (lowerName.includes('wilde') || lowerName.includes('dominico')) return ['22', '85', '98', '159', '247', '266', '295', '324', '570'];
+      if (lowerName.includes('berazategui') || lowerName.includes('hudson')) return ['98', '129', '148', '159', '219', '300', '418', '603', '619'];
       return ['22', '85', '98', '129', '148', '159', '178', '219', '257', '263', '266', '278', '300', '324', '584'];
     }
-    // Vía Ezeiza / Cañuelas
-    if (lowerName.includes('ezeiza') || lowerName.includes('montegrande') || lowerName.includes('guillon') || lowerName.includes('jaguel') || lowerName.includes('suarez')) {
+    // Vía Ezeiza / Cañuelas (Luis Guillón, Monte Grande, El Jagüel, Ezeiza, Tristán Suárez, Cañuelas)
+    if (lowerName.includes('ezeiza') || lowerName.includes('monte grande') || lowerName.includes('montegrande') || lowerName.includes('guillon') || lowerName.includes('jaguel') || lowerName.includes('tristan') || lowerName.includes('canuelas')) {
+      if (lowerName.includes('monte grande') || lowerName.includes('montegrande')) return ['51', '164', '222', '245', '306', '394', '435', '501'];
+      if (lowerName.includes('ezeiza')) return ['51', '222', '306', '518'];
+      if (lowerName.includes('canuelas')) return ['51', '88', '218', '502'];
       return ['51', '164', '222', '245', '306', '394', '435', '501', '518'];
     }
-    // Vía Circuito / Bosques / Varela
-    if (lowerName.includes('bosques') || lowerName.includes('varela') || lowerName.includes('claypole') || lowerName.includes('calzada') || lowerName.includes('marmol')) {
+    // Vía Circuito / Bosques / Varela (Mármol, Calzada, Claypole, Ardigó, Varela, Zeballos, Bosques)
+    if (lowerName.includes('bosques') || lowerName.includes('varela') || lowerName.includes('claypole') || lowerName.includes('calzada') || lowerName.includes('marmol') || lowerName.includes('ardigo') || lowerName.includes('zeballos')) {
+      if (lowerName.includes('varela') || lowerName.includes('bosques')) return ['79', '129', '148', '178', '266', '324', '338', '383', '414', '500', '501', '502', '503', '504', '505', '506', '507', '508', '509', '511', '512'];
+      if (lowerName.includes('claypole') || lowerName.includes('calzada')) return ['79', '160', '177', '263', '266', '318', '384', '406', '505', '506', '514'];
       return ['79', '129', '148', '178', '263', '266', '324', '338', '383', '414', '500', '501', '505'];
     }
-    // Corredor Troncal Korn (Lanús, Banfield, Lomas, Temperley, Burzaco, Glew, Korn)
+    // Corredor Troncal Korn (Avellaneda, Gerli, Lanús, Escalada, Banfield, Lomas, Temperley, Adrogué, Burzaco, Longchamps, Glew, Guernica, Korn)
+    if (lowerName.includes('lanus')) return ['32', '33', '37', '45', '75', '79', '112', '158', '160', '164', '165', '177', '179', '266', '271', '277', '283', '295', '299', '354', '405', '520', '521', '522', '523', '524', '526', '527'];
+    if (lowerName.includes('banfield')) return ['51', '74', '79', '160', '164', '278', '299', '318', '541', '548', '552'];
+    if (lowerName.includes('lomas')) return ['51', '74', '79', '160', '164', '165', '266', '278', '318', '338', '406', '540', '542', '543', '544', '548', '550', '551', '552', '553', '561', '562'];
+    if (lowerName.includes('temperley')) return ['74', '79', '160', '164', '266', '278', '318', '338', '549', '564'];
+    if (lowerName.includes('adrogue')) return ['74', '79', '160', '266', '271', '318', '384', '406', '501', '505', '506', '514'];
+    if (lowerName.includes('burzaco')) return ['51', '74', '79', '160', '177', '266', '271', '318', '338', '406', '501', '505', '506', '510', '514', '521'];
+    if (lowerName.includes('glew') || lowerName.includes('longchamps')) return ['51', '79', '177', '370', '385', '406', '501', '506'];
+    if (lowerName.includes('korn') || lowerName.includes('guernica')) return ['51', '79', '200', '388', '404', '435', '503'];
     return ['51', '74', '79', '160', '164', '177', '266', '278', '318', '338', '406', '501', '505', '514', '540', '542'];
   }
 
   // ================= LA PLATA =================
-  if (normZone === 'LA PLATA' || normZone.includes('PLATA')) {
+  if (normZone === 'LA PLATA' || normZone.includes('PLATA') || lowerName.includes('elisa') || lowerName.includes('bell') || lowerName.includes('gonnet') || lowerName.includes('tolosa')) {
     return ['129', '195', '202', '214', '273', '275', '307', '338', 'Línea Este', 'Línea Norte', 'Línea Sur', 'Línea Oeste'];
   }
 

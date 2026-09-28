@@ -14,6 +14,8 @@ import {
   Smartphone,
   Laptop,
   AlertCircle,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import {
   triggerHaptic,
@@ -25,7 +27,7 @@ import BugReportSection from '../components/BugReportSection';
 import SupportProjectSection from '../components/SupportProjectSection';
 import PassengerGuideSection from '../components/PassengerGuideSection';
 
-export default function MoreView({ onInstallApp }) {
+export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }) {
   const [activeSection, setActiveSection] = useState('download'); // 'download' | 'guide' | 'notifications' | 'support' | 'reports' | 'credits'
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -175,6 +177,67 @@ export default function MoreView({ onInstallApp }) {
       </div>
 
       <div style={{ padding: '0 16px 28px' }}>
+        {/* Appearance / Theme Switcher Card (Modo Claro / Modo Oscuro) */}
+        <div
+          className="ios-card"
+          style={{
+            margin: '0 0 16px',
+            padding: '14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '12px',
+                background: theme === 'dark' ? 'rgba(10, 132, 255, 0.15)' : 'rgba(255, 149, 0, 0.15)',
+                color: theme === 'dark' ? '#0a84ff' : '#ff9500',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+            </div>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
+                {theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro'}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)', marginTop: '2px' }}>
+                {theme === 'dark' ? 'Tema oscuro de alto contraste' : 'Tema claro para luz de día'}
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              triggerHaptic('medium');
+              if (onToggleTheme) onToggleTheme();
+            }}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '12px',
+              border: 'none',
+              background: theme === 'dark' ? '#0a84ff' : '#ff9500',
+              color: '#ffffff',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            }}
+          >
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            <span>{theme === 'dark' ? 'Activar Claro' : 'Activar Oscuro'}</span>
+          </button>
+        </div>
         {/* ========================================================
             SECCIÓN: DESCARGA DIRECTA DE LA APP
             ======================================================== */}

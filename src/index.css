@@ -53,20 +53,76 @@
 [data-theme='light'] {
   --ios-bg: #f2f2f7;
   --ios-surface: #ffffff;
-  --ios-card: rgba(255, 255, 255, 0.85);
+  --ios-card: rgba(255, 255, 255, 0.95);
   --ios-card-hover: #ffffff;
-  --ios-card-border: rgba(0, 0, 0, 0.06);
-  --ios-card-border-active: rgba(0, 0, 0, 0.14);
+  --ios-card-border: rgba(0, 0, 0, 0.08);
+  --ios-card-border-active: rgba(0, 0, 0, 0.16);
   
   --ios-text-primary: #1c1c1e;
-  --ios-text-secondary: #8e8e93;
-  --ios-text-tertiary: #aeaeb2;
-  --ios-separator: rgba(60, 60, 67, 0.18);
+  --ios-text-secondary: #636366;
+  --ios-text-tertiary: #8e8e93;
+  --ios-separator: rgba(60, 60, 67, 0.14);
   
   --ios-blue: #007aff;
   --ios-green: #34c759;
   --ios-orange: #ff9500;
   --ios-red: #ff3b30;
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .ios-nav-header {
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid rgba(60, 60, 67, 0.12);
+}
+
+[data-theme='light'] .ios-tab-bar {
+  background: rgba(255, 255, 255, 0.94);
+  border-top: 1px solid rgba(60, 60, 67, 0.12);
+}
+
+[data-theme='light'] .dark-osm-tiles {
+  filter: none !important;
+}
+
+[data-theme='light'] .iphone-frame {
+  background: #f2f2f7;
+  border-color: rgba(0, 0, 0, 0.14);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .app-screen-content {
+  background: #f2f2f7;
+}
+
+[data-theme='light'] .ios-card {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .arrival-row {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+[data-theme='light'] .arrival-row:hover {
+  background: #f8f8fa;
+}
+
+[data-theme='light'] .fav-button {
+  background: rgba(118, 118, 128, 0.1);
+  border-color: rgba(60, 60, 67, 0.12);
+  color: #1c1c1e;
+}
+
+[data-theme='light'] .ios-segmented-control {
+  background: rgba(118, 118, 128, 0.14);
+}
+
+[data-theme='light'] .segmented-option.active {
+  background: #ffffff;
+  color: #000000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* Base Reset */
@@ -80,11 +136,11 @@
 html, body {
   width: 100%;
   height: 100%;
-  background-color: #060608;
+  background-color: var(--ios-bg);
   color: var(--ios-text-primary);
   font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.45;
+  font-size: 15.5px;
+  line-height: 1.5;
   letter-spacing: -0.01em;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -810,8 +866,9 @@ html, body {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
-  z-index: 50;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 10000;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -822,12 +879,27 @@ html, body {
   background: #18181f;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 36px 36px 0 0;
-  max-height: 85%;
+  max-height: 88%;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.35s var(--ios-spring);
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
   overflow: hidden;
+}
+
+[data-theme='light'] .modal-backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+[data-theme='light'] .ios-bottom-sheet {
+  background: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+  color: #1c1c1e;
+}
+
+[data-theme='light'] .sheet-handle {
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .sheet-handle-container {
@@ -949,6 +1021,79 @@ html, body {
 .dark-osm-tiles {
   filter: brightness(0.6) invert(1) contrast(2.4) hue-rotate(200deg) saturate(0.35);
 }
+
+/* ==========================================================================
+   Leaflet Popups • iOS Glassmorphism (Dark & Light Theme)
+   ========================================================================== */
+.leaflet-popup-content-wrapper {
+  background: rgba(24, 24, 30, 0.94) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 16px !important;
+  color: #f5f5f7 !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 10px 12px !important;
+  line-height: 1.4 !important;
+  color: #f5f5f7 !important;
+  min-width: 170px !important;
+}
+
+.leaflet-popup-tip-container {
+  overflow: visible;
+}
+
+.leaflet-popup-tip {
+  background: rgba(24, 24, 30, 0.94) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-popup-close-button {
+  color: #8e8e93 !important;
+  top: 8px !important;
+  right: 10px !important;
+  font-size: 18px !important;
+  width: 22px !important;
+  height: 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  transition: all 0.2s !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+
+[data-theme='light'] .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: #1c1c1e !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+[data-theme='light'] .leaflet-popup-content {
+  color: #1c1c1e !important;
+}
+
+[data-theme='light'] .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme='light'] .leaflet-popup-close-button {
+  color: #636366 !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
 
 /* Animations */
 @keyframes fadeIn {

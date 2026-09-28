@@ -7,10 +7,10 @@ export default function TabBar({ activeTab, onTabChange, alertsCount = 0, isHidd
 
   const tabs = [
     { id: 'nearby', label: 'Cerca', icon: Navigation },
-    { id: 'map', label: 'Mapa', icon: Map },
+    { id: 'favorites', label: 'Favoritos', icon: Star },
     { id: 'lines', label: 'Estado', icon: AlertCircle, badge: badgeCount },
     { id: 'planner', label: 'Horarios', icon: Clock },
-    { id: 'favorites', label: 'Favoritos', icon: Star },
+    { id: 'map', label: 'Mapa', icon: Map },
     { id: 'more', label: 'Otros', icon: MoreHorizontal },
   ];
 

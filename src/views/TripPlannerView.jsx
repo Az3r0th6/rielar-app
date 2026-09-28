@@ -14,6 +14,7 @@ import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import { getStationArrivals } from '../api/sofseClient';
 import LineBadge from '../components/LineBadge';
 import LastTrainsSection from '../components/LastTrainsSection';
+import ServiceTimetableGrid from '../components/ServiceTimetableGrid';
 import RideAffiliateCard from '../components/RideAffiliateCard';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { triggerHaptic, playChimeSound } from '../utils/notifications';
@@ -21,11 +22,12 @@ import { triggerHaptic, playChimeSound } from '../utils/notifications';
 export default function TripPlannerView({
   onSelectTrain,
   onOpenStationInfo,
+  onNavigateToMap,
   initialOriginId,
   initialDestId,
   initialTab = 'departures',
 }) {
-  const [activePlannerTab, setActivePlannerTab] = useState(initialTab); // 'departures' | 'last_trains'
+  const [activePlannerTab, setActivePlannerTab] = useState(initialTab); // 'departures' | 'grid' | 'last_trains'
   const [originId, setOriginId] = useState(initialOriginId || '332'); // Default Retiro (Mitre)
   const [destId, setDestId] = useState(initialDestId || '389'); // Default Tigre
   const [results, setResults] = useState([]);
@@ -119,6 +121,8 @@ export default function TripPlannerView({
             <span>
               {activePlannerTab === 'departures'
                 ? '• Origen y Destino'
+                : activePlannerTab === 'grid'
+                ? '• Grilla de Horarios Oficiales'
                 : '• Primer y Último Tren por Cabecera'}
             </span>
           </div>
@@ -129,7 +133,7 @@ export default function TripPlannerView({
       <div style={{ padding: '0 16px', marginTop: '6px' }}>
         <div
           className="ios-segmented-control"
-          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', padding: '4px' }}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px', padding: '4px' }}
         >
           <button
             className={`segmented-option ${activePlannerTab === 'departures' ? 'active' : ''}`}
@@ -137,9 +141,19 @@ export default function TripPlannerView({
               triggerHaptic('light');
               setActivePlannerTab('departures');
             }}
-            style={{ fontSize: '13px', padding: '9px 8px', fontWeight: 700 }}
+            style={{ fontSize: '12px', padding: '8px 4px', fontWeight: 700, whiteSpace: 'nowrap' }}
           >
-            🔍 Próximas Salidas
+            🔍 Próximos
+          </button>
+          <button
+            className={`segmented-option ${activePlannerTab === 'grid' ? 'active' : ''}`}
+            onClick={() => {
+              triggerHaptic('light');
+              setActivePlannerTab('grid');
+            }}
+            style={{ fontSize: '12px', padding: '8px 4px', fontWeight: 700, whiteSpace: 'nowrap' }}
+          >
+            📅 Grilla Horarios
           </button>
           <button
             className={`segmented-option ${activePlannerTab === 'last_trains' ? 'active' : ''}`}
@@ -147,9 +161,9 @@ export default function TripPlannerView({
               triggerHaptic('light');
               setActivePlannerTab('last_trains');
             }}
-            style={{ fontSize: '13px', padding: '9px 8px', fontWeight: 700 }}
+            style={{ fontSize: '12px', padding: '8px 4px', fontWeight: 700, whiteSpace: 'nowrap' }}
           >
-            🌙 Primer y Último Tren
+            🌙 Cabeceras
           </button>
         </div>
       </div>
@@ -198,18 +212,18 @@ export default function TripPlannerView({
                     onChange={(e) => setOriginId(e.target.value)}
                     style={{
                       width: '100%',
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.1)',
+                      background: 'rgba(118, 118, 128, 0.12)',
+                      border: '1px solid var(--ios-separator)',
                       borderRadius: '12px',
                       padding: '10px 12px',
-                      color: '#f5f5f7',
+                      color: 'var(--ios-text-primary)',
                       fontSize: '14px',
                       fontWeight: 600,
                       outline: 'none',
                     }}
                   >
                     {PRELOADED_STATIONS.map((st, idx) => (
-                      <option key={`${st.id}-${st.ramal || ''}-${idx}`} value={st.id} style={{ background: '#1c1c20' }}>
+                      <option key={`${st.id}-${st.ramal || ''}-${idx}`} value={st.id} style={{ background: 'var(--ios-card)', color: 'var(--ios-text-primary)' }}>
                         {st.name} {st.ramal ? `(${st.ramal})` : ''}
                       </option>
                     ))}
@@ -277,18 +291,18 @@ export default function TripPlannerView({
                     onChange={(e) => setDestId(e.target.value)}
                     style={{
                       width: '100%',
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.1)',
+                      background: 'rgba(118, 118, 128, 0.12)',
+                      border: '1px solid var(--ios-separator)',
                       borderRadius: '12px',
                       padding: '10px 12px',
-                      color: '#f5f5f7',
+                      color: 'var(--ios-text-primary)',
                       fontSize: '14px',
                       fontWeight: 600,
                       outline: 'none',
                     }}
                   >
                     {PRELOADED_STATIONS.map((st, idx) => (
-                      <option key={`${st.id}-${st.ramal || ''}-${idx}`} value={st.id} style={{ background: '#1c1c20' }}>
+                      <option key={`${st.id}-${st.ramal || ''}-${idx}`} value={st.id} style={{ background: 'var(--ios-card)', color: 'var(--ios-text-primary)' }}>
                         {st.name} {st.ramal ? `(${st.ramal})` : ''}
                       </option>
                     ))}
@@ -341,11 +355,11 @@ export default function TripPlannerView({
                       setDestId(r.toId);
                     }}
                     style={{
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.1)',
+                      background: 'rgba(118, 118, 128, 0.12)',
+                      border: '1px solid var(--ios-separator)',
                       borderRadius: '20px',
                       padding: '6px 12px',
-                      color: '#f5f5f7',
+                      color: 'var(--ios-text-primary)',
                       fontSize: '12px',
                       fontWeight: 600,
                       whiteSpace: 'nowrap',
@@ -361,20 +375,20 @@ export default function TripPlannerView({
             {/* Results List */}
             <div>
               {hasSearched && (
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#8e8e93', marginBottom: '10px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ios-text-secondary)', marginBottom: '10px' }}>
                   Próximas salidas directas: {results.length}
                 </div>
               )}
 
               {loading ? (
-                <div style={{ textAlign: 'center', padding: '30px', color: '#8e8e93' }}>
+                <div style={{ textAlign: 'center', padding: '30px', color: 'var(--ios-text-secondary)' }}>
                   <RotateCw size={24} className="animate-spin" style={{ margin: '0 auto 8px', color: '#0a84ff' }} />
                   <div>Buscando conexiones y horarios...</div>
                 </div>
               ) : hasSearched && results.length === 0 ? (
                 <div>
-                  <div className="ios-card" style={{ textAlign: 'center', padding: '24px 18px', color: '#8e8e93', marginBottom: '14px' }}>
-                    <div style={{ fontWeight: 800, fontSize: '15px', color: '#f5f5f7', marginBottom: '6px' }}>
+                  <div className="ios-card" style={{ textAlign: 'center', padding: '24px 18px', color: 'var(--ios-text-secondary)', marginBottom: '14px' }}>
+                    <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--ios-text-primary)', marginBottom: '6px' }}>
                       Sin trenes directos en este horario
                     </div>
                     <div style={{ fontSize: '12.5px', lineHeight: 1.4 }}>
@@ -413,13 +427,17 @@ export default function TripPlannerView({
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '17px', fontWeight: 800, color: '#f5f5f7' }}>
+                            <span style={{ fontSize: '17px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
                               Salida {departureTime}
                             </span>
                             <span className="platform-badge">Andén {platform}</span>
                           </div>
-                          <div style={{ fontSize: '12px', color: '#8e8e93', marginTop: '3px' }}>
-                            Hacia {train.servicio?.hasta?.estacion?.nombre ||
+                          <div style={{ fontSize: '12.5px', color: 'var(--ios-text-secondary)', marginTop: '3px' }}>
+                            <span style={{ color: '#0a84ff', fontWeight: 700 }}>
+                              Desde {train.servicio?.desde?.estacion?.nombre || train.servicio?.estaciones?.[0]?.nombre || originStation?.name || 'Origen'}
+                            </span>
+                            {' ➔ '}
+                            {train.servicio?.hasta?.estacion?.nombre ||
                               train.servicio?.estaciones?.[train.servicio.estaciones.length - 1]?.nombre ||
                               train.servicio?.ramal?.cabeceraFinal?.nombre ||
                               'Destino'} • Tren #{trainNum}
@@ -441,8 +459,15 @@ export default function TripPlannerView({
               )}
             </div>
           </>
+        ) : activePlannerTab === 'grid' ? (
+          /* VIEW 2: GRILLA COMPLETA DE HORARIOS OFICIALES */
+          <ServiceTimetableGrid
+            onSelectTrain={onSelectTrain}
+            initialLineId={originStation?.lineId || 5}
+            onNavigateToMap={onNavigateToMap}
+          />
         ) : (
-          /* VIEW 2: PRIMER Y ÚLTIMO TREN POR CABECERA */
+          /* VIEW 3: PRIMER Y ÚLTIMO TREN POR CABECERA */
           <LastTrainsSection onSelectRoute={handleSelectRouteFromTerminals} />
         )}
       </div>

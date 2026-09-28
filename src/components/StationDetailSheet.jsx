@@ -32,6 +32,7 @@ export default function StationDetailSheet({
   onSelectTrain,
   isFavorite = false,
   onToggleFavorite,
+  onSelectStation,
 }) {
   const [activeTab, setActiveTab] = useState('services'); // 'services', 'multimodal', 'arrivals'
   const [arrivals, setArrivals] = useState([]);
@@ -87,7 +88,7 @@ export default function StationDetailSheet({
       style={{
         position: 'absolute',
         inset: 0,
-        zIndex: 1200,
+        zIndex: 10000,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
@@ -298,6 +299,34 @@ export default function StationDetailSheet({
             <Train size={14} />
             <span>Arribos en vivo ({arrivals.length})</span>
           </button>
+
+          {onSelectStation && (
+            <button
+              onClick={() => {
+                triggerHaptic('light');
+                onSelectStation(station);
+                onClose();
+              }}
+              style={{
+                padding: '9px 14px',
+                borderRadius: '12px',
+                background: 'rgba(10, 132, 255, 0.15)',
+                border: '1px solid rgba(10, 132, 255, 0.35)',
+                color: '#0a84ff',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+              }}
+              title="Minimizar mapa y abrir esta estación en la pantalla principal"
+            >
+              <Compass size={14} />
+              <span>Ver en Lista (Minimizar)</span>
+            </button>
+          )}
         </div>
 
         {/* iOS Segmented Tabs */}
@@ -1134,13 +1163,13 @@ export default function StationDetailSheet({
                       <div style={{ flex: 1, minWidth: 0, paddingRight: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '13px' }}>{isTowardsCABA ? '🏙️' : '🌲'}</span>
-                          <span style={{ fontWeight: 800, fontSize: '14px', color: '#ffffff', wordBreak: 'break-word' }}>
-                            {dest}
+                          <span style={{ fontWeight: 800, fontSize: '15px', color: '#ffffff', wordBreak: 'break-word' }}>
+                            Desde {origin} ➔ {dest}
                           </span>
                           <span
                             style={{
-                              fontSize: '10px',
-                              padding: '1px 6px',
+                              fontSize: '11px',
+                              padding: '2px 7px',
                               borderRadius: '6px',
                               fontWeight: 700,
                               background: isTowardsCABA ? 'rgba(10, 132, 255, 0.15)' : 'rgba(48, 209, 88, 0.15)',
@@ -1148,14 +1177,14 @@ export default function StationDetailSheet({
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            {isTowardsCABA ? 'A Retiro/CABA' : 'A Provincia'}
+                            {isTowardsCABA ? 'Hacia Retiro/CABA' : 'Hacia Provincia'}
                           </span>
                         </div>
 
-                        <div style={{ fontSize: '11px', color: '#8e8e93', marginTop: '4px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <div style={{ fontSize: '12px', color: '#8e8e93', marginTop: '4px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                           <span>Andén {platform}</span>
                           {train.servicio?.numero && <span>• Tren #{train.servicio.numero}</span>}
-                          <span>• Desde {origin}</span>
+                          <span>• Cabecera final: {dest}</span>
                         </div>
                       </div>
 

@@ -387,13 +387,16 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
             </div>
           )}
 
-          {/* Main Info Header */}
+          {/* Main Info Header: Origin "Desde" first in descending order */}
           <div style={{ marginBottom: '14px' }}>
-            <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#f5f5f7' }}>
-              Hacia {destination}
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#0a84ff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Cabecera de Origen:
+            </div>
+            <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#f5f5f7', marginTop: '2px' }}>
+              Desde {origin} ➔ {destination}
             </h2>
-            <div style={{ fontSize: '13px', color: '#8e8e93', marginTop: '2px' }}>
-              Partió de {origin} • Andén {platform} en {stationName}
+            <div style={{ fontSize: '13.5px', color: '#8e8e93', marginTop: '3px' }}>
+              Destino final: <strong>{destination}</strong> • Andén {platform} en {stationName}
             </div>
           </div>
 

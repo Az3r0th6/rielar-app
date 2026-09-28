@@ -171,36 +171,45 @@ export default function FavoritesView({
                   }}
                 >
                   {nextTrains.length > 0 ? (
-                    nextTrains.map((t, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          fontSize: '13px',
-                          padding: '4px 0',
-                        }}
-                      >
-                        <span style={{ color: '#f5f5f7', fontWeight: 600 }}>
-                          ➔{' '}
-                          {t.servicio?.hasta?.estacion?.nombre ||
-                            t.servicio?.estaciones?.[t.servicio.estaciones.length - 1]?.nombre ||
-                            t.servicio?.ramal?.cabeceraFinal?.nombre ||
-                            'Destino'}
-                        </span>
-                        <div style={{ textAlign: 'right' }}>
-                          <span style={{ color: '#30d158', fontWeight: 800 }}>
-                            {formatArrivalSeconds(t.arribo?.segundos)}
+                    nextTrains.map((t, idx) => {
+                      const origin =
+                        t.servicio?.desde?.estacion?.nombre ||
+                        t.servicio?.estaciones?.[0]?.nombre ||
+                        t.servicio?.ramal?.cabeceraInicial?.nombre ||
+                        'Origen';
+                      const dest =
+                        t.servicio?.hasta?.estacion?.nombre ||
+                        t.servicio?.estaciones?.[t.servicio.estaciones.length - 1]?.nombre ||
+                        t.servicio?.ramal?.cabeceraFinal?.nombre ||
+                        'Destino';
+
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            fontSize: '13px',
+                            padding: '5px 0',
+                          }}
+                        >
+                          <span style={{ fontWeight: 600, color: 'var(--ios-text-primary)' }}>
+                            <span style={{ color: '#0a84ff', fontWeight: 700 }}>Desde {origin}</span> ➔ {dest}
                           </span>
-                          {(t.arribo?.salida?.programada || t.arribo?.llegada?.programada) && (
-                            <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 600 }}>
-                              {formatLocalTime(t.arribo?.salida?.programada || t.arribo?.llegada?.programada)} hs
-                            </div>
-                          )}
+                          <div style={{ textAlign: 'right', flexShrink: 0, paddingLeft: '8px' }}>
+                            <span style={{ color: '#30d158', fontWeight: 800 }}>
+                              {formatArrivalSeconds(t.arribo?.segundos)}
+                            </span>
+                            {(t.arribo?.salida?.programada || t.arribo?.llegada?.programada) && (
+                              <div style={{ fontSize: '11px', color: 'var(--ios-text-tertiary)', fontWeight: 600 }}>
+                                {formatLocalTime(t.arribo?.salida?.programada || t.arribo?.llegada?.programada)} hs
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div style={{ fontSize: '12px', color: '#8e8e93' }}>
                       {loading ? 'Consultando arribos en vivo...' : 'Toca para ver próximos arribos ›'}

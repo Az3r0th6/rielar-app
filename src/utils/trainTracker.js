@@ -1,6 +1,7 @@
-import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
-import { getDistanceMeters } from './geo';
-import { formatLocalTime } from './time';
+import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData.js';
+import { getDistanceMeters } from './geo.js';
+import { formatLocalTime } from './time.js';
+
 
 /**
  * Normalizes station names for fuzzy comparison and acronym resolution
@@ -676,7 +677,9 @@ export function processRawNetworkTrains(rawList = []) {
     if (!num) continue;
 
     const lineId = item.servicio?.lineId || item.servicio?.gerencia?.id || 5;
-    const lineName = item.servicio?.gerencia?.nombre || 'Mitre';
+    if (lineId === 501) continue; // Exclude Line 501 Regionales
+
+    const lineName = item.servicio?.gerencia?.nombre || 'Tren';
     const estaciones = item.servicio?.estaciones || [];
 
     let trainLat = null;
@@ -688,7 +691,7 @@ export function processRawNetworkTrains(rawList = []) {
     let etaNextMin = 3;
 
     if (estaciones.length >= 2) {
-      // 1. Check if train is stopped at any platform (seconds between -35 and 25)
+      // 1. Check if train is currently stopped at any platform
       const platformStop = estaciones.find(s => s.segundos !== undefined && s.segundos <= 25 && s.segundos >= -35);
       if (platformStop) {
         const geo = findStation(platformStop, lineId);
@@ -721,33 +724,45 @@ export function processRawNetworkTrains(rawList = []) {
             trainLng = pGeo.lng + (nGeo.lng - pGeo.lng) * progress;
             currentStationName = pGeo.name;
             nextStationName = nGeo.name;
-            speedKmH = 43;
+            speedKmH = 45;
             etaNextMin = Math.max(1, Math.ceil(nextUpcoming.segundos / 60));
             statusDetail = `En viaje hacia ${nGeo.name} (llega en ~${etaNextMin} min)`;
           }
         } else if (!lastPassed && nextUpcoming) {
           // At origin platform awaiting departure
-          const firstGeo = findStation(estaciones[0], lineId);
-          if (firstGeo) {
-            trainLat = firstGeo.lat;
-            trainLng = firstGeo.lng;
-            currentStationName = firstGeo.name;
-            nextStationName = findStation(nextUpcoming, lineId)?.name || firstGeo.name;
-            speedKmH = 0;
-            statusDetail = `En cabecera: ${firstGeo.name}`;
-            etaNextMin = Math.max(1, Math.ceil(nextUpcoming.segundos / 60));
+          // Only show trains departing within 15 minutes (900s) to keep live map focused on real active trains
+          if (nextUpcoming.segundos <= 900) {
+            const firstGeo = findStation(estaciones[0], lineId);
+            if (firstGeo) {
+              trainLat = firstGeo.lat;
+              trainLng = firstGeo.lng;
+              currentStationName = firstGeo.name;
+              const targetGeo = findStation(nextUpcoming, lineId);
+              nextStationName = targetGeo?.name || firstGeo.name;
+              speedKmH = 0;
+              etaNextMin = Math.max(1, Math.ceil(nextUpcoming.segundos / 60));
+              statusDetail = `En cabecera: ${firstGeo.name} (sale en ~${etaNextMin} min)`;
+            }
+          } else {
+            // Future departure (>15 min) - skip from live circulating map
+            continue;
           }
         } else if (lastPassed && !nextUpcoming) {
-          // Completed route at destination
-          const lastGeo = findStation(estaciones[estaciones.length - 1], lineId);
-          if (lastGeo) {
-            trainLat = lastGeo.lat;
-            trainLng = lastGeo.lng;
-            currentStationName = lastGeo.name;
-            nextStationName = lastGeo.name;
-            speedKmH = 0;
-            statusDetail = `Arribó a ${lastGeo.name}`;
-            etaNextMin = 0;
+          // Train arrived at destination terminal within last 5 minutes
+          if (lastPassed.segundos >= -300) {
+            const lastGeo = findStation(estaciones[estaciones.length - 1], lineId);
+            if (lastGeo) {
+              trainLat = lastGeo.lat;
+              trainLng = lastGeo.lng;
+              currentStationName = lastGeo.name;
+              nextStationName = lastGeo.name;
+              speedKmH = 0;
+              statusDetail = `Arribó a cabecera: ${lastGeo.name}`;
+              etaNextMin = 0;
+            }
+          } else {
+            // Arrived more than 5 minutes ago - service finished
+            continue;
           }
         }
       }
@@ -771,8 +786,12 @@ export function processRawNetworkTrains(rawList = []) {
     }
 
     if (trainLat && trainLng) {
-      const origName = item.servicio?.desde?.estacion?.nombre || item.servicio?.estaciones?.[0]?.nombre || 'Origen';
-      const destName = item.servicio?.hasta?.estacion?.nombre || item.servicio?.estaciones?.[item.servicio.estaciones.length - 1]?.nombre || 'Destino';
+      let origName = item.servicio?.desde?.estacion?.nombre || item.servicio?.estaciones?.[0]?.nombre || 'Origen';
+      let destName = item.servicio?.hasta?.estacion?.nombre || item.servicio?.estaciones?.[item.servicio.estaciones.length - 1]?.nombre || 'Destino';
+
+      // Clean up common station acronyms for display
+      origName = origName.replace(/ \(LGM\)| - LSM| V\./g, '').replace('Plaza C.', 'Constitución').replace('J. L. Suarez', 'J.L. Suárez');
+      destName = destName.replace(/ \(LGM\)| - LSM| V\./g, '').replace('Plaza C.', 'Constitución').replace('J. L. Suarez', 'J.L. Suárez');
 
       processed.push({
         id: `NET-${num}`,
@@ -793,6 +812,26 @@ export function processRawNetworkTrains(rawList = []) {
         arribo: item.arribo,
         stationName: currentStationName,
         stationId: item.arribo?.id_estacion || null,
+      });
+    }
+  }
+
+  // De-duplicate co-located markers at terminals and platforms
+  // Apply micro-offset (~30 meters) along parallel tracks so every train is individually visible and clickable
+  const coordGroups = new Map();
+  for (const train of processed) {
+    const key = `${train.lat.toFixed(4)},${train.lng.toFixed(4)}`;
+    if (!coordGroups.has(key)) coordGroups.set(key, []);
+    coordGroups.get(key).push(train);
+  }
+
+  for (const [, group] of coordGroups.entries()) {
+    if (group.length > 1) {
+      const total = group.length;
+      group.forEach((train, idx) => {
+        const offsetFactor = idx - (total - 1) / 2;
+        train.lat = Number((train.lat + offsetFactor * 0.00028).toFixed(5));
+        train.lng = Number((train.lng + offsetFactor * 0.00028).toFixed(5));
       });
     }
   }

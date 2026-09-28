@@ -15,6 +15,8 @@ import {
   X,
   Check,
   Info,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import LineBadge from '../components/LineBadge';
 import { LINES_DATA, PRELOADED_STATIONS } from '../data/linesData';
@@ -34,12 +36,22 @@ export default function NearbyView({
   gpsErrorMsg = '',
   onRequestGps,
   onSetLocationPreset,
+  selectedCustomStation: externalStation,
+  onClearCustomStation,
+  theme,
+  onToggleTheme,
 }) {
   const [selectedLine, setSelectedLine] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [directionFilter, setDirectionFilter] = useState('ALL'); // 'ALL', '1' (Provincia), '2' (CABA/Retiro)
   const [browseMode, setBrowseMode] = useState('nearby'); // 'nearby' or 'all'
-  const [selectedCustomStation, setSelectedCustomStation] = useState(null);
+  const [selectedCustomStation, setSelectedCustomStation] = useState(externalStation || null);
+
+  useEffect(() => {
+    if (externalStation) {
+      setSelectedCustomStation(externalStation);
+    }
+  }, [externalStation]);
   const [showZonePicker, setShowZonePicker] = useState(false);
 
   // Compute nearest stations
@@ -243,27 +255,40 @@ export default function NearbyView({
           </div>
         </div>
 
-        <button
-          className="fav-button"
-          onClick={() => {
-            fetchArrivals(true);
-          }}
-          style={{
-            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-            borderColor: justRefreshed ? 'rgba(48, 209, 88, 0.6)' : undefined,
-            background: justRefreshed ? 'rgba(48, 209, 88, 0.15)' : undefined,
-            color: justRefreshed ? '#30d158' : undefined,
-            transform: justRefreshed ? 'scale(1.06)' : 'scale(1)',
-          }}
-          title="Actualizar arribos ahora"
-          aria-label="Actualizar arribos ahora"
-        >
-          {justRefreshed ? (
-            <Check size={17} style={{ strokeWidth: 2.8 }} />
-          ) : (
-            <RotateCw size={17} className={refreshing ? 'animate-spin' : ''} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {onToggleTheme && (
+            <button
+              className="fav-button"
+              onClick={onToggleTheme}
+              title={theme === 'dark' ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
+              aria-label="Cambiar tema"
+            >
+              {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
           )}
-        </button>
+
+          <button
+            className="fav-button"
+            onClick={() => {
+              fetchArrivals(true);
+            }}
+            style={{
+              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              borderColor: justRefreshed ? 'rgba(48, 209, 88, 0.6)' : undefined,
+              background: justRefreshed ? 'rgba(48, 209, 88, 0.15)' : undefined,
+              color: justRefreshed ? '#30d158' : undefined,
+              transform: justRefreshed ? 'scale(1.06)' : 'scale(1)',
+            }}
+            title="Actualizar arribos ahora"
+            aria-label="Actualizar arribos ahora"
+          >
+            {justRefreshed ? (
+              <Check size={17} style={{ strokeWidth: 2.8 }} />
+            ) : (
+              <RotateCw size={17} className={refreshing ? 'animate-spin' : ''} />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Mode Switcher: Cercanía vs Explorar Red */}
@@ -323,8 +348,57 @@ export default function NearbyView({
         </button>
       </div>
 
+      {/* Selected Station Banner (when arriving from Map or Favorites) */}
+      {selectedCustomStation && (
+        <div style={{ padding: '6px 16px 2px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'rgba(10, 132, 255, 0.12)',
+              border: '1px solid rgba(10, 132, 255, 0.3)',
+              borderRadius: '12px',
+              padding: '8px 12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+              <MapPin size={16} style={{ color: '#0a84ff', flexShrink: 0 }} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
+                  Estación: {selectedCustomStation.name}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)' }}>
+                  Mostrando arribos seleccionados
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                triggerHaptic('light');
+                setSelectedCustomStation(null);
+                if (onClearCustomStation) onClearCustomStation();
+              }}
+              style={{
+                background: 'rgba(10, 132, 255, 0.2)',
+                border: 'none',
+                color: '#0a84ff',
+                padding: '4px 8px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              Volver a GPS
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* GPS Status & Location Controls for Android & Brave */}
-      {browseMode === 'nearby' && (
+      {browseMode === 'nearby' && !selectedCustomStation && (
         <div style={{ padding: '4px 16px 6px' }}>
           {gpsState === 'active' ? (
             <div
@@ -395,12 +469,12 @@ export default function NearbyView({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <MapPin size={17} style={{ color: '#ff9f0a', flexShrink: 0 }} />
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
-                    Zona actual: {locationPreset || 'Retiro (Predeterminado)'}
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
+                    Zona seleccionada: {locationPreset || 'Retiro'}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#8e8e93', marginTop: '2px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)', marginTop: '2px' }}>
                     {gpsState === 'denied'
-                      ? 'Brave tiene bloqueada la ubicación. Tocá el candado 🔒 o escudo en la barra del navegador para permitir.'
+                      ? 'Ubicación desactivada. Podés activar tu GPS o elegir una zona.'
                       : 'Activá el GPS para detectar tu estación más cercana automáticamente.'}
                   </div>
                 </div>
@@ -761,11 +835,13 @@ export default function NearbyView({
                               <span style={{ fontSize: '13px' }}>
                                 {isTowardsCABA ? '🏙️' : '🌲'}
                               </span>
-                              <span className="arrival-dest" style={{ wordBreak: 'break-word' }}>{dest}</span>
+                              <span className="arrival-dest" style={{ wordBreak: 'break-word', fontSize: '15.5px' }}>
+                                <span style={{ color: '#0a84ff', fontWeight: 800 }}>Desde {origin}</span> ➔ {dest}
+                              </span>
                               <span
                                 style={{
-                                  fontSize: '10.5px',
-                                  padding: '1px 6px',
+                                  fontSize: '11px',
+                                  padding: '2px 7px',
                                   borderRadius: '6px',
                                   fontWeight: 700,
                                   background: isTowardsCABA
@@ -775,16 +851,16 @@ export default function NearbyView({
                                   whiteSpace: 'nowrap',
                                 }}
                               >
-                                {isTowardsCABA ? 'A Retiro/CABA' : 'A Provincia'}
+                                {isTowardsCABA ? 'Hacia Retiro/CABA' : 'Hacia Provincia'}
                               </span>
                             </div>
 
-                            <div className="arrival-meta" style={{ flexWrap: 'wrap' }}>
+                            <div className="arrival-meta" style={{ flexWrap: 'wrap', fontSize: '12.5px' }}>
                               <span className="platform-badge">Andén {platform}</span>
                               {train.servicio?.numero && (
                                 <span>Tren #{train.servicio.numero}</span>
                               )}
-                              <span style={{ color: '#8e8e93' }}>Desde {origin}</span>
+                              <span>Cabecera final: {dest}</span>
                               <span
                                 style={{
                                   display: 'inline-flex',

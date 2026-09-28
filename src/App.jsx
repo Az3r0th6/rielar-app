@@ -12,6 +12,11 @@ import FavoritesView from './views/FavoritesView';
 import MoreView from './views/MoreView';
 import { PRELOADED_STATIONS } from './data/linesData';
 import { triggerHaptic, playChimeSound, sendAppNotification } from './utils/notifications';
+import {
+  getUnreadAlertsCount,
+  markAlertsAsRead,
+  ALERTS_CHANGED_EVENT,
+} from './utils/alertManager';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('nearby');
@@ -53,14 +58,24 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
+  const updateAlertsCount = () => {
     fetch('/api/network-status')
       .then((r) => r.json())
       .then((d) => {
-        const count = Number(d.summary?.criticalCount || 0);
-        setNetworkAlertsCount(count);
+        const incidents = d.summary?.criticalIncidents || [];
+        const unread = getUnreadAlertsCount(incidents);
+        setNetworkAlertsCount(unread);
       })
       .catch(() => setNetworkAlertsCount(0));
+  };
+
+  useEffect(() => {
+    updateAlertsCount();
+    const handleSync = () => {
+      updateAlertsCount();
+    };
+    window.addEventListener(ALERTS_CHANGED_EVENT, handleSync);
+    return () => window.removeEventListener(ALERTS_CHANGED_EVENT, handleSync);
   }, []);
 
   const handleContentScroll = (e) => {
@@ -83,16 +98,26 @@ export default function App() {
     setIsTabBarHidden(false);
     setIsHeaderHidden(false);
     if (tabId === 'lines') {
-      // User reviewed the line status, clear the notification badge
-      setNetworkAlertsCount(0);
+      // User reviewed the line status, mark all currently existing alerts as read
+      // so badge counter stays in ZERO and doesn't nag the user again!
+      fetch('/api/network-status')
+        .then((r) => r.json())
+        .then((d) => {
+          const incidents = d.summary?.criticalIncidents || [];
+          markAlertsAsRead(incidents);
+          setNetworkAlertsCount(0);
+        })
+        .catch(() => setNetworkAlertsCount(0));
     }
   };
 
   const [plannerPreset, setPlannerPreset] = useState(null);
 
-  const handleNavigateToPlanner = (origId, destId) => {
+  const handleNavigateToPlanner = (origId, destId, initialTab = 'departures') => {
     if (origId && destId) {
-      setPlannerPreset({ originId: String(origId), destId: String(destId) });
+      setPlannerPreset({ originId: String(origId), destId: String(destId), initialTab });
+    } else if (initialTab) {
+      setPlannerPreset((prev) => ({ ...(prev || {}), initialTab }));
     }
     handleTabChange('planner');
   };
@@ -117,19 +142,91 @@ export default function App() {
     return 'Retiro';
   });
 
-  // Favorites in localStorage
+  // Global Theme (Dark / Light) with persistent storage
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('rielar_theme') || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem('rielar_theme', theme);
+    } catch {}
+  }, [theme]);
+
+  // App Version & Update Notification for Installed PWA / Mobile users
+  const [updateNotice, setUpdateNotice] = useState(null);
+
+  useEffect(() => {
+    const CURRENT_VERSION = '1.5.0';
+    try {
+      const savedVersion = localStorage.getItem('rielar_app_version');
+      if (savedVersion !== CURRENT_VERSION) {
+        localStorage.setItem('rielar_app_version', CURRENT_VERSION);
+        // If user already used or installed the app previously, alert them
+        if (savedVersion) {
+          setUpdateNotice({
+            version: CURRENT_VERSION,
+            title: '🎉 ¡RielAR se actualizó a la versión 1.5!',
+            body: 'Se incorporó la Grilla Completa de Horarios de todos los ramales, mapa en vivo optimizado y gestión limpia de alertas.',
+          });
+          sendAppNotification(
+            '🎉 ¡RielAR Actualizado a v1.5!',
+            'Nueva Grilla de Horarios Oficiales y mejoras en el mapa en vivo.',
+            { type: 'updated' }
+          );
+        }
+      }
+    } catch {}
+
+    const handleAppUpdated = () => {
+      setUpdateNotice({
+        version: CURRENT_VERSION,
+        title: '🎉 ¡Nueva actualización disponible!',
+        body: 'Nueva Grilla de Horarios y mejoras de rendimiento listas para usar.',
+      });
+      sendAppNotification(
+        '🎉 ¡Actualización instalada en RielAR!',
+        'Disfrutá de la nueva Grilla de Horarios Oficiales.',
+        { type: 'updated' }
+      );
+    };
+
+    window.addEventListener('rielar-app-updated', handleAppUpdated);
+    return () => window.removeEventListener('rielar-app-updated', handleAppUpdated);
+  }, []);
+
+  const handleToggleTheme = () => {
+    triggerHaptic('light');
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // Favorites in localStorage (defaults to empty array)
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = localStorage.getItem('trenes_favorites');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // If it was the legacy default with only Retiro and Tigre, reset to clean empty list
+        if (
+          Array.isArray(parsed) &&
+          parsed.length === 2 &&
+          parsed.some((s) => s?.name === 'Retiro' || s?.id === 332) &&
+          parsed.some((s) => s?.name === 'Tigre' || s?.id === 389)
+        ) {
+          localStorage.removeItem('trenes_favorites');
+          return [];
+        }
+        return Array.isArray(parsed) ? parsed : [];
+      }
     } catch (e) {
       console.warn('Error reading favorites:', e);
     }
-    // Default favorites
-    return [
-      PRELOADED_STATIONS[0], // Retiro
-      PRELOADED_STATIONS[16], // Tigre
-    ];
+    return [];
   });
 
   // Save favorites to localStorage
@@ -345,6 +442,8 @@ export default function App() {
     return () => clearInterval(interval);
   }, [trackingTrain]);
 
+  const [selectedCustomStation, setSelectedCustomStation] = useState(null);
+
   return (
     <IPhoneFrame
       trackingTrain={trackingTrain}
@@ -358,6 +457,8 @@ export default function App() {
       onCloseDownloadModal={() => setShowDownloadModal(false)}
       onOpenDownloadModal={() => setShowDownloadModal(true)}
       onInstallApp={handleInstallApp}
+      theme={theme}
+      onToggleTheme={handleToggleTheme}
       tabBar={
         <TabBar
           activeTab={activeTab}
@@ -368,6 +469,72 @@ export default function App() {
       }
       modals={
         <>
+          {/* Update Notification Pill for Mobile & Web Users */}
+          {updateNotice && (
+            <div
+              style={{
+                position: 'fixed',
+                top: '56px',
+                left: '12px',
+                right: '12px',
+                zIndex: 99999,
+                background: 'rgba(28, 28, 30, 0.95)',
+                backdropFilter: 'blur(25px)',
+                WebkitBackdropFilter: 'blur(25px)',
+                border: '1px solid rgba(48, 209, 88, 0.4)',
+                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(48, 209, 88, 0.25)',
+                borderRadius: '16px',
+                padding: '12px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: 'rgba(48, 209, 88, 0.18)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '20px',
+                  flexShrink: 0,
+                }}
+              >
+                🎉
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
+                  {updateNotice.title}
+                </div>
+                <div style={{ fontSize: '11px', color: '#a1a1aa', marginTop: '2px', lineHeight: 1.35 }}>
+                  {updateNotice.body}
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  triggerHaptic('light');
+                  setUpdateNotice(null);
+                }}
+                style={{
+                  background: '#30d158',
+                  color: '#000000',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '7px 12px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                Entendido
+              </button>
+            </div>
+          )}
+
           {/* Train Detail Modal Bottom Sheet */}
           <TrainDetailSheet
             trainData={selectedTrain}
@@ -383,6 +550,11 @@ export default function App() {
             onSelectTrain={(train) => setSelectedTrain(train)}
             isFavorite={Boolean(selectedStationForInfo && favorites.some((f) => f.id === selectedStationForInfo.id))}
             onToggleFavorite={handleToggleFavorite}
+            onSelectStation={(st) => {
+              setSelectedCustomStation(st);
+              setActiveTab('nearby');
+              setSelectedStationForInfo(null);
+            }}
           />
         </>
       }
@@ -401,16 +573,19 @@ export default function App() {
             gpsErrorMsg={gpsErrorMsg}
             onRequestGps={() => requestGpsLocation(true)}
             onSetLocationPreset={handleSimulateLocation}
+            selectedCustomStation={selectedCustomStation}
+            onClearCustomStation={() => setSelectedCustomStation(null)}
           />
         )}
 
-        {activeTab === 'map' && (
-          <MapView
-            userCoords={userCoords}
+        {activeTab === 'favorites' && (
+          <FavoritesView
+            favorites={favorites}
+            onRemoveFavorite={handleRemoveFavorite}
             onSelectStation={(st) => {
+              setSelectedCustomStation(st);
               setActiveTab('nearby');
             }}
-            onSelectTrain={(train) => setSelectedTrain(train)}
             onOpenStationInfo={(st) => setSelectedStationForInfo(st)}
           />
         )}
@@ -423,22 +598,31 @@ export default function App() {
           <TripPlannerView
             onSelectTrain={(train) => setSelectedTrain(train)}
             onOpenStationInfo={(st) => setSelectedStationForInfo(st)}
+            onNavigateToMap={() => handleTabChange('map')}
             initialOriginId={plannerPreset?.originId}
             initialDestId={plannerPreset?.destId}
+            initialTab={plannerPreset?.initialTab || 'departures'}
           />
         )}
 
-        {activeTab === 'favorites' && (
-          <FavoritesView
-            favorites={favorites}
-            onRemoveFavorite={handleRemoveFavorite}
-            onSelectStation={(st) => setActiveTab('nearby')}
+        {activeTab === 'map' && (
+          <MapView
+            userCoords={userCoords}
+            onSelectStation={(st) => {
+              setSelectedCustomStation(st);
+              setActiveTab('nearby');
+            }}
+            onSelectTrain={(train) => setSelectedTrain(train)}
             onOpenStationInfo={(st) => setSelectedStationForInfo(st)}
           />
         )}
 
         {activeTab === 'more' && (
-          <MoreView onInstallApp={handleInstallApp} />
+          <MoreView
+            onInstallApp={handleInstallApp}
+            theme={theme}
+            onToggleTheme={handleToggleTheme}
+          />
         )}
       </ErrorBoundary>
     </IPhoneFrame>

@@ -134,21 +134,41 @@ export async function requestNotificationPermission() {
 /**
  * Dispatches a native or simulated push notification
  */
-export function sendAppNotification(title, body, options = {}) {
+export async function sendAppNotification(title, body, options = {}) {
   playChimeSound(options.type || 'arrival');
   triggerHaptic(options.type === 'alert' ? 'warning' : 'medium');
 
   if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+    // 1. Use Service Worker registration (essential for Mobile Android & iOS PWA where new Notification() fails)
+    if ('serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        if (reg && reg.showNotification) {
+          await reg.showNotification(title, {
+            body,
+            icon: '/icon.svg',
+            badge: '/icon.svg',
+            vibrate: [80, 50, 80],
+            ...options,
+          });
+          return true;
+        }
+      } catch (e) {
+        console.debug('SW notification attempt:', e);
+      }
+    }
+
+    // 2. Desktop Window Notification fallback
     try {
       new Notification(title, {
         body,
-        icon: '🚆',
-        badge: '🚆',
+        icon: '/icon.svg',
+        badge: '/icon.svg',
         ...options,
       });
       return true;
     } catch {
-      // Notification fallback to in-app toast
+      // Notification fallback
     }
   }
   return false;

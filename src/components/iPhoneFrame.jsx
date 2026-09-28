@@ -36,9 +36,11 @@ export default function iPhoneFrame({
   onOpenDetails,
   onSimulateLocation,
   currentLocationName,
+  theme = 'dark',
+  onToggleTheme,
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isDark, setIsDark] = useState(true);
+  const isDark = theme === 'dark';
   const [currentTime, setCurrentTime] = useState('09:41');
   const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -77,9 +79,12 @@ export default function iPhoneFrame({
 
   const toggleTheme = () => {
     triggerHaptic('light');
-    const nextDark = !isDark;
-    setIsDark(nextDark);
-    document.documentElement.setAttribute('data-theme', nextDark ? 'dark' : 'light');
+    if (onToggleTheme) {
+      onToggleTheme();
+    } else {
+      const nextTheme = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', nextTheme);
+    }
   };
 
   const toggleFullscreen = () => {
