@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ArrowUpDown,
   Search,
@@ -9,6 +9,8 @@ import {
   Sparkles,
   Moon,
   Info,
+  Layers,
+  GitBranch,
 } from 'lucide-react';
 import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import { getStationArrivals } from '../api/sofseClient';
@@ -18,6 +20,46 @@ import ServiceTimetableGrid from '../components/ServiceTimetableGrid';
 import RideAffiliateCard from '../components/RideAffiliateCard';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { triggerHaptic, playChimeSound } from '../utils/notifications';
+
+// Cabeceras predeterminadas por línea para selección inmediata
+const LINE_DEFAULTS = {
+  Mitre: { originId: '332', destId: '389', ramal: 'Retiro-Tigre' },
+  Sarmiento: { originId: '293', destId: '278', ramal: 'Once-Moreno' },
+  Roca: { originId: '93', destId: '217', ramal: 'Constitución-La Plata' },
+  'San Martín': { originId: '463', destId: '306', ramal: 'Retiro-Cabred' },
+  'Belgrano Sur': { originId: '525', destId: '154', ramal: 'Buenos Aires-Gonzalez Catán' },
+  'Tren de la Costa': { originId: '248', destId: '104', ramal: 'Maipú-Delta' },
+};
+
+function formatRamalLabel(ramal) {
+  if (!ramal) return 'General';
+  const customNames = {
+    'Constitución-Bosques-Q': 'Constitución ⇄ Bosques (vía Quilmes)',
+    'Constitución-Bosques-T': 'Constitución ⇄ Bosques (vía Temperley)',
+    'La Plata - Htal. San Juan de Dios': 'Tren Univ. La Plata',
+    'Buenos Aires-Gonzalez Catán': 'Sáenz ⇄ G. Catán',
+    'Buenos Aires-M.C.G. Belgrano': 'Sáenz ⇄ M.C.G. Belgrano',
+    'González Catan -Navarro': 'G. Catán ⇄ Navarro',
+    'Maipú-Delta': 'Maipú ⇄ Delta',
+    'Retiro-J.L. Suárez': 'Retiro ⇄ J.L. Suárez',
+    'Retiro-Mitre': 'Retiro ⇄ Bmé. Mitre',
+    'Retiro-Tigre': 'Retiro ⇄ Tigre',
+    'Once-Moreno': 'Once ⇄ Moreno',
+    'Moreno-Mercedes': 'Moreno ⇄ Mercedes',
+    'Merlo-Lobos': 'Merlo ⇄ Lobos',
+    'Once-Bragado': 'Once ⇄ Bragado',
+    'Constitución-La Plata': 'Constitución ⇄ La Plata',
+    'Constitución-Alejandro Korn': 'Constitución ⇄ Alejandro Korn',
+    'Constitución-Ezeiza': 'Constitución ⇄ Ezeiza',
+    'Retiro-Cabred': 'Retiro ⇄ Dr. Cabred (Pilar)',
+    'Retiro - Junín': 'Retiro ⇄ Junín',
+    'Temperley-Haedo': 'Temperley ⇄ Haedo',
+    'Ezeiza-Cañuelas': 'Ezeiza ⇄ Cañuelas',
+    'Victoria-Capilla del Señor': 'Victoria ⇄ Capilla del Señor',
+    'Villa Ballester-Zárate': 'Ballester ⇄ Zárate',
+  };
+  return customNames[ramal] || ramal.replace(/\s*-\s*/g, ' ⇄ ');
+}
 
 export default function TripPlannerView({
   onSelectTrain,
@@ -34,11 +76,95 @@ export default function TripPlannerView({
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
+  // Filtros activos de organización por Línea y Ramal
+  const [selectedLine, setSelectedLine] = useState('ALL'); // 'ALL' | 'Mitre' | 'Sarmiento' | 'Roca' | 'San Martín' | 'Belgrano Sur' | 'Tren de la Costa'
+  const [selectedRamal, setSelectedRamal] = useState('ALL');
+
   useEffect(() => {
-    if (initialOriginId) setOriginId(String(initialOriginId));
+    if (initialOriginId) {
+      setOriginId(String(initialOriginId));
+      const st = PRELOADED_STATIONS.find((s) => String(s.id) === String(initialOriginId));
+      if (st?.lineName) setSelectedLine(st.lineName);
+      if (st?.ramal) setSelectedRamal(st.ramal);
+    }
     if (initialDestId) setDestId(String(initialDestId));
     if (initialTab) setActivePlannerTab(initialTab);
   }, [initialOriginId, initialDestId, initialTab]);
+
+  const originStation = PRELOADED_STATIONS.find((s) => String(s.id) === String(originId));
+  const destStation = PRELOADED_STATIONS.find((s) => String(s.id) === String(destId));
+
+  // Ramales disponibles para la línea seleccionada
+  const availableRamales = useMemo(() => {
+    if (selectedLine === 'ALL') return [];
+    const stations = PRELOADED_STATIONS.filter((s) => s.lineName === selectedLine);
+    const ramalSet = new Set(stations.map((s) => s.ramal).filter(Boolean));
+    return Array.from(ramalSet);
+  }, [selectedLine]);
+
+  // Estaciones agrupadas jerárquicamente por Línea y Ramal
+  const groupedStations = useMemo(() => {
+    const linesToInclude =
+      selectedLine === 'ALL'
+        ? ['Mitre', 'Sarmiento', 'Roca', 'San Martín', 'Belgrano Sur', 'Tren de la Costa']
+        : [selectedLine];
+
+    const groups = [];
+
+    linesToInclude.forEach((lName) => {
+      const lineObj = LINES_DATA.find((l) => l.name === lName);
+      const lineStations = PRELOADED_STATIONS.filter((s) => s.lineName === lName);
+
+      const ramalMap = new Map();
+      lineStations.forEach((st) => {
+        const r = st.ramal || 'General';
+        if (!ramalMap.has(r)) ramalMap.set(r, []);
+        ramalMap.get(r).push(st);
+      });
+
+      ramalMap.forEach((stations, rName) => {
+        if (selectedRamal === 'ALL' || selectedRamal === rName) {
+          groups.push({
+            lineName: lName,
+            lineColor: lineObj?.color || '#0a84ff',
+            lineIcon: lineObj?.icon || '🚆',
+            ramal: rName,
+            label: `Línea ${lName} • ${formatRamalLabel(rName)}`,
+            stations,
+          });
+        }
+      });
+    });
+
+    return groups;
+  }, [selectedLine, selectedRamal]);
+
+  const handleSelectLine = (lineName) => {
+    triggerHaptic('light');
+    setSelectedLine(lineName);
+    setSelectedRamal('ALL');
+
+    if (lineName !== 'ALL' && LINE_DEFAULTS[lineName]) {
+      const def = LINE_DEFAULTS[lineName];
+      setOriginId(def.originId);
+      setDestId(def.destId);
+    }
+  };
+
+  const handleSelectRamal = (ramal) => {
+    triggerHaptic('light');
+    setSelectedRamal(ramal);
+
+    if (ramal !== 'ALL') {
+      const ramalStations = PRELOADED_STATIONS.filter(
+        (s) => (selectedLine === 'ALL' || s.lineName === selectedLine) && s.ramal === ramal
+      );
+      if (ramalStations.length >= 2) {
+        setOriginId(String(ramalStations[0].id));
+        setDestId(String(ramalStations[ramalStations.length - 1].id));
+      }
+    }
+  };
 
   const handleSwap = () => {
     triggerHaptic('medium');
@@ -97,15 +223,16 @@ export default function TripPlannerView({
     return () => clearInterval(timer);
   }, [results.length]);
 
-  const originStation = PRELOADED_STATIONS.find((s) => String(s.id) === String(originId));
-  const destStation = PRELOADED_STATIONS.find((s) => String(s.id) === String(destId));
-
   const quickRoutes = [
-    { fromId: '332', toId: '389', label: 'Retiro ➔ Tigre' },
-    { fromId: '332', toId: '357', label: 'Retiro ➔ San Isidro' },
-    { fromId: '293', toId: '278', label: 'Once ➔ Moreno' },
-    { fromId: '93', toId: '217', label: 'Const. ➔ La Plata' },
+    { fromId: '332', toId: '389', label: 'Retiro ➔ Tigre', lineName: 'Mitre', ramal: 'Retiro-Tigre' },
+    { fromId: '332', toId: '357', label: 'Retiro ➔ San Isidro', lineName: 'Mitre', ramal: 'Retiro-Tigre' },
+    { fromId: '293', toId: '278', label: 'Once ➔ Moreno', lineName: 'Sarmiento', ramal: 'Once-Moreno' },
+    { fromId: '93', toId: '217', label: 'Const. ➔ La Plata', lineName: 'Roca', ramal: 'Constitución-La Plata' },
   ];
+
+  // Comprobar si las estaciones seleccionadas son de la misma línea o ramal
+  const isSameLine = originStation && destStation && originStation.lineName === destStation.lineName;
+  const isSameRamal = isSameLine && originStation.ramal === destStation.ramal;
 
   return (
     <div>
@@ -172,73 +299,249 @@ export default function TripPlannerView({
         {/* VIEW 1: PRÓXIMAS SALIDAS (ORIGEN Y DESTINO) */}
         {activePlannerTab === 'departures' ? (
           <>
-            {/* Origin & Destination Card */}
+            {/* Origin & Destination Card con organización por Línea y Ramal */}
             <div className="ios-card" style={{ padding: '16px' }}>
-              {/* Origin Picker */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Punto de Partida
-                  </label>
-                  {originStation && (
+
+              {/* 1. SECCIÓN DE ORGANIZACIÓN: FILTRO POR LÍNEA */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Layers size={14} style={{ color: 'var(--ios-blue)' }} />
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--ios-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Subdividir por Línea:
+                    </span>
+                  </div>
+                  {selectedLine !== 'ALL' && (
                     <button
-                      onClick={() => {
-                        triggerHaptic('light');
-                        if (onOpenStationInfo) onOpenStationInfo(originStation);
-                      }}
+                      onClick={() => handleSelectLine('ALL')}
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        color: '#0a84ff',
-                        fontSize: '11px',
+                        color: 'var(--ios-blue)',
+                        fontSize: '11.5px',
                         fontWeight: 700,
                         cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                        padding: '2px 4px',
+                        padding: '0 2px',
                       }}
-                      title="Ver boleterías, colectivos y accesibilidad de esta estación"
                     >
-                      <Info size={12} />
-                      <span>Info estación</span>
+                      Ver toda la red
                     </button>
                   )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0a84ff' }} />
+
+                {/* Píldoras Horizontales de Línea */}
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '6px',
+                    overflowX: 'auto',
+                    paddingBottom: '4px',
+                    scrollbarWidth: 'none',
+                  }}
+                >
+                  <button
+                    onClick={() => handleSelectLine('ALL')}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      border: selectedLine === 'ALL' ? '1.5px solid var(--ios-card-border-active)' : '1px solid var(--ios-separator)',
+                      background: selectedLine === 'ALL' ? 'var(--ios-card-solid)' : 'rgba(118, 118, 128, 0.12)',
+                      color: selectedLine === 'ALL' ? 'var(--ios-text-primary)' : 'var(--ios-text-secondary)',
+                      boxShadow: selectedLine === 'ALL' ? 'var(--shadow-sm)' : 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    🌐 Todas
+                  </button>
+
+                  {LINES_DATA.filter((l) => l.id !== 501).map((line) => {
+                    const isSel = selectedLine === line.name;
+                    return (
+                      <button
+                        key={line.id}
+                        onClick={() => handleSelectLine(line.name)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '12px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          border: isSel ? `1.5px solid ${line.color}` : '1px solid var(--ios-separator)',
+                          background: isSel ? `${line.color}22` : 'rgba(118, 118, 128, 0.12)',
+                          color: isSel ? (line.color || 'var(--ios-blue)') : 'var(--ios-text-secondary)',
+                          boxShadow: isSel ? `0 2px 8px ${line.color}35` : 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <span>{line.icon}</span>
+                        <span>{line.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* 2. SUBDIVISIÓN POR RAMAL (cuando hay una línea seleccionada) */}
+                {selectedLine !== 'ALL' && availableRamales.length > 0 && (
+                  <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--ios-separator)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
+                      <GitBranch size={13} style={{ color: 'var(--ios-text-secondary)' }} />
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, color: 'var(--ios-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                        Ramales de Línea {selectedLine}:
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none' }}>
+                      <button
+                        onClick={() => handleSelectRamal('ALL')}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '10px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          whiteSpace: 'nowrap',
+                          border: selectedRamal === 'ALL' ? '1.5px solid var(--ios-card-border-active)' : '1px solid var(--ios-separator)',
+                          background: selectedRamal === 'ALL' ? 'var(--ios-card-solid)' : 'rgba(118, 118, 128, 0.08)',
+                          color: selectedRamal === 'ALL' ? 'var(--ios-text-primary)' : 'var(--ios-text-secondary)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Todos ({availableRamales.length})
+                      </button>
+
+                      {availableRamales.map((ramal) => {
+                        const isR = selectedRamal === ramal;
+                        return (
+                          <button
+                            key={ramal}
+                            onClick={() => handleSelectRamal(ramal)}
+                            style={{
+                              padding: '4px 10px',
+                              borderRadius: '10px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap',
+                              border: isR ? '1.5px solid var(--ios-blue)' : '1px solid var(--ios-separator)',
+                              background: isR ? 'rgba(10, 132, 255, 0.16)' : 'rgba(118, 118, 128, 0.08)',
+                              color: isR ? 'var(--ios-blue)' : 'var(--ios-text-secondary)',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {formatRamalLabel(ramal)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. PUNTO DE PARTIDA */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0a84ff' }} />
+                    <label style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                      Punto de Partida
+                    </label>
+                  </div>
+
+                  {originStation && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 600 }}>
+                        {originStation.lineName} • {formatRamalLabel(originStation.ramal)}
+                      </span>
+                      <button
+                        onClick={() => {
+                          triggerHaptic('light');
+                          if (onOpenStationInfo) onOpenStationInfo(originStation);
+                        }}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--ios-blue)',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          padding: '2px 4px',
+                        }}
+                        title="Ver boleterías, colectivos y accesibilidad de esta estación"
+                      >
+                        <Info size={12} />
+                        <span>Info</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
                   <select
                     value={originId}
-                    onChange={(e) => setOriginId(e.target.value)}
+                    onChange={(e) => {
+                      const newId = e.target.value;
+                      setOriginId(newId);
+                      const st = PRELOADED_STATIONS.find((s) => String(s.id) === String(newId));
+                      if (st?.lineName && selectedLine !== 'ALL' && selectedLine !== st.lineName) {
+                        setSelectedLine(st.lineName);
+                        setSelectedRamal('ALL');
+                      }
+                    }}
                     style={{
                       width: '100%',
-                      background: 'rgba(118, 118, 128, 0.12)',
-                      border: '1px solid var(--ios-separator)',
+                      background: 'var(--ios-card-solid)',
+                      border: '1.5px solid var(--ios-separator)',
                       borderRadius: '12px',
                       padding: '10px 12px',
                       color: 'var(--ios-text-primary)',
                       fontSize: '14px',
                       fontWeight: 600,
                       outline: 'none',
+                      cursor: 'pointer',
                     }}
                   >
-                    {PRELOADED_STATIONS.map((st, idx) => (
-                      <option key={`${st.id}-${st.ramal || ''}-${idx}`} value={st.id} style={{ background: 'var(--ios-card)', color: 'var(--ios-text-primary)' }}>
-                        {st.name} {st.ramal ? `(${st.ramal})` : ''}
-                      </option>
+                    {/* Opción de respaldo si la estación actual no está en el grupo filtrado */}
+                    {originStation && !groupedStations.some((g) => g.stations.some((s) => String(s.id) === String(originId))) && (
+                      <optgroup label={`📍 Estación actual (${originStation.lineName})`}>
+                        <option value={originStation.id}>
+                          {originStation.name} ({originStation.ramal || 'General'})
+                        </option>
+                      </optgroup>
+                    )}
+
+                    {groupedStations.map((group) => (
+                      <optgroup key={`orig-${group.lineName}-${group.ramal}`} label={`🚆 ${group.label}`}>
+                        {group.stations.map((st, sIdx) => (
+                          <option key={`orig-st-${st.id}-${group.ramal}-${sIdx}`} value={st.id} style={{ background: 'var(--ios-card)', color: 'var(--ios-text-primary)' }}>
+                            {st.name} {selectedLine === 'ALL' && group.ramal ? `(${formatRamalLabel(group.ramal)})` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Swap Button */}
-              <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0' }}>
+              {/* 4. BOTÓN INVERTIR SENTIDO (SWAP) */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '4px 0', position: 'relative' }}>
+                <div style={{ position: 'absolute', width: '100%', height: '1px', background: 'var(--ios-separator)', zIndex: 0 }} />
                 <button
                   onClick={handleSwap}
                   style={{
-                    background: 'rgba(118, 118, 128, 0.14)',
+                    position: 'relative',
+                    zIndex: 1,
+                    background: 'var(--ios-card-solid)',
                     border: '1px solid var(--ios-separator)',
-                    color: '#0a84ff',
+                    color: 'var(--ios-blue)',
                     width: '36px',
                     height: '36px',
                     borderRadius: '50%',
@@ -246,6 +549,8 @@ export default function TripPlannerView({
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
+                    boxShadow: 'var(--shadow-sm)',
+                    transition: 'all 0.2s',
                   }}
                   title="Invertir origen y destino"
                 >
@@ -253,70 +558,138 @@ export default function TripPlannerView({
                 </button>
               </div>
 
-              {/* Destination Picker */}
-              <div style={{ marginBottom: '16px' }}>
+              {/* 5. ESTACIÓN DE LLEGADA */}
+              <div style={{ marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Estación de Llegada
-                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#30d158' }} />
+                    <label style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                      Estación de Llegada
+                    </label>
+                  </div>
+
                   {destStation && (
-                    <button
-                      onClick={() => {
-                        triggerHaptic('light');
-                        if (onOpenStationInfo) onOpenStationInfo(destStation);
-                      }}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#30d158',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                        padding: '2px 4px',
-                      }}
-                      title="Ver boleterías, colectivos y accesibilidad de esta estación"
-                    >
-                      <Info size={12} />
-                      <span>Info estación</span>
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 600 }}>
+                        {destStation.lineName} • {formatRamalLabel(destStation.ramal)}
+                      </span>
+                      <button
+                        onClick={() => {
+                          triggerHaptic('light');
+                          if (onOpenStationInfo) onOpenStationInfo(destStation);
+                        }}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--ios-green)',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          padding: '2px 4px',
+                        }}
+                        title="Ver boleterías, colectivos y accesibilidad de esta estación"
+                      >
+                        <Info size={12} />
+                        <span>Info</span>
+                      </button>
+                    </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#30d158' }} />
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
                   <select
                     value={destId}
-                    onChange={(e) => setDestId(e.target.value)}
+                    onChange={(e) => {
+                      const newId = e.target.value;
+                      setDestId(newId);
+                      const st = PRELOADED_STATIONS.find((s) => String(s.id) === String(newId));
+                      if (st?.lineName && selectedLine !== 'ALL' && selectedLine !== st.lineName) {
+                        setSelectedLine(st.lineName);
+                        setSelectedRamal('ALL');
+                      }
+                    }}
                     style={{
                       width: '100%',
-                      background: 'rgba(118, 118, 128, 0.12)',
-                      border: '1px solid var(--ios-separator)',
+                      background: 'var(--ios-card-solid)',
+                      border: '1.5px solid var(--ios-separator)',
                       borderRadius: '12px',
                       padding: '10px 12px',
                       color: 'var(--ios-text-primary)',
                       fontSize: '14px',
                       fontWeight: 600,
                       outline: 'none',
+                      cursor: 'pointer',
                     }}
                   >
-                    {PRELOADED_STATIONS.map((st, idx) => (
-                      <option key={`${st.id}-${st.ramal || ''}-${idx}`} value={st.id} style={{ background: 'var(--ios-card)', color: 'var(--ios-text-primary)' }}>
-                        {st.name} {st.ramal ? `(${st.ramal})` : ''}
-                      </option>
+                    {/* Opción de respaldo si la estación actual no está en el grupo filtrado */}
+                    {destStation && !groupedStations.some((g) => g.stations.some((s) => String(s.id) === String(destId))) && (
+                      <optgroup label={`📍 Estación actual (${destStation.lineName})`}>
+                        <option value={destStation.id}>
+                          {destStation.name} ({destStation.ramal || 'General'})
+                        </option>
+                      </optgroup>
+                    )}
+
+                    {groupedStations.map((group) => (
+                      <optgroup key={`dst-${group.lineName}-${group.ramal}`} label={`🚆 ${group.label}`}>
+                        {group.stations.map((st, sIdx) => (
+                          <option key={`dst-st-${st.id}-${group.ramal}-${sIdx}`} value={st.id} style={{ background: 'var(--ios-card)', color: 'var(--ios-text-primary)' }}>
+                            {st.name} {selectedLine === 'ALL' && group.ramal ? `(${formatRamalLabel(group.ramal)})` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Search Action Button */}
+              {/* 6. INDICADOR DE ESTADO DEL TRAYECTO (Mismo ramal o transbordo) */}
+              <div
+                style={{
+                  fontSize: '11.5px',
+                  padding: '7px 10px',
+                  borderRadius: '10px',
+                  marginBottom: '14px',
+                  background: isSameRamal
+                    ? 'rgba(48, 209, 88, 0.12)'
+                    : isSameLine
+                    ? 'rgba(10, 132, 255, 0.12)'
+                    : 'rgba(255, 159, 10, 0.12)',
+                  border: isSameRamal
+                    ? '1px solid rgba(48, 209, 88, 0.25)'
+                    : isSameLine
+                    ? '1px solid rgba(10, 132, 255, 0.25)'
+                    : '1px solid rgba(255, 159, 10, 0.25)',
+                  color: isSameRamal
+                    ? 'var(--ios-green)'
+                    : isSameLine
+                    ? 'var(--ios-blue)'
+                    : '#ff9f0a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>{isSameRamal ? '✓' : isSameLine ? 'ℹ️' : '⚠️'}</span>
+                <span>
+                  {isSameRamal
+                    ? `Corredor directo: Línea ${originStation?.lineName} (${formatRamalLabel(originStation?.ramal)})`
+                    : isSameLine
+                    ? `Misma Línea ${originStation?.lineName} con combinación entre ramales`
+                    : `Estaciones de líneas distintas (${originStation?.lineName || 'Origen'} ➔ ${destStation?.lineName || 'Destino'}). Requiere transbordo.`}
+                </span>
+              </div>
+
+              {/* 7. BOTÓN CONSULTAR SERVICIOS */}
               <button
                 onClick={() => handleSearch()}
                 disabled={loading}
                 style={{
                   width: '100%',
-                  background: '#0a84ff',
+                  background: 'linear-gradient(135deg, #0a84ff, #0056b3)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '14px',
@@ -353,6 +726,8 @@ export default function TripPlannerView({
                       triggerHaptic('light');
                       setOriginId(r.fromId);
                       setDestId(r.toId);
+                      if (r.lineName) setSelectedLine(r.lineName);
+                      if (r.ramal) setSelectedRamal(r.ramal);
                     }}
                     style={{
                       background: 'rgba(118, 118, 128, 0.12)',
