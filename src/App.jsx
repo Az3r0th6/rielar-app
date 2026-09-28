@@ -160,21 +160,29 @@ export default function App() {
   }, [theme]);
 
   // App Version & Update Announcement Modal for Installed PWA / Mobile users
-  const [showChangelogModal, setShowChangelogModal] = useState(false);
+  // Appears AUTOMATICALLY when entering the app!
+  const [showChangelogModal, setShowChangelogModal] = useState(() => {
+    try {
+      const neverShow = localStorage.getItem('rielar_changelog_v20_never_show');
+      if (neverShow === 'true') return false;
+
+      const dismissedSession = sessionStorage.getItem('rielar_changelog_dismissed_session');
+      if (dismissedSession === 'true') return false;
+
+      return true; // Pops up automatically on app launch / entry!
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
-    const CURRENT_VERSION = '2.0.0';
     try {
-      const seenChangelog = localStorage.getItem('rielar_changelog_v20_viewed');
-      // If user hasn't seen the v2.0 changelog yet, show pop-up modal!
-      if (seenChangelog !== 'true') {
-        setShowChangelogModal(true);
-        sendAppNotification(
-          '🎉 ¡RielAR se actualizó a la versión 2.0!',
-          'Horarios por línea y ramal, grilla completa de trenes, modo claro y alertas optimizadas.',
-          { type: 'updated' }
-        );
-      }
+      // Send system push notification if permitted
+      sendAppNotification(
+        '🎉 ¡RielAR se actualizó a la versión 2.0!',
+        'Horarios por línea y ramal, grilla completa de trenes, modo claro y alertas optimizadas.',
+        { type: 'updated' }
+      );
     } catch {}
 
     const handleAppUpdated = () => {

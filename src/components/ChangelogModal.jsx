@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   X,
   Sparkles,
@@ -16,10 +16,15 @@ import { triggerHaptic, playChimeSound } from '../utils/notifications';
 export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner }) {
   if (!isOpen) return null;
 
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+
   const handleDismiss = () => {
     triggerHaptic('light');
     try {
-      localStorage.setItem('rielar_changelog_v20_viewed', 'true');
+      sessionStorage.setItem('rielar_changelog_dismissed_session', 'true');
+      if (dontShowAgain) {
+        localStorage.setItem('rielar_changelog_v20_never_show', 'true');
+      }
     } catch {}
     onClose();
   };
@@ -28,7 +33,10 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
     triggerHaptic('medium');
     playChimeSound('arrival');
     try {
-      localStorage.setItem('rielar_changelog_v20_viewed', 'true');
+      sessionStorage.setItem('rielar_changelog_dismissed_session', 'true');
+      if (dontShowAgain) {
+        localStorage.setItem('rielar_changelog_v20_never_show', 'true');
+      }
     } catch {}
     onClose();
     if (onNavigateToPlanner) {
@@ -335,6 +343,35 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
             <CheckCircle2 size={16} color="#30d158" />
             <span>¡Entendido! Continuar a la app</span>
           </button>
+
+          {/* Don't show again checkbox */}
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              userSelect: 'none',
+              fontSize: '12px',
+              color: '#cbd5e1',
+              fontWeight: 500,
+              paddingTop: '2px',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={dontShowAgain}
+              onChange={(e) => setDontShowAgain(e.target.checked)}
+              style={{
+                width: '15px',
+                height: '15px',
+                accentColor: '#30d158',
+                cursor: 'pointer',
+              }}
+            />
+            <span>No volver a mostrar automáticamente al iniciar</span>
+          </label>
         </div>
       </div>
     </div>
