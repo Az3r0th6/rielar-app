@@ -249,7 +249,7 @@ export default function NearbyView({
               <span className="live-pulse-dot" />
               <span>Tiempo Real</span>
             </span>
-            <span style={{ color: justRefreshed ? '#30d158' : '#8e8e93', transition: 'color 0.3s' }}>
+            <span style={{ color: justRefreshed ? 'var(--ios-green)' : 'var(--ios-text-secondary)', transition: 'color 0.3s' }}>
               • {justRefreshed ? '✓ Arribos al día' : lastUpdatedAt ? `Actualizado ${lastUpdatedAt}` : (browseMode === 'nearby' ? 'Cercanas a tu ubicación' : 'Toda la red AMBA')}
             </span>
           </div>
@@ -310,10 +310,10 @@ export default function NearbyView({
             borderRadius: '12px',
             fontSize: '12.5px',
             fontWeight: 700,
-            border: 'none',
+            border: browseMode === 'nearby' ? 'none' : '1px solid var(--ios-card-border)',
             cursor: 'pointer',
-            background: browseMode === 'nearby' ? '#0a84ff' : 'rgba(255,255,255,0.08)',
-            color: browseMode === 'nearby' ? '#ffffff' : '#8e8e93',
+            background: browseMode === 'nearby' ? 'var(--ios-blue)' : 'rgba(118, 118, 128, 0.14)',
+            color: browseMode === 'nearby' ? '#ffffff' : 'var(--ios-text-secondary)',
             transition: 'all 0.2s',
           }}
         >
@@ -336,10 +336,10 @@ export default function NearbyView({
             borderRadius: '12px',
             fontSize: '12.5px',
             fontWeight: 700,
-            border: 'none',
+            border: browseMode === 'all' ? 'none' : '1px solid var(--ios-card-border)',
             cursor: 'pointer',
-            background: browseMode === 'all' ? '#0a84ff' : 'rgba(255,255,255,0.08)',
-            color: browseMode === 'all' ? '#ffffff' : '#8e8e93',
+            background: browseMode === 'all' ? 'var(--ios-blue)' : 'rgba(118, 118, 128, 0.14)',
+            color: browseMode === 'all' ? '#ffffff' : 'var(--ios-text-secondary)',
             transition: 'all 0.2s',
           }}
         >
@@ -513,10 +513,10 @@ export default function NearbyView({
                   style={{
                     padding: '8px 12px',
                     borderRadius: '10px',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    background: 'rgba(255,255,255,0.08)',
-                    color: '#f5f5f7',
-                    fontWeight: 600,
+                    border: '1px solid var(--ios-separator)',
+                    background: 'rgba(118, 118, 128, 0.14)',
+                    color: 'var(--ios-text-primary)',
+                    fontWeight: 700,
                     fontSize: '12px',
                     cursor: 'pointer',
                   }}
@@ -549,9 +549,9 @@ export default function NearbyView({
                         borderRadius: '8px',
                         fontSize: '11px',
                         fontWeight: 700,
-                        border: 'none',
-                        background: locationPreset === zone ? '#0a84ff' : 'rgba(255,255,255,0.1)',
-                        color: locationPreset === zone ? '#ffffff' : '#d1d1d6',
+                        border: locationPreset === zone ? 'none' : '1px solid var(--ios-card-border)',
+                        background: locationPreset === zone ? 'var(--ios-blue)' : 'rgba(118, 118, 128, 0.14)',
+                        color: locationPreset === zone ? '#ffffff' : 'var(--ios-text-primary)',
                         cursor: 'pointer',
                       }}
                     >
@@ -572,12 +572,13 @@ export default function NearbyView({
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            background: 'rgba(118, 118, 128, 0.2)',
+            background: 'rgba(118, 118, 128, 0.16)',
+            border: '1px solid var(--ios-card-border)',
             padding: '8px 12px',
             borderRadius: '12px',
           }}
         >
-          <Search size={16} style={{ color: '#8e8e93' }} />
+          <Search size={16} style={{ color: 'var(--ios-text-secondary)', flexShrink: 0 }} />
           <input
             type="text"
             placeholder="Buscar cualquier estación (ej: Tigre, Once, Quilmes, San Isidro)..."
@@ -589,7 +590,7 @@ export default function NearbyView({
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#f5f5f7',
+              color: 'var(--ios-text-primary)',
               fontSize: '13.5px',
               width: '100%',
               outline: 'none',
@@ -599,7 +600,7 @@ export default function NearbyView({
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              style={{ background: 'transparent', border: 'none', color: '#8e8e93', cursor: 'pointer' }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--ios-text-secondary)', cursor: 'pointer', flexShrink: 0 }}
             >
               <X size={15} />
             </button>
@@ -637,12 +638,12 @@ export default function NearbyView({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
+          gap: '8px',
           padding: '0 16px 12px',
           overflowX: 'auto',
         }}
       >
-        <span style={{ fontSize: '11px', fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--ios-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>
           Sentido:
         </span>
         <button
@@ -651,14 +652,17 @@ export default function NearbyView({
             setDirectionFilter('ALL');
           }}
           style={{
-            padding: '4px 10px',
+            padding: '5px 12px',
             borderRadius: '14px',
             fontSize: '11.5px',
             fontWeight: 700,
-            border: 'none',
             cursor: 'pointer',
-            background: directionFilter === 'ALL' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)',
-            color: '#f5f5f7',
+            whiteSpace: 'nowrap',
+            border: directionFilter === 'ALL' ? '1px solid var(--ios-card-border-active)' : '1px solid var(--ios-separator)',
+            background: directionFilter === 'ALL' ? 'var(--ios-card-solid)' : 'rgba(118, 118, 128, 0.12)',
+            color: directionFilter === 'ALL' ? 'var(--ios-text-primary)' : 'var(--ios-text-secondary)',
+            boxShadow: directionFilter === 'ALL' ? 'var(--shadow-sm)' : 'none',
+            transition: 'all 0.2s ease',
           }}
         >
           Ambos sentidos ⇄
@@ -670,14 +674,17 @@ export default function NearbyView({
             setDirectionFilter('2');
           }}
           style={{
-            padding: '4px 10px',
+            padding: '5px 12px',
             borderRadius: '14px',
             fontSize: '11.5px',
             fontWeight: 700,
-            border: 'none',
             cursor: 'pointer',
-            background: directionFilter === '2' ? 'rgba(10, 132, 255, 0.3)' : 'rgba(255,255,255,0.06)',
-            color: directionFilter === '2' ? '#0a84ff' : '#f5f5f7',
+            whiteSpace: 'nowrap',
+            border: directionFilter === '2' ? '1.5px solid var(--ios-blue)' : '1px solid var(--ios-separator)',
+            background: directionFilter === '2' ? 'rgba(10, 132, 255, 0.18)' : 'rgba(118, 118, 128, 0.12)',
+            color: directionFilter === '2' ? 'var(--ios-blue)' : 'var(--ios-text-secondary)',
+            boxShadow: directionFilter === '2' ? '0 2px 8px rgba(10, 132, 255, 0.25)' : 'none',
+            transition: 'all 0.2s ease',
           }}
         >
           ➔ Hacia Retiro / CABA
@@ -689,14 +696,17 @@ export default function NearbyView({
             setDirectionFilter('1');
           }}
           style={{
-            padding: '4px 10px',
+            padding: '5px 12px',
             borderRadius: '14px',
             fontSize: '11.5px',
             fontWeight: 700,
-            border: 'none',
             cursor: 'pointer',
-            background: directionFilter === '1' ? 'rgba(48, 209, 88, 0.3)' : 'rgba(255,255,255,0.06)',
-            color: directionFilter === '1' ? '#30d158' : '#f5f5f7',
+            whiteSpace: 'nowrap',
+            border: directionFilter === '1' ? '1.5px solid var(--ios-green)' : '1px solid var(--ios-separator)',
+            background: directionFilter === '1' ? 'rgba(48, 209, 88, 0.18)' : 'rgba(118, 118, 128, 0.12)',
+            color: directionFilter === '1' ? 'var(--ios-green)' : 'var(--ios-text-secondary)',
+            boxShadow: directionFilter === '1' ? '0 2px 8px rgba(48, 209, 88, 0.25)' : 'none',
+            transition: 'all 0.2s ease',
           }}
         >
           ➔ Hacia Provincia
@@ -706,12 +716,12 @@ export default function NearbyView({
       {/* Station Cards List */}
       <div style={{ paddingBottom: '20px' }}>
         {loading && stationsWithArrivals.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#8e8e93' }}>
-            <RotateCw size={28} className="animate-spin" style={{ margin: '0 auto 12px', color: '#0a84ff' }} />
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--ios-text-secondary)' }}>
+            <RotateCw size={28} className="animate-spin" style={{ margin: '0 auto 12px', color: 'var(--ios-blue)' }} />
             <div style={{ fontWeight: 600 }}>Consultando arribos en tiempo real a SOFSE...</div>
           </div>
         ) : stationsWithArrivals.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#8e8e93' }}>
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--ios-text-secondary)' }}>
             <MapPin size={32} style={{ margin: '0 auto 8px', opacity: 0.5 }} />
             <div>No se encontraron estaciones coincidentes.</div>
           </div>
@@ -905,7 +915,7 @@ export default function NearbyView({
                                   {formatArrivalSeconds(seconds)}
                                 </span>
                                 {schedTime && (
-                                  <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 700 }}>
+                                  <span style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 700 }}>
                                     {formatLocalTime(schedTime)} hs
                                   </span>
                                 )}
@@ -918,7 +928,7 @@ export default function NearbyView({
                                 alignItems: 'center',
                                 gap: '2px',
                                 justifyContent: 'flex-end',
-                                color: '#0a84ff',
+                                color: 'var(--ios-blue)',
                                 fontWeight: 700,
                               }}
                             >
@@ -934,8 +944,8 @@ export default function NearbyView({
                         padding: '14px',
                         textAlign: 'center',
                         fontSize: '13px',
-                        color: '#8e8e93',
-                        background: 'rgba(255,255,255,0.02)',
+                        color: 'var(--ios-text-secondary)',
+                        background: 'rgba(118, 118, 128, 0.08)',
                         borderRadius: '12px',
                       }}
                     >

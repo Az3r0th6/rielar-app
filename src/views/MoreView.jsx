@@ -247,7 +247,7 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               style={{
                 fontSize: '12px',
                 fontWeight: 700,
-                color: '#8e8e93',
+                color: 'var(--ios-text-secondary)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 marginBottom: '10px',
@@ -261,7 +261,7 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               className="ios-card"
               style={{
                 padding: '20px',
-                background: 'linear-gradient(135deg, rgba(10, 132, 255, 0.14), rgba(28, 28, 35, 0.98))',
+                background: 'linear-gradient(135deg, rgba(10, 132, 255, 0.14), var(--ios-card-solid))',
                 border: '1px solid rgba(10, 132, 255, 0.35)',
                 marginBottom: '16px',
               }}
@@ -284,10 +284,10 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
                   <Download size={24} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '17px', color: '#ffffff' }}>
+                  <div style={{ fontWeight: 800, fontSize: '17px', color: 'var(--ios-text-primary)' }}>
                     Descargar RielAR en tu Celular
                   </div>
-                  <div style={{ fontSize: '12.5px', color: '#8e8e93', marginTop: '2px' }}>
+                  <div style={{ fontSize: '12.5px', color: 'var(--ios-text-secondary)', marginTop: '2px' }}>
                     Instalación directa para iOS, Android y PC
                   </div>
                 </div>
@@ -423,7 +423,7 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               style={{
                 fontSize: '12px',
                 fontWeight: 700,
-                color: '#8e8e93',
+                color: 'var(--ios-text-secondary)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 marginBottom: '10px',
@@ -437,11 +437,11 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '20px' }}>🍏</span>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '14.5px', color: '#ffffff' }}>iPhone (Safari)</div>
-                  <div style={{ fontSize: '11.5px', color: '#8e8e93' }}>Sin pasar por App Store</div>
+                  <div style={{ fontWeight: 800, fontSize: '14.5px', color: 'var(--ios-text-primary)' }}>iPhone (Safari)</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)' }}>Sin pasar por App Store</div>
                 </div>
               </div>
-              <div style={{ fontSize: '12.5px', color: '#d1d1d6', lineHeight: 1.5, paddingLeft: '30px' }}>
+              <div style={{ fontSize: '12.5px', color: 'var(--ios-text-secondary)', lineHeight: 1.5, paddingLeft: '30px' }}>
                 1. Abrí el enlace en el navegador <strong>Safari</strong>.<br />
                 2. Tocá el botón central <strong>Compartir</strong> (icono de cuadrado con flecha arriba).<br />
                 3. Elegí <strong>"Agregar al inicio"</strong> y confirmá con "Agregar".
@@ -452,11 +452,11 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '20px' }}>🤖</span>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '14.5px', color: '#ffffff' }}>Android (Chrome)</div>
-                  <div style={{ fontSize: '11.5px', color: '#8e8e93' }}>Acceso PWA nativo</div>
+                  <div style={{ fontWeight: 800, fontSize: '14.5px', color: 'var(--ios-text-primary)' }}>Android (Chrome)</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)' }}>Acceso PWA nativo</div>
                 </div>
               </div>
-              <div style={{ fontSize: '12.5px', color: '#d1d1d6', lineHeight: 1.5, paddingLeft: '30px' }}>
+              <div style={{ fontSize: '12.5px', color: 'var(--ios-text-secondary)', lineHeight: 1.5, paddingLeft: '30px' }}>
                 1. Abrí el enlace en <strong>Google Chrome</strong>.<br />
                 2. Tocá el menú de tres puntos (<strong>⋮</strong>) arriba a la derecha.<br />
                 3. Seleccioná <strong>"Instalar aplicación"</strong> o "Agregar a la pantalla principal".
@@ -467,11 +467,11 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '20px' }}>💻</span>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '14.5px', color: '#ffffff' }}>PC / Mac</div>
-                  <div style={{ fontSize: '11.5px', color: '#8e8e93' }}>Chrome, Edge o Brave</div>
+                  <div style={{ fontWeight: 800, fontSize: '14.5px', color: 'var(--ios-text-primary)' }}>PC / Mac</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)' }}>Chrome, Edge o Brave</div>
                 </div>
               </div>
-              <div style={{ fontSize: '12.5px', color: '#d1d1d6', lineHeight: 1.5, paddingLeft: '30px' }}>
+              <div style={{ fontSize: '12.5px', color: 'var(--ios-text-secondary)', lineHeight: 1.5, paddingLeft: '30px' }}>
                 Tocá el icono de pantalla con flecha en la barra de direcciones superior para instalar como app de escritorio.
               </div>
             </div>
@@ -490,11 +490,12 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
             ======================================================== */}
         {activeSection === 'notifications' && (
           <div>
+            {/* Notifications settings */}
             <div
               style={{
                 fontSize: '12px',
                 fontWeight: 700,
-                color: '#8e8e93',
+                color: 'var(--ios-text-secondary)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 marginBottom: '10px',
@@ -511,14 +512,14 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '16px 0',
-                  borderBottom: '1px solid rgba(255,255,255,0.08)',
+                  borderBottom: '1px solid var(--ios-separator)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Bell size={22} style={{ color: '#0a84ff' }} />
+                  <Bell size={22} style={{ color: 'var(--ios-blue)' }} />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '15px' }}>Notificaciones Push</div>
-                    <div style={{ fontSize: '12px', color: '#8e8e93' }}>Alertas ante demoras y cancelaciones</div>
+                    <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--ios-text-primary)' }}>Notificaciones Push</div>
+                    <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)' }}>Alertas ante demoras y cancelaciones</div>
                   </div>
                 </div>
                 <input
@@ -541,10 +542,10 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Volume2 size={22} style={{ color: '#30d158' }} />
+                  <Volume2 size={22} style={{ color: 'var(--ios-green)' }} />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '15px' }}>Sonido de Arribo (Chime)</div>
-                    <div style={{ fontSize: '12px', color: '#8e8e93' }}>Campana armónica cuando el tren se aproxima</div>
+                    <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--ios-text-primary)' }}>Sonido de Arribo (Chime)</div>
+                    <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)' }}>Campana armónica cuando el tren se aproxima</div>
                   </div>
                 </div>
                 <input
@@ -627,7 +628,7 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               style={{
                 fontSize: '12px',
                 fontWeight: 700,
-                color: '#8e8e93',
+                color: 'var(--ios-text-secondary)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 marginBottom: '10px',
@@ -641,9 +642,9 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               className="ios-card"
               style={{
                 padding: '22px',
-                background: 'linear-gradient(135deg, rgba(28, 28, 35, 0.95), rgba(18, 18, 24, 0.98))',
+                background: 'linear-gradient(135deg, rgba(0, 159, 227, 0.12), var(--ios-card-solid))',
                 border: '1px solid rgba(0, 159, 227, 0.3)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                boxShadow: 'var(--shadow-sm)',
                 marginBottom: '16px',
               }}
             >
@@ -666,7 +667,7 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <div style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff' }}>
+                    <div style={{ fontWeight: 800, fontSize: '18px', color: 'var(--ios-text-primary)' }}>
                       Martin Calvo Ruiz
                     </div>
                     <span
@@ -674,7 +675,7 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
                         fontSize: '10px',
                         fontWeight: 800,
                         background: 'rgba(48, 209, 88, 0.18)',
-                        color: '#30d158',
+                        color: 'var(--ios-green)',
                         border: '1px solid rgba(48, 209, 88, 0.35)',
                         padding: '2px 8px',
                         borderRadius: '8px',
@@ -684,7 +685,7 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
                       CREADOR & DESARROLLADOR
                     </span>
                   </div>
-                  <div style={{ fontSize: '12.5px', color: '#8e8e93', marginTop: '3px' }}>
+                  <div style={{ fontSize: '12.5px', color: 'var(--ios-text-secondary)', marginTop: '3px' }}>
                     Diseño, arquitectura de software y desarrollo de RielAR
                   </div>
                 </div>
@@ -693,20 +694,20 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               <div
                 style={{
                   paddingTop: '14px',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderTop: '1px solid var(--ios-separator)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '10px',
                   fontSize: '12.5px',
-                  color: '#8e8e93',
+                  color: 'var(--ios-text-secondary)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Code2 size={14} style={{ color: '#0a84ff' }} />
+                    <Code2 size={14} style={{ color: 'var(--ios-blue)' }} />
                     <span>Programación & Código</span>
                   </span>
-                  <span style={{ color: '#f5f5f7', fontWeight: 700 }}>Martin Calvo Ruiz</span>
+                  <span style={{ color: 'var(--ios-text-primary)', fontWeight: 700 }}>Martin Calvo Ruiz</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -714,25 +715,25 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
                     <Sparkles size={14} style={{ color: '#ffd60a' }} />
                     <span>Aplicación</span>
                   </span>
-                  <span style={{ color: '#f5f5f7', fontWeight: 600 }}>RielAR v2.0 • PWA</span>
+                  <span style={{ color: 'var(--ios-text-primary)', fontWeight: 600 }}>RielAR v2.0 • PWA</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <ShieldCheck size={14} style={{ color: '#30d158' }} />
+                    <ShieldCheck size={14} style={{ color: 'var(--ios-green)' }} />
                     <span>Seguridad SSL</span>
                   </span>
-                  <span style={{ color: '#30d158', fontWeight: 600 }}>HTTPS Cifrado</span>
+                  <span style={{ color: 'var(--ios-green)', fontWeight: 600 }}>HTTPS Cifrado</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>Datos en Tiempo Real</span>
-                  <span style={{ color: '#0a84ff', fontWeight: 600 }}>API Oficial Trenes Argentinos</span>
+                  <span style={{ color: 'var(--ios-blue)', fontWeight: 600 }}>API Oficial Trenes Argentinos</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>Origen</span>
-                  <span style={{ color: '#f5f5f7', fontWeight: 600 }}>Buenos Aires, Argentina 🇦🇷</span>
+                  <span style={{ color: 'var(--ios-text-primary)', fontWeight: 600 }}>Buenos Aires, Argentina 🇦🇷</span>
                 </div>
               </div>
             </div>
@@ -742,7 +743,7 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               className="ios-card"
               style={{
                 padding: '16px',
-                background: 'linear-gradient(135deg, rgba(0, 159, 227, 0.12), rgba(28, 28, 35, 0.95))',
+                background: 'linear-gradient(135deg, rgba(0, 159, 227, 0.12), var(--ios-card-solid))',
                 border: '1px solid rgba(0, 159, 227, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
@@ -753,10 +754,10 @@ export default function MoreView({ onInstallApp, theme = 'dark', onToggleTheme }
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '24px' }}>💙</span>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '14px', color: '#ffffff' }}>
+                  <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--ios-text-primary)' }}>
                     ¿Te resulta útil RielAR?
                   </div>
-                  <div style={{ fontSize: '11.5px', color: '#8e8e93' }}>
+                  <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)' }}>
                     Hacé un aporte voluntario por Mercado Pago para los servidores
                   </div>
                 </div>

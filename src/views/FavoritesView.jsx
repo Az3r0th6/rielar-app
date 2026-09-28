@@ -79,7 +79,7 @@ export default function FavoritesView({
           style={{
             fontSize: '12px',
             fontWeight: 700,
-            color: '#8e8e93',
+            color: 'var(--ios-text-secondary)',
             textTransform: 'uppercase',
             marginBottom: '10px',
             paddingLeft: '4px',
@@ -91,10 +91,10 @@ export default function FavoritesView({
         {favorites.length === 0 ? (
           <div
             className="ios-card"
-            style={{ textAlign: 'center', padding: '40px 20px', color: '#8e8e93' }}
+            style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--ios-text-secondary)' }}
           >
             <Star size={44} style={{ color: '#ffd60a', margin: '0 auto 14px', opacity: 0.85 }} />
-            <div style={{ fontWeight: 800, fontSize: '17px', color: '#f5f5f7' }}>
+            <div style={{ fontWeight: 800, fontSize: '17px', color: 'var(--ios-text-primary)' }}>
               Aún no tienes estaciones favoritas
             </div>
             <div style={{ fontSize: '13.5px', marginTop: '8px', lineHeight: 1.5 }}>
@@ -116,10 +116,10 @@ export default function FavoritesView({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '17px', fontWeight: 800, wordBreak: 'break-word' }}>{station.name}</span>
+                      <span style={{ fontSize: '17px', fontWeight: 800, wordBreak: 'break-word', color: 'var(--ios-text-primary)' }}>{station.name}</span>
                       <LineBadge lineId={station.lineId} size="small" />
                     </div>
-                    <div style={{ fontSize: '12px', color: '#8e8e93', marginTop: '2px', wordBreak: 'break-word' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)', marginTop: '2px', wordBreak: 'break-word' }}>
                       {station.ramal || 'Ramal urbano'}
                     </div>
                   </div>
@@ -167,7 +167,7 @@ export default function FavoritesView({
                   style={{
                     marginTop: '12px',
                     paddingTop: '10px',
-                    borderTop: '1px solid rgba(255,255,255,0.06)',
+                    borderTop: '1px solid var(--ios-separator)',
                   }}
                 >
                   {nextTrains.length > 0 ? (
@@ -195,10 +195,10 @@ export default function FavoritesView({
                           }}
                         >
                           <span style={{ fontWeight: 600, color: 'var(--ios-text-primary)' }}>
-                            <span style={{ color: '#0a84ff', fontWeight: 700 }}>Desde {origin}</span> ➔ {dest}
+                            <span style={{ color: 'var(--ios-blue)', fontWeight: 700 }}>Desde {origin}</span> ➔ {dest}
                           </span>
                           <div style={{ textAlign: 'right', flexShrink: 0, paddingLeft: '8px' }}>
-                            <span style={{ color: '#30d158', fontWeight: 800 }}>
+                            <span style={{ color: 'var(--ios-green)', fontWeight: 800 }}>
                               {formatArrivalSeconds(t.arribo?.segundos)}
                             </span>
                             {(t.arribo?.salida?.programada || t.arribo?.llegada?.programada) && (
@@ -211,7 +211,7 @@ export default function FavoritesView({
                       );
                     })
                   ) : (
-                    <div style={{ fontSize: '12px', color: '#8e8e93' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)' }}>
                       {loading ? 'Consultando arribos en vivo...' : 'Toca para ver próximos arribos ›'}
                     </div>
                   )}

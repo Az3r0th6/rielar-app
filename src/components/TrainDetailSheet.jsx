@@ -313,7 +313,7 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
         <div className="sheet-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <LineBadge lineName={lineName} />
-            <span style={{ fontSize: '13px', color: '#8e8e93', fontWeight: 600 }}>
+            <span style={{ fontSize: '13px', color: 'var(--ios-text-secondary)', fontWeight: 600 }}>
               Tren #{trainNumber}
             </span>
             <span
@@ -389,13 +389,13 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
 
           {/* Main Info Header: Origin "Desde" first in descending order */}
           <div style={{ marginBottom: '14px' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#0a84ff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ios-blue)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Cabecera de Origen:
             </div>
-            <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#f5f5f7', marginTop: '2px' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--ios-text-primary)', marginTop: '2px' }}>
               Desde {origin} ➔ {destination}
             </h2>
-            <div style={{ fontSize: '13.5px', color: '#8e8e93', marginTop: '3px' }}>
+            <div style={{ fontSize: '13.5px', color: 'var(--ios-text-secondary)', marginTop: '3px' }}>
               Destino final: <strong>{destination}</strong> • Andén {platform} en {stationName}
             </div>
           </div>
@@ -406,40 +406,40 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
             style={{
               padding: '16px',
               margin: '0 0 16px',
-              background: 'linear-gradient(135deg, rgba(0, 159, 227, 0.15), rgba(20, 20, 26, 0.95))',
+              background: 'linear-gradient(135deg, rgba(0, 159, 227, 0.15), var(--ios-card-solid))',
               border: '1px solid rgba(0, 159, 227, 0.35)',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="live-pulse-dot" />
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#30d158', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--ios-green)', textTransform: 'uppercase' }}>
                   {journey?.statusBadge || 'En viaje'}
                 </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#8e8e93' }}>
-                <Gauge size={14} style={{ color: '#0a84ff' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--ios-text-secondary)' }}>
+                <Gauge size={14} style={{ color: 'var(--ios-blue)' }} />
                 <span>Velocidad: ~{journey?.speedKmH ?? 43} km/h</span>
               </div>
             </div>
 
-            <div style={{ fontSize: '14.5px', fontWeight: 700, color: '#ffffff', marginBottom: '12px' }}>
+            <div style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--ios-text-primary)', marginBottom: '12px' }}>
               {journey?.statusDetail || `En trayecto hacia ${stationName}`}
             </div>
 
             {/* Live Progress Bar with moving train */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#8e8e93', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--ios-text-secondary)', marginBottom: '6px' }}>
                 <span>{origin}</span>
-                <span style={{ color: '#0a84ff', fontWeight: 700 }}>{journey?.overallProgress || 50}% del recorrido</span>
+                <span style={{ color: 'var(--ios-blue)', fontWeight: 700 }}>{journey?.overallProgress || 50}% del recorrido</span>
                 <span>{destination}</span>
               </div>
 
               <div
                 style={{
                   height: '8px',
-                  background: 'rgba(255, 255, 255, 0.1)',
+                  background: 'rgba(118, 118, 128, 0.2)',
                   borderRadius: '10px',
                   position: 'relative',
                   overflow: 'visible',
@@ -537,8 +537,8 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
                 padding: '8px',
                 borderRadius: '10px',
                 border: 'none',
-                background: viewMode === 'timeline' ? '#0a84ff' : 'transparent',
-                color: viewMode === 'timeline' ? '#ffffff' : '#8e8e93',
+                background: viewMode === 'timeline' ? 'var(--ios-blue)' : 'transparent',
+                color: viewMode === 'timeline' ? '#ffffff' : 'var(--ios-text-secondary)',
                 fontWeight: 700,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -563,8 +563,8 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
                 padding: '8px',
                 borderRadius: '10px',
                 border: 'none',
-                background: viewMode === 'map' ? '#0a84ff' : 'transparent',
-                color: viewMode === 'map' ? '#ffffff' : '#8e8e93',
+                background: viewMode === 'map' ? 'var(--ios-blue)' : 'transparent',
+                color: viewMode === 'map' ? '#ffffff' : 'var(--ios-text-secondary)',
                 fontWeight: 700,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -795,10 +795,10 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
           {viewMode === 'timeline' && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 700, color: '#f5f5f7' }}>
+                <h3 style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--ios-text-primary)' }}>
                   Itinerario del Viaje ({journey?.stops.length || 0} paradas)
                 </h3>
-                <div style={{ textAlign: 'right', fontSize: '11.5px', color: '#8e8e93' }}>
+                <div style={{ textAlign: 'right', fontSize: '11.5px', color: 'var(--ios-text-secondary)' }}>
                   {journey?.scheduledTime && (
                     <span style={{ marginRight: '6px' }}>
                       Prog: <strong>{formatLocalTime(journey.scheduledTime)}</strong>
@@ -835,14 +835,14 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
                             style={{
                               fontWeight: isCurrent ? 800 : isCompleted ? 500 : 700,
                               fontSize: isCurrent ? '15px' : '13.5px',
-                              color: isCurrent ? '#30d158' : isCompleted ? '#8e8e93' : '#f5f5f7',
+                              color: isCurrent ? 'var(--ios-green)' : isCompleted ? 'var(--ios-text-tertiary)' : 'var(--ios-text-primary)',
                             }}
                           >
                             {st.name}
                           </span>
 
                           {isCompleted && (
-                            <span style={{ fontSize: '11px', color: '#30d158' }}>✓</span>
+                            <span style={{ fontSize: '11px', color: 'var(--ios-green)' }}>✓</span>
                           )}
 
                           {isCurrent && (
@@ -851,7 +851,7 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
                                 fontSize: '10.5px',
                                 fontWeight: 800,
                                 background: 'rgba(48,209,88,0.2)',
-                                color: '#30d158',
+                                color: 'var(--ios-green)',
                                 padding: '1px 6px',
                                 borderRadius: '6px',
                               }}
@@ -861,7 +861,7 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
                           )}
                         </div>
 
-                        <div style={{ fontSize: '11.5px', color: isCurrent ? '#30d158' : '#8e8e93', marginTop: '2px' }}>
+                        <div style={{ fontSize: '11.5px', color: isCurrent ? 'var(--ios-green)' : 'var(--ios-text-secondary)', marginTop: '2px' }}>
                           {st.label}
                         </div>
                       </div>

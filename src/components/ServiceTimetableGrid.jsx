@@ -122,9 +122,9 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                   gap: '6px',
                   padding: '7px 14px',
                   borderRadius: '12px',
-                  border: isSelected ? `2px solid ${line.color}` : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: isSelected ? `${line.color}25` : 'rgba(255, 255, 255, 0.04)',
-                  color: isSelected ? '#ffffff' : '#8e8e93',
+                  border: isSelected ? `2px solid ${line.color}` : '1px solid var(--ios-separator)',
+                  background: isSelected ? `${line.color}25` : 'rgba(118, 118, 128, 0.12)',
+                  color: isSelected ? (line.color || 'var(--ios-blue)') : 'var(--ios-text-secondary)',
                   fontWeight: 700,
                   fontSize: '12.5px',
                   cursor: 'pointer',
@@ -144,7 +144,7 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
       <div className="ios-card" style={{ padding: '14px' }}>
         {/* Branch Selector Dropdown */}
         <div style={{ marginBottom: '12px' }}>
-          <label style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>
+          <label style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>
             Ramal
           </label>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -162,9 +162,9 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                     borderRadius: '10px',
                     fontSize: '12px',
                     fontWeight: 700,
-                    border: active ? `1.5px solid ${b.color}` : '1px solid rgba(255, 255, 255, 0.1)',
-                    background: active ? `${b.color}20` : 'rgba(255, 255, 255, 0.04)',
-                    color: active ? '#ffffff' : '#a1a1a6',
+                    border: active ? `1.5px solid ${b.color}` : '1px solid var(--ios-separator)',
+                    background: active ? `${b.color}20` : 'rgba(118, 118, 128, 0.12)',
+                    color: active ? (b.color || 'var(--ios-blue)') : 'var(--ios-text-secondary)',
                     cursor: 'pointer',
                   }}
                 >
@@ -181,15 +181,15 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'var(--ios-card-solid)',
+            border: '1px solid var(--ios-card-border)',
             borderRadius: '12px',
             padding: '8px 12px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 700, textTransform: 'uppercase' }}>Sentido:</span>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
+            <span style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>Sentido:</span>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
               {activeDirection?.name}
             </span>
           </div>
@@ -260,11 +260,11 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
       {isTodayDayType && nextService && (
         <div
           style={{
-            background: 'linear-gradient(135deg, rgba(48, 209, 88, 0.16), rgba(18, 18, 24, 0.95))',
+            background: 'linear-gradient(135deg, rgba(48, 209, 88, 0.16), var(--ios-card-solid))',
             border: '1.5px solid rgba(48, 209, 88, 0.4)',
             borderRadius: '16px',
             padding: '12px 14px',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
+            boxShadow: 'var(--shadow-sm)',
             position: 'relative',
             overflow: 'hidden',
           }}
@@ -272,12 +272,12 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#30d158', animation: 'pulse-ring 1.6s infinite' }}></div>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#30d158', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--ios-green)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 PRÓXIMO TREN PROGRAMADO
               </span>
             </div>
             {nextService.minutesUntilDeparture !== undefined && !nextService.isTomorrow && (
-              <span style={{ fontSize: '12px', fontWeight: 800, color: '#30d158', background: 'rgba(48, 209, 88, 0.15)', padding: '2px 8px', borderRadius: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--ios-green)', background: 'rgba(48, 209, 88, 0.15)', padding: '2px 8px', borderRadius: '8px' }}>
                 Sale en ~{nextService.minutesUntilDeparture} min
               </span>
             )}
@@ -285,10 +285,10 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontSize: '20px', fontWeight: 900, color: '#ffffff' }}>
-                {nextService.departure} <span style={{ fontSize: '13px', fontWeight: 600, color: '#8e8e93' }}>➔ llega {nextService.arrival}</span>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--ios-text-primary)' }}>
+                {nextService.departure} <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ios-text-secondary)' }}>➔ llega {nextService.arrival}</span>
               </div>
-              <div style={{ fontSize: '11.5px', color: '#a1a1a6', marginTop: '2px' }}>
+              <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)', marginTop: '2px' }}>
                 Servicio {nextService.number} • Duración: ~{nextService.durationMinutes} min
               </div>
             </div>
@@ -300,9 +300,9 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                   onNavigateToMap();
                 }}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.12)',
-                  color: '#ffffff',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(118, 118, 128, 0.14)',
+                  color: 'var(--ios-text-primary)',
+                  border: '1px solid var(--ios-separator)',
                   borderRadius: '10px',
                   padding: '7px 12px',
                   fontSize: '11.5px',
@@ -333,7 +333,7 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
               alignItems: 'center',
             }}
           >
-            <Search size={14} style={{ position: 'absolute', left: '10px', color: '#8e8e93' }} />
+            <Search size={14} style={{ position: 'absolute', left: '10px', color: 'var(--ios-text-secondary)' }} />
             <input
               type="text"
               placeholder="Buscar hora (ej: 08:30 o 17)..."
@@ -342,10 +342,10 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
               style={{
                 width: '100%',
                 padding: '7px 10px 7px 30px',
-                background: 'rgba(255, 255, 255, 0.06)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+                background: 'rgba(118, 118, 128, 0.12)',
+                border: '1px solid var(--ios-separator)',
                 borderRadius: '10px',
-                color: '#ffffff',
+                color: 'var(--ios-text-primary)',
                 fontSize: '12px',
                 outline: 'none',
               }}
@@ -358,7 +358,7 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                   right: '8px',
                   background: 'transparent',
                   border: 'none',
-                  color: '#8e8e93',
+                  color: 'var(--ios-text-secondary)',
                   fontSize: '13px',
                   cursor: 'pointer',
                 }}
@@ -379,10 +379,10 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                 alignItems: 'center',
                 gap: '4px',
                 padding: '7px 10px',
-                background: 'rgba(255, 255, 255, 0.06)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+                background: 'rgba(118, 118, 128, 0.12)',
+                border: '1px solid var(--ios-separator)',
                 borderRadius: '10px',
-                color: '#a1a1a6',
+                color: 'var(--ios-text-secondary)',
                 fontSize: '11.5px',
                 fontWeight: 700,
                 textDecoration: 'none',
@@ -415,11 +415,12 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                 borderRadius: '8px',
                 fontSize: '11px',
                 fontWeight: 700,
-                border: timeFilter === t.id ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent',
-                background: timeFilter === t.id ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-                color: timeFilter === t.id ? '#ffffff' : '#8e8e93',
+                border: timeFilter === t.id ? '1.5px solid var(--ios-card-border-active)' : '1px solid transparent',
+                background: timeFilter === t.id ? 'var(--ios-card-solid)' : 'rgba(118, 118, 128, 0.12)',
+                color: timeFilter === t.id ? 'var(--ios-text-primary)' : 'var(--ios-text-secondary)',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
+                boxShadow: timeFilter === t.id ? 'var(--shadow-sm)' : 'none',
               }}
             >
               {t.label}
@@ -436,11 +437,11 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
             display: 'grid',
             gridTemplateColumns: '70px 75px 85px 1fr',
             padding: '10px 14px',
-            background: 'rgba(255, 255, 255, 0.04)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            background: 'var(--ios-card-solid)',
+            borderBottom: '1px solid var(--ios-separator)',
             fontSize: '11px',
             fontWeight: 800,
-            color: '#8e8e93',
+            color: 'var(--ios-text-secondary)',
             textTransform: 'uppercase',
             letterSpacing: '0.4px',
           }}
@@ -454,7 +455,7 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
         {/* Rows */}
         <div style={{ maxHeight: '480px', overflowY: 'auto' }}>
           {filteredServices.length === 0 ? (
-            <div style={{ padding: '36px 20px', textAlign: 'center', color: '#8e8e93', fontSize: '13px' }}>
+            <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--ios-text-secondary)', fontSize: '13px' }}>
               No se encontraron servicios en la franja horaria seleccionada.
             </div>
           ) : (
@@ -472,12 +473,12 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                     gridTemplateColumns: '70px 75px 85px 1fr',
                     alignItems: 'center',
                     padding: '11px 14px',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderBottom: '1px solid var(--ios-separator)',
                     background: isNext
-                      ? 'rgba(48, 209, 88, 0.1)'
+                      ? 'rgba(48, 209, 88, 0.12)'
                       : index % 2 === 0
                       ? 'transparent'
-                      : 'rgba(255, 255, 255, 0.015)',
+                      : 'rgba(118, 118, 128, 0.04)',
                     opacity: hasDeparted ? 0.6 : 1,
                     transition: 'background 0.2s',
                   }}
@@ -485,13 +486,13 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                   {/* Departure Time */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {isNext && (
-                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', animation: 'pulse-ring 1.4s infinite' }} />
+                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ios-green)', animation: 'pulse-ring 1.4s infinite' }} />
                     )}
                     <span
                       style={{
                         fontSize: '14.5px',
                         fontWeight: 900,
-                        color: isNext ? '#30d158' : hasDeparted ? '#8e8e93' : '#ffffff',
+                        color: isNext ? 'var(--ios-green)' : hasDeparted ? 'var(--ios-text-tertiary)' : 'var(--ios-text-primary)',
                       }}
                     >
                       {service.departure}
@@ -500,20 +501,20 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
 
                   {/* Arrival Time */}
                   <div>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: hasDeparted ? '#636366' : '#a1a1a6' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: hasDeparted ? 'var(--ios-text-tertiary)' : 'var(--ios-text-primary)' }}>
                       {service.arrival}
                     </span>
-                    <div style={{ fontSize: '10px', color: '#636366' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--ios-text-secondary)' }}>
                       {service.durationMinutes} min
                     </div>
                   </div>
 
                   {/* Service Number & Type */}
                   <div>
-                    <span style={{ fontSize: '11.5px', fontWeight: 800, color: currentBranch.color || '#0a84ff' }}>
+                    <span style={{ fontSize: '11.5px', fontWeight: 800, color: currentBranch.color || 'var(--ios-blue)' }}>
                       #{service.number.split('-')[1]}
                     </span>
-                    <div style={{ fontSize: '10px', color: '#8e8e93' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--ios-text-secondary)' }}>
                       {service.type}
                     </div>
                   </div>
@@ -525,7 +526,7 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                         style={{
                           fontSize: '10.5px',
                           fontWeight: 800,
-                          background: '#30d158',
+                          background: 'var(--ios-green)',
                           color: '#000000',
                           padding: '2px 8px',
                           borderRadius: '6px',
@@ -535,22 +536,22 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                         PRÓXIMO
                       </span>
                     ) : hasDeparted ? (
-                      <span style={{ fontSize: '10.5px', color: '#636366', fontWeight: 600 }}>
+                      <span style={{ fontSize: '10.5px', color: 'var(--ios-text-tertiary)', fontWeight: 600 }}>
                         Completado
                       </span>
                     ) : service.intermediateStops && service.intermediateStops.length > 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-                        <span style={{ fontSize: '10.5px', color: '#8e8e93' }}>
+                        <span style={{ fontSize: '10.5px', color: 'var(--ios-text-secondary)', fontWeight: 600 }}>
                           Pasa por {service.intermediateStops[0].name} ({service.intermediateStops[0].time})
                         </span>
                         {service.intermediateStops[1] && (
-                          <span style={{ fontSize: '9.5px', color: '#636366' }}>
+                          <span style={{ fontSize: '9.5px', color: 'var(--ios-text-tertiary)' }}>
                             {service.intermediateStops[1].name} ({service.intermediateStops[1].time})
                           </span>
                         )}
                       </div>
                     ) : (
-                      <span style={{ fontSize: '11px', color: '#8e8e93' }}>Programado</span>
+                      <span style={{ fontSize: '11px', color: 'var(--ios-text-secondary)' }}>Programado</span>
                     )}
                   </div>
                 </div>
@@ -561,7 +562,7 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
       </div>
 
       {/* 6. Footer Notes & Frequency Summary */}
-      <div style={{ padding: '0 4px', fontSize: '11.5px', color: '#8e8e93', lineHeight: 1.5 }}>
+      <div style={{ padding: '0 4px', fontSize: '11.5px', color: 'var(--ios-text-secondary)', lineHeight: 1.5 }}>
         <p>
           💡 <strong>Frecuencias habituales:</strong> Días hábiles en hora pico cada 12 a 15 min, fuera de hora pico cada 15 a 20 min. Los horarios corresponden a los cronogramas vigentes de Trenes Argentinos (SOFSE).
         </p>

@@ -177,7 +177,7 @@ export default function TripPlannerView({
               {/* Origin Picker */}
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <label style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
                     Punto de Partida
                   </label>
                   {originStation && (
@@ -236,8 +236,8 @@ export default function TripPlannerView({
                 <button
                   onClick={handleSwap}
                   style={{
-                    background: 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(255,255,255,0.12)',
+                    background: 'rgba(118, 118, 128, 0.14)',
+                    border: '1px solid var(--ios-separator)',
                     color: '#0a84ff',
                     width: '36px',
                     height: '36px',
@@ -256,7 +256,7 @@ export default function TripPlannerView({
               {/* Destination Picker */}
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <label style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
                     Estación de Llegada
                   </label>
                   {destStation && (
@@ -342,7 +342,7 @@ export default function TripPlannerView({
 
             {/* Quick Route Pills */}
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--ios-text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>
                 Rutas Frecuentes
               </div>
               <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
@@ -448,7 +448,7 @@ export default function TripPlannerView({
                           <div style={{ fontSize: '18px', fontWeight: 800, color: '#30d158' }}>
                             {formatArrivalSeconds(seconds)}
                           </div>
-                          <div style={{ fontSize: '11px', color: '#8e8e93' }}>
+                          <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 600 }}>
                             Ver detalles ›
                           </div>
                         </div>
