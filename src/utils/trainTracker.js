@@ -666,7 +666,10 @@ export function getActiveNetworkTrains() {
 }
 
 /**
- * Transforms raw SOFSE live network arrivals into active circulating trains for MapView
+ * Transforms raw SOFSE live network arrivals into active circulating trains for MapView.
+ * Strictly filters for trains that are currently in circulation on the railway line,
+ * excluding unstarted future departures (e.g. departing in 15-90 min), cancelled trains,
+ * and finished services that already completed their routes.
  */
 export function processRawNetworkTrains(rawList = []) {
   if (!Array.isArray(rawList)) return [];
@@ -676,120 +679,151 @@ export function processRawNetworkTrains(rawList = []) {
     const num = item.servicio?.numero;
     if (!num) continue;
 
+    // 1. Exclude cancelled services
+    if (item.servicio?.cancelacion) continue;
+
     const lineId = item.servicio?.lineId || item.servicio?.gerencia?.id || 5;
     if (lineId === 501) continue; // Exclude Line 501 Regionales
 
     const lineName = item.servicio?.gerencia?.nombre || 'Tren';
     const estaciones = item.servicio?.estaciones || [];
+    if (estaciones.length < 2) continue;
+
+    const desdeName = item.servicio?.desde?.estacion?.nombre;
+    const hastaName = item.servicio?.hasta?.estacion?.nombre;
+
+    // 2. Identify the active corridor strictly between 'desde' and 'hasta' stations.
+    // This prevents dummy '0' seconds from unserved or out-of-segment stops from falsely triggering platform detections.
+    let originIdx = 0;
+    if (desdeName) {
+      const found = estaciones.findIndex(
+        (s) => s.nombre === desdeName || s.estacion?.nombre === desdeName
+      );
+      if (found !== -1) originIdx = found;
+    }
+
+    let destIdx = estaciones.length - 1;
+    if (hastaName) {
+      const found = estaciones.findIndex(
+        (s) => s.nombre === hastaName || s.estacion?.nombre === hastaName
+      );
+      if (found !== -1) destIdx = found;
+    }
+
+    const activeStops = estaciones.slice(originIdx, destIdx + 1);
+    if (activeStops.length < 2) continue;
+
+    // 3. Classify stops on the active corridor
+    const passedStops = activeStops.filter((s) => s.segundos !== undefined && s.segundos < -25);
+    const hasPassedAny = passedStops.length > 0;
+    const upcomingStops = activeStops.filter((s) => s.segundos !== undefined && s.segundos > 25);
+    const lastStop = activeStops[activeStops.length - 1];
+
+    // 4. Exclude completed trips: arrived at final destination more than 2 minutes ago
+    if (lastStop.segundos !== undefined && lastStop.segundos < -120) {
+      continue;
+    }
+
+    // If all stops have been passed and no upcoming stops remain, trip is finished
+    // (allow only <= 90s grace period right at destination platform)
+    if (upcomingStops.length === 0 && hasPassedAny) {
+      if (lastStop.segundos === undefined || lastStop.segundos < -90) {
+        continue;
+      }
+    }
+
+    // 5. Exclude unstarted future departures:
+    // If the train has not passed any station on its route yet, it is still at origin.
+    // It is ONLY considered actively circulating if departure is imminent (<= 90 seconds / 1.5 min).
+    // Services departing in 10, 20, 45, or 80 minutes must NOT be shown as circulating live.
+    if (!hasPassedAny) {
+      const originStop = activeStops[0];
+      const originSec = originStop?.segundos ?? item.arribo?.segundos;
+      if (originSec === undefined || originSec > 90 || originSec < -120) {
+        continue; // Future scheduled departure
+      }
+    }
 
     let trainLat = null;
     let trainLng = null;
     let currentStationName = 'En viaje';
-    let nextStationName = item.servicio?.hasta?.estacion?.nombre || 'Destino';
+    let nextStationName = hastaName || activeStops[activeStops.length - 1]?.nombre || 'Destino';
     let speedKmH = 43;
     let statusDetail = 'En viaje';
     let etaNextMin = 3;
 
-    if (estaciones.length >= 2) {
-      // 1. Check if train is currently stopped at any platform
-      const platformStop = estaciones.find(s => s.segundos !== undefined && s.segundos <= 25 && s.segundos >= -35);
-      if (platformStop) {
-        const geo = findStation(platformStop, lineId);
-        if (geo) {
-          trainLat = geo.lat;
-          trainLng = geo.lng;
-          currentStationName = geo.name;
-          const currentIdx = estaciones.indexOf(platformStop);
-          const nextIdx = currentIdx + 1;
-          const nextGeo = nextIdx < estaciones.length ? findStation(estaciones[nextIdx], lineId) : null;
-          nextStationName = nextGeo?.name || geo.name;
+    // 6. Check if train is currently stopped at an active intermediate or terminal platform
+    const platformStop = activeStops.find(
+      (s) => s.segundos !== undefined && s.segundos <= 25 && s.segundos >= -35
+    );
+
+    if (platformStop) {
+      const geo = findStation(platformStop, lineId);
+      if (geo) {
+        trainLat = geo.lat;
+        trainLng = geo.lng;
+        currentStationName = geo.name;
+        const currentIdx = activeStops.indexOf(platformStop);
+        const nextGeo = currentIdx + 1 < activeStops.length ? findStation(activeStops[currentIdx + 1], lineId) : null;
+        nextStationName = nextGeo?.name || geo.name;
+        speedKmH = 0;
+        statusDetail = `Detenido en Andén ${platformStop.anden?.nombre || '1'} de ${geo.name}`;
+        etaNextMin = 0;
+      }
+    } else {
+      // 7. Train is actively circulating in transit between stations
+      const lastPassed = passedStops[passedStops.length - 1];
+      const nextUpcoming = upcomingStops[0];
+
+      if (lastPassed && nextUpcoming) {
+        const pGeo = findStation(lastPassed, lineId);
+        const nGeo = findStation(nextUpcoming, lineId);
+        if (pGeo && nGeo) {
+          const legDuration = Math.max(60, nextUpcoming.segundos - lastPassed.segundos);
+          const elapsed = Math.max(0, -lastPassed.segundos);
+          const progress = Math.max(0.05, Math.min(0.95, elapsed / legDuration));
+
+          trainLat = pGeo.lat + (nGeo.lat - pGeo.lat) * progress;
+          trainLng = pGeo.lng + (nGeo.lng - pGeo.lng) * progress;
+          currentStationName = pGeo.name;
+          nextStationName = nGeo.name;
+          speedKmH = 45;
+          etaNextMin = Math.max(1, Math.ceil(nextUpcoming.segundos / 60));
+          statusDetail = `En viaje hacia ${nGeo.name} (llega en ~${etaNextMin} min)`;
+        }
+      } else if (!hasPassedAny && upcomingStops.length > 0) {
+        // Imminent departure from origin (<= 90 seconds)
+        const firstGeo = findStation(activeStops[0], lineId);
+        const secondGeo = activeStops[1] ? findStation(activeStops[1], lineId) : null;
+        if (firstGeo) {
+          trainLat = firstGeo.lat;
+          trainLng = firstGeo.lng;
+          currentStationName = firstGeo.name;
+          nextStationName = secondGeo?.name || firstGeo.name;
           speedKmH = 0;
-          statusDetail = `Detenido en Andén ${platformStop.anden?.nombre || '1'} de ${geo.name}`;
+          const sec = activeStops[0].segundos ?? 30;
+          etaNextMin = Math.max(1, Math.ceil(sec / 60));
+          statusDetail = `En cabecera: ${firstGeo.name} (partiendo)`;
+        }
+      } else if (hasPassedAny && upcomingStops.length === 0) {
+        // Just arrived at final terminal platform within grace period
+        const destGeo = findStation(lastStop, lineId);
+        if (destGeo) {
+          trainLat = destGeo.lat;
+          trainLng = destGeo.lng;
+          currentStationName = destGeo.name;
+          nextStationName = destGeo.name;
+          speedKmH = 0;
+          statusDetail = `Arribó a cabecera: ${destGeo.name}`;
           etaNextMin = 0;
         }
-      } else {
-        // 2. Train is in transit between two stations
-        const lastPassed = estaciones.filter(s => s.segundos !== undefined && s.segundos < -25).pop();
-        const nextUpcoming = estaciones.find(s => s.segundos !== undefined && s.segundos > 25);
-
-        if (lastPassed && nextUpcoming) {
-          const pGeo = findStation(lastPassed, lineId);
-          const nGeo = findStation(nextUpcoming, lineId);
-          if (pGeo && nGeo) {
-            const legDuration = Math.max(60, nextUpcoming.segundos - lastPassed.segundos);
-            const elapsed = Math.max(0, -lastPassed.segundos);
-            const progress = Math.max(0.05, Math.min(0.95, elapsed / legDuration));
-
-            trainLat = pGeo.lat + (nGeo.lat - pGeo.lat) * progress;
-            trainLng = pGeo.lng + (nGeo.lng - pGeo.lng) * progress;
-            currentStationName = pGeo.name;
-            nextStationName = nGeo.name;
-            speedKmH = 45;
-            etaNextMin = Math.max(1, Math.ceil(nextUpcoming.segundos / 60));
-            statusDetail = `En viaje hacia ${nGeo.name} (llega en ~${etaNextMin} min)`;
-          }
-        } else if (!lastPassed && nextUpcoming) {
-          // At origin platform awaiting departure
-          // Only show trains departing within 15 minutes (900s) to keep live map focused on real active trains
-          if (nextUpcoming.segundos <= 900) {
-            const firstGeo = findStation(estaciones[0], lineId);
-            if (firstGeo) {
-              trainLat = firstGeo.lat;
-              trainLng = firstGeo.lng;
-              currentStationName = firstGeo.name;
-              const targetGeo = findStation(nextUpcoming, lineId);
-              nextStationName = targetGeo?.name || firstGeo.name;
-              speedKmH = 0;
-              etaNextMin = Math.max(1, Math.ceil(nextUpcoming.segundos / 60));
-              statusDetail = `En cabecera: ${firstGeo.name} (sale en ~${etaNextMin} min)`;
-            }
-          } else {
-            // Future departure (>15 min) - skip from live circulating map
-            continue;
-          }
-        } else if (lastPassed && !nextUpcoming) {
-          // Train arrived at destination terminal within last 5 minutes
-          if (lastPassed.segundos >= -300) {
-            const lastGeo = findStation(estaciones[estaciones.length - 1], lineId);
-            if (lastGeo) {
-              trainLat = lastGeo.lat;
-              trainLng = lastGeo.lng;
-              currentStationName = lastGeo.name;
-              nextStationName = lastGeo.name;
-              speedKmH = 0;
-              statusDetail = `Arribó a cabecera: ${lastGeo.name}`;
-              etaNextMin = 0;
-            }
-          } else {
-            // Arrived more than 5 minutes ago - service finished
-            continue;
-          }
-        }
-      }
-    }
-
-    // Fallback to journey calculation if physical interpolation couldn't resolve
-    if (!trainLat || !trainLng) {
-      const journey = calculateTrainJourney({
-        ...item,
-        stationName: item.stationName || item.servicio?.hasta?.estacion?.nombre,
-      });
-      if (journey && journey.trainPosition) {
-        trainLat = journey.trainPosition[0];
-        trainLng = journey.trainPosition[1];
-        currentStationName = journey.currentStationName;
-        nextStationName = journey.stops.find(s => s.state === 'upcoming')?.name || journey.destination;
-        speedKmH = journey.speedKmH;
-        statusDetail = journey.statusDetail;
-        etaNextMin = Math.max(1, Math.ceil(journey.secondsToTarget / 60));
       }
     }
 
     if (trainLat && trainLng) {
-      let origName = item.servicio?.desde?.estacion?.nombre || item.servicio?.estaciones?.[0]?.nombre || 'Origen';
-      let destName = item.servicio?.hasta?.estacion?.nombre || item.servicio?.estaciones?.[item.servicio.estaciones.length - 1]?.nombre || 'Destino';
+      let origName = desdeName || activeStops[0]?.nombre || 'Origen';
+      let destName = hastaName || activeStops[activeStops.length - 1]?.nombre || 'Destino';
 
-      // Clean up common station acronyms for display
       origName = origName.replace(/ \(LGM\)| - LSM| V\./g, '').replace('Plaza C.', 'Constitución').replace('J. L. Suarez', 'J.L. Suárez');
       destName = destName.replace(/ \(LGM\)| - LSM| V\./g, '').replace('Plaza C.', 'Constitución').replace('J. L. Suarez', 'J.L. Suárez');
 

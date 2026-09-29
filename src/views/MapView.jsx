@@ -111,18 +111,13 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
   };
 
   const fallbackTrains = getActiveNetworkTrains();
-  // For each line, if live SOFSE trains are present, use live data.
-  // If any line temporarily has 0 trains (e.g. late night or temporary API gap), supplement with fallback trains so the map is never empty
+  // When live SOFSE network data is available, use STRICTLY real circulating trains.
+  // Never add synthetic fallback trains to an active live feed, guaranteeing authentic train counts per line.
   const activeTrains = React.useMemo(() => {
-    if (!liveNetworkTrains || liveNetworkTrains.length === 0) {
-      return fallbackTrains;
+    if (liveNetworkTrains && liveNetworkTrains.length > 0) {
+      return liveNetworkTrains;
     }
-    const lineCounts = {};
-    liveNetworkTrains.forEach((t) => {
-      lineCounts[t.lineId] = (lineCounts[t.lineId] || 0) + 1;
-    });
-    const supplemental = fallbackTrains.filter((t) => !lineCounts[t.lineId]);
-    return [...liveNetworkTrains, ...supplemental];
+    return fallbackTrains;
   }, [liveNetworkTrains, fallbackTrains]);
   const filteredTrains = activeTrains.filter((t) => selectedLine === 'ALL' || t.lineId === Number(selectedLine));
 
@@ -139,6 +134,8 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
   const activeMapLines = LINES_DATA.filter(
     (l) => l.id !== 501 && PRELOADED_STATIONS.some((st) => st.lineId === l.id)
   );
+
+  const selectedLineObj = activeMapLines.find((l) => String(l.id) === selectedLine);
 
   return (
     <div className="map-view-wrapper">
@@ -208,7 +205,10 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
         }}
       >
         <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#30d158', animation: 'pulse-ring 1.6s infinite' }}></div>
-        <span>{filteredTrains.length} trenes circulando en vivo</span>
+        <span>
+          {filteredTrains.length} {filteredTrains.length === 1 ? 'tren circulando en vivo' : 'trenes circulando en vivo'}
+          {selectedLineObj ? ` • ${selectedLineObj.name}` : ' en la red'}
+        </span>
       </div>
 
       {/* Recenter Button */}

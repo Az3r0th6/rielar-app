@@ -443,8 +443,14 @@ app.get('/api/network-trains', async (req, res) => {
             const num = item.servicio?.numero;
             const lineId = item.servicio?.gerencia?.id || item.servicio?.lineId;
             if (lineId === 501) continue; // Exclude Line 501 Regionales
-            if (num && !trainMap.has(String(num))) {
-              trainMap.set(String(num), item);
+            if (item.servicio?.cancelacion) continue; // Skip cancelled services
+            if (num) {
+              const strNum = String(num);
+              const existing = trainMap.get(strNum);
+              // Retain or update to the instance that contains richer station progress data
+              if (!existing || (item.servicio?.estaciones?.length || 0) > (existing.servicio?.estaciones?.length || 0)) {
+                trainMap.set(strNum, item);
+              }
             }
           }
         } catch (e) {
