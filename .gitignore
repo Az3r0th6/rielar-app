@@ -24,3 +24,14 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Android TWA builds & binaries
+android-twa/.gradle/
+android-twa/build/
+android-twa/app/build/
+android-twa/local.properties
+*.apk
+*.aab
+*.keystore
+*.jks
+
