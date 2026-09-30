@@ -34,4 +34,4 @@ android-twa/local.properties
 *.aab
 *.keystore
 *.jks
-
+android-twa/keystore/

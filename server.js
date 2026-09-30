@@ -552,9 +552,15 @@ app.get('/api/health', (req, res) => {
 // - index.html, sw.js, manifest.json must NEVER be cached so updates apply immediately!
 // - Hashed assets (/assets/*) are cached safely with content hashes
 app.use(express.static(path.join(__dirname, 'dist'), {
+  dotfiles: 'allow',
   setHeaders: (res, filePath) => {
     const normalized = filePath.replace(/\\/g, '/');
-    if (normalized.endsWith('/index.html') || normalized.endsWith('/sw.js') || normalized.endsWith('/manifest.json')) {
+    if (
+      normalized.endsWith('/index.html') ||
+      normalized.endsWith('/sw.js') ||
+      normalized.endsWith('/manifest.json') ||
+      normalized.includes('.well-known')
+    ) {
       res.set({
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         'Pragma': 'no-cache',
