@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>RielAR Feature Graphic</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1024px;
+      height: 500px;
+      overflow: hidden;
+      background: #020611;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      position: relative;
+      color: #ffffff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Background image: train positioned prominently in the middle-right */
+    .bg-image {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 860px;
+      height: 500px;
+      background-image: url('bg-art.jpg');
+      background-size: cover;
+      background-position: 38% center;
+      z-index: 1;
+      filter: brightness(1.08) contrast(1.15) saturate(1.15);
+    }
+
+    /* Subtle gradient to leave left side crisp for text while showcasing the train */
+    .gradient-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        #020611 0%,
+        #020611 26%,
+        rgba(2, 6, 17, 0.92) 44%,
+        rgba(2, 6, 17, 0.5) 62%,
+        rgba(2, 6, 17, 0.15) 80%,
+        rgba(2, 6, 17, 0.45) 100%
+      );
+      z-index: 2;
+    }
+
+    /* Subtle top and bottom dark edge */
+    .vignette-vertical {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        180deg,
+        rgba(2, 6, 17, 0.45) 0%,
+        rgba(2, 6, 17, 0) 25%,
+        rgba(2, 6, 17, 0) 75%,
+        rgba(2, 6, 17, 0.6) 100%
+      );
+      z-index: 3;
+    }
+
+    /* Cyan ambient light */
+    .glow-orb {
+      position: absolute;
+      bottom: -60px;
+      left: 30px;
+      width: 440px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(0, 194, 255, 0.3) 0%, rgba(0, 119, 182, 0) 70%);
+      z-index: 4;
+      filter: blur(50px);
+    }
+
+    /* Content Wrapper */
+    .content-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 1024px;
+      height: 500px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 46px 0 52px;
+    }
+
+    /* Left Branding Area */
+    .brand-col {
+      max-width: 530px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 194, 255, 0.14);
+      border: 1px solid rgba(0, 194, 255, 0.45);
+      backdrop-filter: blur(16px);
+      padding: 5px 13px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #00d2ff;
+      width: fit-content;
+      box-shadow: 0 0 20px rgba(0, 194, 255, 0.25);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #30d158;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #30d158;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .app-icon-box {
+      width: 76px;
+      height: 76px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 14px 35px rgba(0, 0, 0, 0.65),
+        0 0 28px rgba(0, 194, 255, 0.45);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+    }
+
+    .app-icon-train {
+      font-size: 42px;
+      line-height: 1;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+    }
+
+    .app-title {
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      display: flex;
+      align-items: baseline;
+    }
+
+    .app-title .brand-riel {
+      color: #ffffff;
+      text-shadow: 0 4px 22px rgba(0, 0, 0, 0.7);
+    }
+
+    .app-title .brand-ar {
+      color: #00c2ff;
+      text-shadow: 0 0 32px rgba(0, 194, 255, 0.8);
+      margin-left: 2px;
+    }
+
+    .tagline {
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #f1f5f9;
+      letter-spacing: -0.02em;
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
+    }
+
+    .subtitle {
+      font-size: 13.5px;
+      color: #94a3b8;
+      font-weight: 500;
+      line-height: 1.45;
+      margin-top: -6px;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+    }
+
+    /* Lines badges */
+    .lines-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 11px;
+      border-radius: 9px;
+      letter-spacing: 0.02em;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .pill-mitre { background: rgba(0, 130, 201, 0.45); color: #72cbff; border-color: rgba(0, 130, 201, 0.8); }
+    .pill-roca { background: rgba(16, 79, 158, 0.55); color: #8ec0ff; border-color: rgba(16, 79, 158, 0.9); }
+    .pill-sarmiento { background: rgba(0, 166, 81, 0.45); color: #69f0a6; border-color: rgba(0, 166, 81, 0.8); }
+    .pill-sanmartin { background: rgba(88, 86, 214, 0.45); color: #c4c2ff; border-color: rgba(88, 86, 214, 0.8); }
+    .pill-belgrano { background: rgba(233, 93, 15, 0.45); color: #ffb58a; border-color: rgba(233, 93, 15, 0.8); }
+    .pill-costa { background: rgba(52, 199, 89, 0.45); color: #8cf5ad; border-color: rgba(52, 199, 89, 0.8); }
+
+    /* Right Live Card (Glassmorphism UI Preview) */
+    .preview-card {
+      width: 320px;
+      background: rgba(8, 16, 32, 0.85);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(0, 194, 255, 0.45);
+      border-radius: 22px;
+      padding: 18px 20px;
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.85),
+        0 0 35px rgba(0, 194, 255, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .station-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .live-status-chip {
+      font-size: 10px;
+      font-weight: 800;
+      color: #30d158;
+      background: rgba(48, 209, 88, 0.2);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(48, 209, 88, 0.45);
+      box-shadow: 0 0 10px rgba(48, 209, 88, 0.2);
+    }
+
+    .train-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 9px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .train-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .train-dest {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .train-line-badge {
+      font-size: 10.5px;
+      font-weight: 700;
+    }
+
+    .train-eta-box {
+      text-align: right;
+    }
+
+    .train-min {
+      font-size: 17px;
+      font-weight: 900;
+      color: #30d158;
+      line-height: 1;
+      text-shadow: 0 0 12px rgba(48, 209, 88, 0.45);
+    }
+
+    .train-track {
+      font-size: 10.5px;
+      color: #94a3b8;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .card-footer {
+      font-size: 11px;
+      color: #94a3b8;
+      text-align: center;
+      padding-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    .card-footer span {
+      color: #00c2ff;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <!-- Futuristic Train Background -->
+  <div class="bg-image"></div>
+  <div class="gradient-overlay"></div>
+  <div class="vignette-vertical"></div>
+  <div class="glow-orb"></div>
+
+  <!-- Main Banner Content Layout -->
+  <div class="content-wrapper">
+    <!-- Left Column: Branding, App Name, Tagline and Lines -->
+    <div class="brand-col">
+      <div class="badge-live">
+        <span class="pulse-dot"></span>
+        <span>Red Ferroviaria Metropolitana • AMBA</span>
+      </div>
+
+      <div class="title-row">
+        <div class="app-icon-box">
+          <div class="app-icon-train">🚆</div>
+        </div>
+        <div class="app-title">
+          <span class="brand-riel">Riel</span><span class="brand-ar">AR</span>
+        </div>
+      </div>
+
+      <div class="tagline">
+        Horarios, arribos y estado de trenes en tiempo real
+      </div>
+
+      <div class="subtitle">
+        Cálculo de estación más cercana • Mapa interactivo de ramales • Alertas de demoras
+      </div>
+
+      <div class="lines-pills">
+        <span class="pill pill-mitre">L. Mitre</span>
+        <span class="pill pill-roca">L. Roca</span>
+        <span class="pill pill-sarmiento">L. Sarmiento</span>
+        <span class="pill pill-sanmartin">L. San Martín</span>
+        <span class="pill pill-belgrano">Belgrano Sur / N.</span>
+        <span class="pill pill-costa">Tren de la Costa</span>
+      </div>
+    </div>
+
+    <!-- Right Column: Glassmorphism Live Arrival Mockup Card -->
+    <div class="preview-card">
+      <div class="card-header">
+        <div class="station-title">
+          <span style="font-size: 16px;">📍</span>
+          <span>Estación Retiro</span>
+        </div>
+        <div class="live-status-chip">EN VIVO</div>
+      </div>
+
+      <div class="train-item">
+        <div class="train-info">
+          <div class="train-dest">a Tigre</div>
+          <div class="train-line-badge" style="color: #62c3ff;">Línea Mitre</div>
+        </div>
+        <div class="train-eta-box">
+          <div class="train-min">3 min</div>
+          <div class="train-track">Andén 2</div>
+        </div>
+      </div>
+
+      <div class="train-item">
+        <div class="train-info">
+          <div class="train-dest">a José C. Paz</div>
+          <div class="train-line-badge" style="color: #c4c2ff;">Línea San Martín</div>
+        </div>
+        <div class="train-eta-box">
+          <div class="train-min">7 min</div>
+          <div class="train-track">Andén 1</div>
+        </div>
+      </div>
+
+      <div class="train-item">
+        <div class="train-info">
+          <div class="train-dest">a Bmé. Mitre</div>
+          <div class="train-line-badge" style="color: #62c3ff;">Línea Mitre</div>
+        </div>
+        <div class="train-eta-box">
+          <div class="train-min">12 min</div>
+          <div class="train-track">Andén 4</div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span>●</span> API Oficial Trenes Argentinos
+      </div>
+    </div>
+  </div>
+</body>
+</html>
