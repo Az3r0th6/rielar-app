@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Política de Privacidad • RielAR</title>
+  <meta name="description" content="Política de Privacidad oficial de RielAR (com.rielar.app). Información transparente sobre protección de datos, permisos y uso de ubicación para Google Play y la web." />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <style>
+    :root {
+      --bg-color: #0b111e;
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-blue: #009fe3;
+      --accent-green: #30d158;
+      --accent-yellow: #ffd60a;
+      --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      line-height: 1.65;
+      padding: 24px 16px 64px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    /* Header & Branding */
+    header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brand-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #009fe3, #006699);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 14px rgba(0, 159, 227, 0.35);
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-title span {
+      color: var(--accent-blue);
+    }
+
+    .lang-switcher {
+      display: flex;
+      background: rgba(255, 255, 255, 0.07);
+      padding: 4px;
+      border-radius: 10px;
+      gap: 4px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .lang-btn.active {
+      background: var(--accent-blue);
+      color: #ffffff;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-top: 8px;
+    }
+
+    .meta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(48, 209, 88, 0.12);
+      color: var(--accent-green);
+      border: 1px solid rgba(48, 209, 88, 0.25);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 700;
+      width: fit-content;
+    }
+
+    /* Summary Highlights */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .summary-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .summary-card .icon {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .summary-card h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .summary-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* Main Sections */
+    section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    p {
+      color: #cbd5e1;
+      font-size: 14.5px;
+      margin-bottom: 12px;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    ul {
+      margin-left: 20px;
+      margin-bottom: 14px;
+      color: #cbd5e1;
+      font-size: 14.5px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    li strong {
+      color: var(--text-main);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-weight: 700;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+      color: #cbd5e1;
+    }
+
+    .badge-no {
+      background: rgba(255, 69, 58, 0.15);
+      color: #ff453a;
+      border: 1px solid rgba(255, 69, 58, 0.3);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-yes {
+      background: rgba(48, 209, 88, 0.15);
+      color: #30d158;
+      border: 1px solid rgba(48, 209, 88, 0.3);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid var(--card-border);
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-return {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-blue);
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .btn-return:hover {
+      opacity: 0.9;
+      text-decoration: none;
+    }
+
+    .lang-section {
+      display: block;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand-bar">
+        <a href="/" class="brand-logo" title="Volver a RielAR">
+          <div class="logo-icon">🚆</div>
+          <div class="brand-title">Riel<span>AR</span></div>
+        </a>
+        <div class="lang-switcher">
+          <button class="lang-btn active" id="btn-es" onclick="switchLang('es')">Español</button>
+          <button class="lang-btn" id="btn-en" onclick="switchLang('en')">English</button>
+        </div>
+      </div>
+
+      <div id="header-es">
+        <div class="meta-badge">✓ Vigente para Google Play Store & Web</div>
+        <h1>Política de Privacidad</h1>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">
+          <strong>Aplicación:</strong> RielAR (com.rielar.app) • <strong>Desarrollador:</strong> Martin Calvo Ruiz • <strong>Última actualización:</strong> Septiembre 2026
+        </p>
+      </div>
+
+      <div id="header-en" class="hidden">
+        <div class="meta-badge">✓ Valid for Google Play Store & Web</div>
+        <h1>Privacy Policy</h1>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">
+          <strong>Application:</strong> RielAR (com.rielar.app) • <strong>Developer:</strong> Martin Calvo Ruiz • <strong>Last updated:</strong> September 2026
+        </p>
+      </div>
+    </header>
+
+    <!-- SPANISH SECTION -->
+    <main id="section-es" class="lang-section">
+      <!-- Executive Summary Cards -->
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="icon">📍</div>
+          <h4>Ubicación en Primer Plano</h4>
+          <p>Solo se utiliza cuando abrís la app para indicarte la estación más cercana. No rastreamos en segundo plano.</p>
+        </div>
+        <div class="summary-card">
+          <div class="icon">👤</div>
+          <h4>Cero Datos Personales</h4>
+          <p>No recopilamos nombre, DNI, teléfono ni contraseñas. Uso 100% anónimo sin registro obligatorio.</p>
+        </div>
+        <div class="summary-card">
+          <div class="icon">💾</div>
+          <h4>Almacenamiento Local</h4>
+          <p>Tus estaciones favoritas y ajustes quedan guardados estrictamente en la memoria de tu propio dispositivo.</p>
+        </div>
+        <div class="summary-card">
+          <div class="icon">🔒</div>
+          <h4>Cifrado HTTPS</h4>
+          <p>Todas las comunicaciones entre la aplicación y los servicios oficiales viajan cifradas con TLS/SSL de extremo a extremo.</p>
+        </div>
+      </div>
+
+      <!-- Declaración de Seguridad de Datos Google Play -->
+      <section>
+        <h2>📋 1. Resumen de Seguridad de Datos (Google Play Data Safety)</h2>
+        <p>
+          En cumplimiento con la política de seguridad de datos de <strong>Google Play Console</strong>, informamos con exactitud los datos procesados por la aplicación <strong>RielAR</strong>:
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Tipo de Dato</th>
+                <th>¿Se Recopila?</th>
+                <th>¿Se Comparte con Terceros?</th>
+                <th>Finalidad Principal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Ubicación Precisa (GPS)</strong></td>
+                <td><span class="badge-yes">Temporal (Primer Plano)</span></td>
+                <td><span class="badge-no">NO se comparte</span></td>
+                <td>Cálculo de cercanía a estaciones ferroviarias y mapa.</td>
+              </tr>
+              <tr>
+                <td><strong>Identificadores Personales (Nombre, Email, Teléfono)</strong></td>
+                <td><span class="badge-no">NO se recopila</span></td>
+                <td><span class="badge-no">NO se comparte</span></td>
+                <td>No aplicable. La app no requiere cuentas.</td>
+              </tr>
+              <tr>
+                <td><strong>Información Financiera / Tarjetas</strong></td>
+                <td><span class="badge-no">NO se recopila</span></td>
+                <td><span class="badge-no">NO se comparte</span></td>
+                <td>No aplicable. Donaciones voluntarias son externas.</td>
+              </tr>
+              <tr>
+                <td><strong>Fotos, Videos o Archivos</strong></td>
+                <td><span class="badge-no">NO se recopila</span></td>
+                <td><span class="badge-no">NO se comparte</span></td>
+                <td>Sin acceso a galería ni archivos del usuario.</td>
+              </tr>
+              <tr>
+                <td><strong>Datos de Diagnóstico / Crash Logs</strong></td>
+                <td><span class="badge-yes">Mínimo Anónimo</span></td>
+                <td><span class="badge-no">NO se comparte</span></td>
+                <td>Detección de errores del servidor para estabilidad.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Ubicación -->
+      <section>
+        <h2>📍 2. Tratamiento de Datos de Ubicación Geográfica</h2>
+        <p>
+          RielAR solicita acceso al servicio de geolocalización de tu dispositivo (mediante los permisos estándar de Android <code>ACCESS_FINE_LOCATION</code> y <code>ACCESS_COARSE_LOCATION</code>, o la API de Geolocalización del navegador web).
+        </p>
+        <ul>
+          <li><strong>Uso exclusivo en primer plano:</strong> Tu posición solo se consulta cuando estás visualizando la pestaña de estaciones cercanas o el mapa interactivo.</li>
+          <li><strong>Sin rastreo en segundo plano:</strong> La aplicación no rastrea ni procesa tu ubicación cuando está cerrada o en segundo plano.</li>
+          <li><strong>Procesamiento local:</strong> El cálculo de distancias métricas a las estaciones ferroviarias de las líneas Mitre, Roca, Sarmiento, San Martín, Belgrano Sur, Belgrano Norte y Tren de la Costa se realiza directamente en tu dispositivo.</li>
+          <li><strong>Sin almacenamiento persistente:</strong> Las coordenadas GPS nunca se graban en bases de datos externas ni se asocian a identidades de usuario.</li>
+        </ul>
+      </section>
+
+      <!-- Almacenamiento Local y Caché -->
+      <section>
+        <h2>💾 3. Almacenamiento Local (Local Storage & Caché)</h2>
+        <p>
+          RielAR utiliza el almacenamiento local de tu navegador y dispositivo (<code>localStorage</code> y <code>CacheStorage</code> mediante Service Workers) con el único objetivo de mejorar tu experiencia cotidiana:
+        </p>
+        <ul>
+          <li><strong>Estaciones Favoritas:</strong> Guardar tus paradas habituales para acceso rápido con un toque.</li>
+          <li><strong>Preferencias Visuales:</strong> Modo oscuro / claro y estilo de interfaz.</li>
+          <li><strong>Alertas Leídas:</strong> Registro para no mostrarte repetidamente avisos de demoras o cancelaciones que ya revisaste.</li>
+          <li><strong>Caché Offline de Estaciones:</strong> Permitir que la lista de ramales y mapa carguen al instante incluso con mala señal en los andenes.</li>
+        </ul>
+        <p>
+          Podés borrar esta información en cualquier momento desde los ajustes de tu navegador o limpiando el almacenamiento de la aplicación en los ajustes de Android.
+        </p>
+      </section>
+
+      <!-- Servicios de Terceros -->
+      <section>
+        <h2>🌐 4. Servicios y APIs de Terceros</h2>
+        <p>
+          Para brindarte información precisa y actualizada de trenes, RielAR interactúa con los siguientes servicios:
+        </p>
+        <ul>
+          <li>
+            <strong>API Oficial de Trenes Argentinos (SOFSE):</strong>
+            Utilizada exclusivamente para consultar los horarios programados, arribos en tiempo real, alertas de servicio y ramales activos.
+          </li>
+          <li>
+            <strong>OpenStreetMap & CARTO:</strong>
+            Utilizados para renderizar los mosaicos cartográficos en el mapa interactivo de estaciones mediante la librería de código abierto Leaflet.
+          </li>
+          <li>
+            <strong>Infraestructura Render Cloud:</strong>
+            Servidor proxy con cifrado SSL/TLS 1.3 que gestiona de forma segura las peticiones sin registrar direcciones IP con fines publicitarios.
+          </li>
+          <li>
+            <strong>Mercado Pago / Cafecito (Opcional):</strong>
+            Si decides realizar un aporte voluntario para apoyar el mantenimiento de los servidores, la transacción se procesa íntegramente en las plataformas seguras de Mercado Pago o Cafecito. RielAR nunca tiene acceso a datos de tus tarjetas o cuentas bancarias.
+          </li>
+        </ul>
+      </section>
+
+      <!-- Permisos Solicitados -->
+      <section>
+        <h2>🔑 5. Permisos Solicitados y Justificación</h2>
+        <ul>
+          <li><strong>Ubicación (GPS):</strong> Para ordenar estaciones de tren por cercanía y mostrarte en el mapa.</li>
+          <li><strong>Acceso a Internet (INTERNET):</strong> Para descargar en tiempo real las demoras, cancelaciones y próximos arribos.</li>
+          <li><strong>Notificaciones Push (Opcional):</strong> Solo si activás manualmente alertas para un tren o estación de tu interés. Podés revocarlas cuando desees.</li>
+        </ul>
+      </section>
+
+      <!-- Privacidad de Menores -->
+      <section>
+        <h2>👶 6. Privacidad de Menores de Edad</h2>
+        <p>
+          RielAR es una herramienta de utilidad de transporte público apta para todo público. No recopilamos conscientemente ningún tipo de dato personal de menores de 13 años (o la edad mínima legal correspondiente). En caso de detectar que se ha recibido información involuntaria de un menor, la misma es eliminada de inmediato.
+        </p>
+      </section>
+
+      <!-- Eliminación de Datos -->
+      <section>
+        <h2>🗑️ 7. Derechos del Usuario y Eliminación de Datos</h2>
+        <p>
+          En conformidad con la <strong>Ley N° 25.326 de Protección de los Datos Personales de la República Argentina</strong> y las directrices internacionales (GDPR / CCPA):
+        </p>
+        <p>
+          Dado que no requerimos creación de cuenta ni almacenamos datos personales en servidores centrales, cualquier información local (favoritos, historial de viajes o caché) puede ser eliminada inmediatamente por el usuario realizando cualquiera de las siguientes acciones:
+        </p>
+        <ul>
+          <li>Desinstalando la aplicación desde el menú de aplicaciones de Android.</li>
+          <li>Borrando los datos y caché de la app desde: <em>Ajustes de Android &gt; Aplicaciones &gt; RielAR &gt; Almacenamiento &gt; Borrar Datos</em>.</li>
+        </ul>
+      </section>
+
+      <!-- Contacto -->
+      <section>
+        <h2>📬 8. Contacto y Responsable de Privacidad</h2>
+        <p>
+          Si tienes preguntas, dudas o inquietudes sobre esta Política de Privacidad o el funcionamiento de RielAR, puedes comunicarte directamente con el desarrollador responsable:
+        </p>
+        <p>
+          <strong>Desarrollador:</strong> Martin Calvo Ruiz<br />
+          <strong>Email de contacto:</strong> <a href="mailto:tinchoccr@gmail.com">tinchoccr@gmail.com</a><br />
+          <strong>Proyecto oficial:</strong> <a href="https://github.com/Az3r0th6/rielar-app" target="_blank" rel="noopener">GitHub: Az3r0th6/rielar-app</a><br />
+          <strong>Sitio Web Oficial:</strong> <a href="https://rielar-app.onrender.com">https://rielar-app.onrender.com</a>
+        </p>
+      </section>
+    </main>
+
+    <!-- ENGLISH SECTION (FOR GOOGLE PLAY REVIEWERS & INTERNATIONAL AUDIENCE) -->
+    <main id="section-en" class="lang-section hidden">
+      <!-- Executive Summary Cards -->
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="icon">📍</div>
+          <h4>Foreground Location Only</h4>
+          <p>Only used when opening the app to find your nearest train station. No background tracking ever.</p>
+        </div>
+        <div class="summary-card">
+          <div class="icon">👤</div>
+          <h4>Zero Personal Data</h4>
+          <p>We do not collect names, national IDs, phone numbers, or passwords. Completely anonymous usage.</p>
+        </div>
+        <div class="summary-card">
+          <div class="icon">💾</div>
+          <h4>Device Local Storage</h4>
+          <p>Your favorite stations and preferences are kept exclusively on your own device's storage.</p>
+        </div>
+        <div class="summary-card">
+          <div class="icon">🔒</div>
+          <h4>End-to-End HTTPS</h4>
+          <p>All network communications between the app and official railway services are secured via TLS/SSL encryption.</p>
+        </div>
+      </div>
+
+      <!-- Google Play Data Safety Summary -->
+      <section>
+        <h2>📋 1. Google Play Data Safety Declaration</h2>
+        <p>
+          In full compliance with <strong>Google Play Console Developer Policies</strong>, below is the exact disclosure of data handled by <strong>RielAR (com.rielar.app)</strong>:
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Data Type</th>
+                <th>Collected?</th>
+                <th>Shared with 3rd Parties?</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Precise Location (GPS)</strong></td>
+                <td><span class="badge-yes">Ephemeral (Foreground Only)</span></td>
+                <td><span class="badge-no">NOT Shared</span></td>
+                <td>Calculating nearby railway stations and interactive map.</td>
+              </tr>
+              <tr>
+                <td><strong>Personal Info (Name, Email, Phone)</strong></td>
+                <td><span class="badge-no">NOT Collected</span></td>
+                <td><span class="badge-no">NOT Shared</span></td>
+                <td>Not applicable. No account or sign-up needed.</td>
+              </tr>
+              <tr>
+                <td><strong>Financial Info / Payment Data</strong></td>
+                <td><span class="badge-no">NOT Collected</span></td>
+                <td><span class="badge-no">NOT Shared</span></td>
+                <td>Not applicable. Voluntary donations handled externally.</td>
+              </tr>
+              <tr>
+                <td><strong>Photos, Videos or Media Files</strong></td>
+                <td><span class="badge-no">NOT Collected</span></td>
+                <td><span class="badge-no">NOT Shared</span></td>
+                <td>No gallery or file system access requested.</td>
+              </tr>
+              <tr>
+                <td><strong>Diagnostics / Crash Logs</strong></td>
+                <td><span class="badge-yes">Minimal Anonymous</span></td>
+                <td><span class="badge-no">NOT Shared</span></td>
+                <td>Ensuring server uptime and app stability.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Location Data -->
+      <section>
+        <h2>📍 2. Geographic Location Data Policy</h2>
+        <p>
+          RielAR asks for device geolocation permissions (using standard Android permissions <code>ACCESS_FINE_LOCATION</code> and <code>ACCESS_COARSE_LOCATION</code>, or browser Geolocation APIs):
+        </p>
+        <ul>
+          <li><strong>Foreground-only execution:</strong> Your GPS position is accessed solely while you are actively viewing nearby stations or the interactive route map.</li>
+          <li><strong>No background tracking:</strong> The app ceases all location queries the moment it is closed or minimized.</li>
+          <li><strong>On-device processing:</strong> Metric distance calculation to metropolitan train stations (Mitre, Roca, Sarmiento, San Martín, Belgrano Sur, Belgrano Norte, Tren de la Costa) runs directly on your device.</li>
+          <li><strong>No permanent storage:</strong> Geolocation coordinates are never saved to cloud databases or linked to any user profile.</li>
+        </ul>
+      </section>
+
+      <!-- Local Storage -->
+      <section>
+        <h2>💾 3. Local Storage and Offline Cache</h2>
+        <p>
+          RielAR relies on client-side storage (<code>localStorage</code> and Service Worker <code>CacheStorage</code>) for enhanced user convenience:
+        </p>
+        <ul>
+          <li><strong>Favorite Stations:</strong> Bookmarking your regular commuting stations for instant access.</li>
+          <li><strong>Theme & Settings:</strong> Preserving dark/light appearance preferences.</li>
+          <li><strong>Read Alerts History:</strong> Avoiding redundant popups for incidents you already acknowledged.</li>
+          <li><strong>Offline Station Directory:</strong> Enabling smooth browsing even in areas with weak cellular reception.</li>
+        </ul>
+      </section>
+
+      <!-- Third-Party Services -->
+      <section>
+        <h2>🌐 4. Third-Party Services and APIs</h2>
+        <ul>
+          <li><strong>Trenes Argentinos (SOFSE) Public API:</strong> Live departure schedules, delays, and service cancellations.</li>
+          <li><strong>OpenStreetMap & CARTO:</strong> Map tiles rendered through the open-source Leaflet library.</li>
+          <li><strong>Render Cloud Hosting:</strong> Secure reverse proxy providing SSL/TLS 1.3 encryption.</li>
+          <li><strong>Mercado Pago / Cafecito:</strong> External voluntary tipping platforms governed by their independent security frameworks.</li>
+        </ul>
+      </section>
+
+      <!-- Children's Privacy -->
+      <section>
+        <h2>👶 5. Children's Privacy (COPPA Compliance)</h2>
+        <p>
+          RielAR is a general-audience public transit utility. We do not knowingly solicit or collect personal information from children under 13 years of age.
+        </p>
+      </section>
+
+      <!-- User Rights & Data Deletion -->
+      <section>
+        <h2>🗑️ 6. Data Deletion and User Rights</h2>
+        <p>
+          Because RielAR does not hold user accounts or remote personal databases, users retain 100% control over their local data. You can clear all cached information at any time by uninstalling the application or wiping app storage in:
+        </p>
+        <p>
+          <em>Android Settings &gt; Apps &gt; RielAR &gt; Storage &gt; Clear Storage / Clear Cache</em>.
+        </p>
+      </section>
+
+      <!-- Contact -->
+      <section>
+        <h2>📬 7. Contact Information</h2>
+        <p>
+          For any questions or privacy inquiries regarding RielAR, please contact:
+        </p>
+        <p>
+          <strong>Developer:</strong> Martin Calvo Ruiz<br />
+          <strong>Email:</strong> <a href="mailto:tinchoccr@gmail.com">tinchoccr@gmail.com</a><br />
+          <strong>Source Code:</strong> <a href="https://github.com/Az3r0th6/rielar-app" target="_blank" rel="noopener">GitHub: Az3r0th6/rielar-app</a><br />
+          <strong>Live Application:</strong> <a href="https://rielar-app.onrender.com">https://rielar-app.onrender.com</a>
+        </p>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <a href="/" class="btn-return">← Volver a RielAR</a>
+      <div>
+        © 2026 RielAR • Desarrollado por Martin Calvo Ruiz • Buenos Aires, Argentina
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    function switchLang(lang) {
+      const isEs = lang === 'es';
+      document.getElementById('section-es').classList.toggle('hidden', !isEs);
+      document.getElementById('section-en').classList.toggle('hidden', isEs);
+      document.getElementById('header-es').classList.toggle('hidden', !isEs);
+      document.getElementById('header-en').classList.toggle('hidden', isEs);
+
+      document.getElementById('btn-es').classList.toggle('active', isEs);
+      document.getElementById('btn-en').classList.toggle('active', !isEs);
+
+      document.documentElement.lang = lang;
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', '?lang=' + lang);
+      }
+    }
+
+    // Auto-detect language from URL or browser preferences
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = params.get('lang');
+      if (urlLang === 'en') {
+        switchLang('en');
+      } else if (!urlLang && navigator.language && navigator.language.startsWith('en')) {
+        switchLang('en');
+      }
+    })();
+  </script>
+</body>
+</html>

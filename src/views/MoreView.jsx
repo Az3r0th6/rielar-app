@@ -807,8 +807,64 @@ export default function MoreView({
                   <span>Origen</span>
                   <span style={{ color: 'var(--ios-text-primary)', fontWeight: 600 }}>Buenos Aires, Argentina 🇦🇷</span>
                 </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Privacidad</span>
+                  <a
+                    href="/privacidad"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--ios-blue)', fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    Ver Política de Privacidad ↗
+                  </a>
+                </div>
               </div>
             </div>
+
+            {/* Privacy Policy Card for Google Play */}
+            <a
+              href="/privacidad"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ios-card"
+              style={{
+                padding: '14px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                textDecoration: 'none',
+                color: 'inherit',
+                border: '1px solid rgba(0, 159, 227, 0.25)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: 'rgba(0, 159, 227, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px',
+                  }}
+                >
+                  🛡️
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--ios-text-primary)' }}>
+                    Política de Privacidad
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)' }}>
+                    Cumplimiento para Google Play Store, permisos de ubicación y datos
+                  </div>
+                </div>
+              </div>
+              <ChevronRight size={18} style={{ color: 'var(--ios-text-tertiary)' }} />
+            </a>
 
             {/* Quick Support Callout in Credits */}
             <div

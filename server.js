@@ -572,6 +572,11 @@ app.use(express.static(path.join(__dirname, 'dist'), {
   },
 }));
 
+// Dedicated routes for Google Play & Web Privacy Policy
+app.get(['/privacidad', '/privacy'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'privacidad.html'));
+});
+
 // SPA fallback for all web routes (guarantees fresh index.html on every navigation)
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) {
