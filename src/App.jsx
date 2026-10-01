@@ -20,7 +20,16 @@ import {
 } from './utils/alertManager';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('nearby');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab && ['nearby', 'favorites', 'lines', 'planner', 'map', 'more'].includes(tab)) {
+        return tab;
+      }
+    }
+    return 'nearby';
+  });
   const [selectedTrain, setSelectedTrain] = useState(null);
   const [trackingTrain, setTrackingTrain] = useState(null);
   const [selectedStationForInfo, setSelectedStationForInfo] = useState(null);
@@ -164,7 +173,7 @@ export default function App() {
   const [showChangelogModal, setShowChangelogModal] = useState(() => {
     try {
       const neverShow = localStorage.getItem('rielar_changelog_v20_never_show');
-      if (neverShow === 'true') return false;
+      if (neverShow === 'true' || window.location.search.includes('nochangelog') || window.location.search.includes('screenshot')) return false;
 
       const dismissedSession = sessionStorage.getItem('rielar_changelog_dismissed_session');
       if (dismissedSession === 'true') return false;
