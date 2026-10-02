@@ -800,7 +800,7 @@ export default function MoreView({
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>Datos en Tiempo Real</span>
-                  <span style={{ color: 'var(--ios-blue)', fontWeight: 600 }}>API Oficial Trenes Argentinos</span>
+                  <span style={{ color: 'var(--ios-blue)', fontWeight: 600 }}>Datos Públicos Abiertos (SOFSE)</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -819,6 +819,71 @@ export default function MoreView({
                     Ver Política de Privacidad ↗
                   </a>
                 </div>
+              </div>
+            </div>
+
+            {/* Government Disclaimer & Official Sources Card (Google Play Compliance) */}
+            <div
+              className="ios-card"
+              style={{
+                padding: '16px',
+                border: '1px solid rgba(255, 214, 10, 0.25)',
+                background: 'rgba(255, 214, 10, 0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>⚠️</span>
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    letterSpacing: '0.04em',
+                    color: '#ffd60a',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Exención de Responsabilidad Gubernamental
+                </span>
+              </div>
+
+              <p style={{ fontSize: '12.5px', color: 'var(--ios-text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                <strong>RielAR es una aplicación de desarrollo independiente</strong> y no representa, ni está afiliada, autorizada o respaldada oficialmente por Trenes Argentinos (SOFSE), el Ministerio de Transporte, ni por el Gobierno de la República Argentina ni ninguna otra entidad gubernamental.
+              </p>
+
+              <div
+                style={{
+                  paddingTop: '8px',
+                  borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                  fontSize: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                }}
+              >
+                <div style={{ fontWeight: 700, color: 'var(--ios-text-primary)' }}>
+                  Fuentes oficiales de información consultadas:
+                </div>
+                <a
+                  href="https://www.argentina.gob.ar/transporte/trenes-argentinos"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--ios-blue)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <span>• Trenes Argentinos en argentina.gob.ar</span>
+                  <span style={{ fontSize: '10px' }}>↗</span>
+                </a>
+                <a
+                  href="https://trenesargentinos.gob.ar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--ios-blue)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <span>• Portal oficial trenesargentinos.gob.ar</span>
+                  <span style={{ fontSize: '10px' }}>↗</span>
+                </a>
               </div>
             </div>
 

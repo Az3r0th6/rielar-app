@@ -22,9 +22,16 @@ Creado y desarrollado con pasión por **[Martin Calvo Ruiz](https://github.com/A
 
 ## 📖 Acerca de RielAR
 
-**RielAR** es una aplicación web progresiva (PWA) de última generación diseñada para los pasajeros y usuarios del sistema ferroviario del **Área Metropolitana de Buenos Aires (AMBA)**. 
+**RielAR** es una aplicación independiente de movilidad urbana y seguimiento de transporte ferroviario diseñada para los pasajeros del **Área Metropolitana de Buenos Aires (AMBA)**.
 
-Conectada directamente con la infraestructura oficial de **Trenes Argentinos (SOFSE)** mediante un backend proxy con autenticación cifrada en tiempo real, RielAR ofrece seguimiento milimétrico de formaciones en circulación, tiempos de arribo exactos sincronizados con los cronogramas oficiales de partida, alertas operacionales en vivo y una experiencia visual inspirada en las guías de diseño de iOS.
+Desarrollada para ofrecer una experiencia visual fluida y moderna inspirada en las guías de diseño de iOS, RielAR procesa y presenta información pública en tiempo real de servicios ferroviarios: seguimiento estimado de formaciones en circulación, tiempos de arribo sincronizados con los cronogramas programados de partida, alertas de ramales y herramientas útiles para el usuario cotidiano.
+
+> [!NOTE]
+> **Descargo de Responsabilidad Gubernamental (Government Disclaimer):**  
+> RielAR es un desarrollo independiente y **NO** representa ni posee afiliación oficial con Trenes Argentinos (SOFSE), con el Ministerio de Transporte de la Nación ni con ninguna entidad gubernamental de la República Argentina.  
+> Los datos de horarios y alertas son consultados de fuentes públicas oficiales:  
+> - [Portal Oficial de Trenes Argentinos (argentina.gob.ar)](https://www.argentina.gob.ar/transporte/trenes-argentinos)  
+> - [Web de Trenes Argentinos](https://trenesargentinos.gob.ar)
 
 ---
 
