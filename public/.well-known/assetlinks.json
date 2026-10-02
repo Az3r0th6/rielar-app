@@ -7,7 +7,8 @@
       "namespace": "android_app",
       "package_name": "com.rielar.app",
       "sha256_cert_fingerprints": [
-        "A5:CC:88:8E:28:98:CC:CF:47:78:82:91:1C:4E:C2:FC:96:FC:B3:50:C4:09:58:FB:DB:1B:D7:6D:A4:6D:6B:F4"
+        "A5:CC:88:8E:28:98:CC:CF:47:78:82:91:1C:4E:C2:FC:96:FC:B3:50:C4:09:58:FB:DB:1B:D7:6D:A4:6D:6B:F4",
+        "2F:53:BF:B7:09:6D:36:5B:24:89:43:EF:8D:DA:30:E0:E6:55:53:B7:00:53:43:B6:1B:B5:03:D9:52:27:B0:C5"
       ]
     }
   }
