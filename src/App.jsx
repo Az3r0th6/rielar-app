@@ -14,7 +14,12 @@ import ChangelogModal from './components/ChangelogModal';
 import InAppNotificationToast from './components/InAppNotificationToast';
 import UpdateNotificationToast from './components/UpdateNotificationToast';
 import { PRELOADED_STATIONS } from './data/linesData';
-import { triggerHaptic, playChimeSound, sendAppNotification } from './utils/notifications';
+import {
+  triggerHaptic,
+  playChimeSound,
+  sendAppNotification,
+  subscribeToPushNotifications,
+} from './utils/notifications';
 import {
   getUnreadAlertsCount,
   markAlertsAsRead,
@@ -89,6 +94,13 @@ export default function App() {
       window.removeEventListener('rielar:in-app-notification', handleInAppNotif);
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
+  }, []);
+
+  // Auto-subscribe to WebPush on launch if notification permission was granted
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      subscribeToPushNotifications().catch(() => {});
+    }
   }, []);
 
   // Service Worker Background Update Detector

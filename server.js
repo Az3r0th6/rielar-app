@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import webpush from 'web-push';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -619,6 +620,152 @@ app.delete('/api/reports/:id', (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Error eliminando reporte', details: err.message });
+  }
+});
+
+// ========================================================
+// WEBPUSH & NOTIFICACIONES DIRECTAS A TELÉFONOS (VAPID)
+// ========================================================
+const VAPID_PUBLIC_KEY =
+  process.env.VAPID_PUBLIC_KEY ||
+  'BK4sbYMwaZzBtCXpxdLbWB4AgSbj8tlVgbh4jB4-_kzhcuqPaTVTbJoZ8RehoheoWuPdgOLAHmm5q7NOH4t6vJE';
+const VAPID_PRIVATE_KEY =
+  process.env.VAPID_PRIVATE_KEY || 'dro3yJPMuOGjIRhxRcCMR4XqPGvf7tygCj-a8y7dfwQ';
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:soporte@rielar.app';
+
+try {
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  console.log('[WebPush] VAPID configurado exitosamente.');
+} catch (err) {
+  console.warn('[WebPush] Error al configurar VAPID:', err.message);
+}
+
+const PUSH_SUBS_FILE = path.join(__dirname, 'push_subscriptions.json');
+
+function loadPushSubscriptions() {
+  try {
+    if (fs.existsSync(PUSH_SUBS_FILE)) {
+      const data = fs.readFileSync(PUSH_SUBS_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch (err) {
+    console.warn('[WebPush] No se pudo leer push_subscriptions.json:', err.message);
+  }
+  return [];
+}
+
+function savePushSubscriptions(subs) {
+  try {
+    fs.writeFileSync(PUSH_SUBS_FILE, JSON.stringify(subs, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[WebPush] Error escribiendo push_subscriptions.json:', err.message);
+  }
+}
+
+let inMemoryPushSubscriptions = loadPushSubscriptions();
+
+// Endpoint público para obtener la clave VAPID pública
+app.get('/api/push-public-key', (req, res) => {
+  res.json({ publicKey: VAPID_PUBLIC_KEY });
+});
+
+// Registrar o actualizar suscripción de un teléfono
+app.post('/api/push-subscribe', (req, res) => {
+  try {
+    const { subscription } = req.body || {};
+    if (!subscription || !subscription.endpoint) {
+      return res.status(400).json({ error: 'Suscripción inválida' });
+    }
+
+    const existingIndex = inMemoryPushSubscriptions.findIndex(
+      (s) => s.endpoint === subscription.endpoint
+    );
+
+    const subWithMeta = {
+      ...subscription,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (existingIndex >= 0) {
+      inMemoryPushSubscriptions[existingIndex] = subWithMeta;
+    } else {
+      inMemoryPushSubscriptions.push(subWithMeta);
+    }
+
+    savePushSubscriptions(inMemoryPushSubscriptions);
+    console.log(
+      `[WebPush] Dispositivo registrado. Total teléfonos suscritos: ${inMemoryPushSubscriptions.length}`
+    );
+    res.json({ success: true, total: inMemoryPushSubscriptions.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Error guardando suscripción', details: err.message });
+  }
+});
+
+// Cantidad de teléfonos suscritos
+app.get('/api/push-subscribers-count', (req, res) => {
+  res.json({ count: inMemoryPushSubscriptions.length });
+});
+
+// Transmisión masiva de notificación a todos los teléfonos (Exclusivo Administrador)
+app.post('/api/broadcast-push', async (req, res) => {
+  try {
+    const { title, body, url, adminKey } = req.body || {};
+    const ADMIN_SECRET = process.env.ADMIN_KEY || 'rielar2026';
+    if (adminKey && adminKey !== ADMIN_SECRET) {
+      return res.status(401).json({ error: 'Clave de administrador incorrecta.' });
+    }
+
+    if (!title || !body) {
+      return res.status(400).json({ error: 'Título y mensaje son obligatorios.' });
+    }
+
+    const payload = JSON.stringify({
+      title: title.trim(),
+      body: body.trim(),
+      url: url || '/',
+      timestamp: Date.now(),
+    });
+
+    let sent = 0;
+    let failed = 0;
+    const expiredEndpoints = new Set();
+
+    const sendPromises = inMemoryPushSubscriptions.map(async (sub) => {
+      try {
+        await webpush.sendNotification(sub, payload);
+        sent++;
+      } catch (err) {
+        failed++;
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          expiredEndpoints.add(sub.endpoint);
+        }
+      }
+    });
+
+    await Promise.allSettled(sendPromises);
+
+    // Limpiar suscripciones que ya no existen en el teléfono
+    if (expiredEndpoints.size > 0) {
+      inMemoryPushSubscriptions = inMemoryPushSubscriptions.filter(
+        (s) => !expiredEndpoints.has(s.endpoint)
+      );
+      savePushSubscriptions(inMemoryPushSubscriptions);
+      console.log(`[WebPush] ${expiredEndpoints.size} suscripciones inactivas eliminadas.`);
+    }
+
+    console.log(
+      `[WebPush Broadcast] Enviado a ${sent} dispositivos (${failed} fallos). Total activos: ${inMemoryPushSubscriptions.length}`
+    );
+    res.json({
+      success: true,
+      sent,
+      failed,
+      total: inMemoryPushSubscriptions.length,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error enviando notificación masiva', details: err.message });
   }
 });
 

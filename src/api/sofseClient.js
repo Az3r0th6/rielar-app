@@ -176,3 +176,23 @@ export async function getNetworkTrains() {
   if (!res.ok) throw new Error(`Error fetching network trains: ${res.status}`);
   return await res.json();
 }
+
+export async function getPushSubscribersCount() {
+  const res = await fetchWithRetry(`${API_BASE}/push-subscribers-count`);
+  if (!res.ok) return { count: 0 };
+  return await res.json();
+}
+
+export async function broadcastPushNotification(broadcastData) {
+  const res = await fetchWithRetry(`${API_BASE}/broadcast-push`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(broadcastData),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Error ${res.status} enviando push masivo`);
+  }
+  return await res.json();
+}
+

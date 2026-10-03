@@ -118,6 +118,62 @@ export function triggerHaptic(style = 'light') {
   }
 }
 
+export function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+/**
+ * Subscribes the current mobile/desktop device to WebPush notifications on Render.
+ */
+export async function subscribeToPushNotifications() {
+  if (
+    typeof window === 'undefined' ||
+    !('serviceWorker' in navigator) ||
+    !('PushManager' in window)
+  ) {
+    return null;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if (!reg) return null;
+
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      const res = await fetch('/api/push-public-key');
+      if (!res.ok) return null;
+      const { publicKey } = await res.json();
+      if (!publicKey) return null;
+
+      const convertedKey = urlBase64ToUint8Array(publicKey);
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey,
+      });
+    }
+
+    if (sub) {
+      await fetch('/api/push-subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub }),
+      });
+      console.log('[WebPush] Dispositivo suscrito con éxito a notificaciones push.');
+      return sub;
+    }
+  } catch (err) {
+    console.debug('[WebPush] Nota de suscripción:', err.message);
+  }
+  return null;
+}
+
 /**
  * Requests Notification permission safely across mobile browsers & PWAs
  */
@@ -126,10 +182,14 @@ export async function requestNotificationPermission() {
     return 'unsupported';
   }
   if (Notification.permission === 'granted') {
+    subscribeToPushNotifications().catch(() => {});
     return 'granted';
   }
   try {
     const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      subscribeToPushNotifications().catch(() => {});
+    }
     return permission;
   } catch (err) {
     console.debug('Notification permission request error:', err);

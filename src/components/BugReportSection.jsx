@@ -21,9 +21,16 @@ import {
   RefreshCw,
   Search,
   Filter,
+  Bell,
 } from 'lucide-react';
 import { LINES_DATA, PRELOADED_STATIONS } from '../data/linesData';
-import { sendBugReport, updateBugReport, deleteBugReport } from '../api/sofseClient';
+import {
+  sendBugReport,
+  updateBugReport,
+  deleteBugReport,
+  broadcastPushNotification,
+  getPushSubscribersCount,
+} from '../api/sofseClient';
 import { triggerHaptic, playChimeSound, sendAppNotification } from '../utils/notifications';
 
 export default function BugReportSection() {
@@ -102,8 +109,25 @@ export default function BugReportSection() {
   const [isUpdatingAdmin, setIsUpdatingAdmin] = useState(false);
   const [adminActionMsg, setAdminActionMsg] = useState('');
 
+  // Push Broadcast State
+  const [subscribersCount, setSubscribersCount] = useState(0);
+  const [broadcastTitle, setBroadcastTitle] = useState('🚆 RielAR • ¡Nueva versión disponible!');
+  const [broadcastBody, setBroadcastBody] = useState('Hay mejoras en horarios de trenes y nuevas funciones listas para usar.');
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [broadcastFeedback, setBroadcastFeedback] = useState('');
+
+  const fetchSubscribersCount = async () => {
+    try {
+      const data = await getPushSubscribersCount();
+      if (typeof data.count === 'number') {
+        setSubscribersCount(data.count);
+      }
+    } catch {}
+  };
+
   // Sync reports with backend API and notify passenger if any ticket changed status!
   const fetchServerReports = async () => {
+    fetchSubscribersCount();
     try {
       const res = await fetch('/api/reports');
       if (res.ok) {
@@ -401,6 +425,39 @@ export default function BugReportSection() {
     } catch (err) {
       setAdminActionMsg(`Error al eliminar: ${err.message}`);
       triggerHaptic('heavy');
+    }
+  };
+
+  const handleSendBroadcast = async (e) => {
+    e?.preventDefault();
+    if (!broadcastTitle.trim() || !broadcastBody.trim()) {
+      setBroadcastFeedback('⚠️ Ingresa título y mensaje para enviar.');
+      triggerHaptic('heavy');
+      return;
+    }
+
+    setIsBroadcasting(true);
+    setBroadcastFeedback('');
+    triggerHaptic('medium');
+
+    try {
+      const res = await broadcastPushNotification({
+        title: broadcastTitle.trim(),
+        body: broadcastBody.trim(),
+        url: '/',
+        adminKey: 'rielar2026',
+      });
+      playChimeSound('arrival');
+      triggerHaptic('success');
+      setBroadcastFeedback(
+        `🎉 ¡Notificación enviada a ${res.sent} teléfono(s)! (${res.total} registrados)`
+      );
+      fetchSubscribersCount();
+    } catch (err) {
+      setBroadcastFeedback(`❌ Error al enviar: ${err.message}`);
+      triggerHaptic('heavy');
+    } finally {
+      setIsBroadcasting(false);
     }
   };
 
@@ -1249,6 +1306,181 @@ export default function BugReportSection() {
                   <span>{adminActionMsg}</span>
                 </div>
               )}
+
+              {/* Card de Transmisión Masiva Push a Teléfonos */}
+              <div
+                style={{
+                  background:
+                    'linear-gradient(135deg, rgba(10, 132, 255, 0.12), rgba(191, 90, 242, 0.08))',
+                  border: '1px solid rgba(10, 132, 255, 0.3)',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '10px',
+                        background: 'rgba(10, 132, 255, 0.25)',
+                        color: '#0a84ff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Bell size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#f5f5f7' }}>
+                        Notificar a Teléfonos (Push)
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#8e8e93' }}>
+                        Llega al celular aunque la app esté cerrada
+                      </div>
+                    </div>
+                  </div>
+
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      background:
+                        subscribersCount > 0
+                          ? 'rgba(48, 209, 88, 0.15)'
+                          : 'rgba(255, 255, 255, 0.08)',
+                      color: subscribersCount > 0 ? '#30d158' : '#8e8e93',
+                      padding: '4px 8px',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    📱 {subscribersCount} {subscribersCount === 1 ? 'teléfono' : 'teléfonos'}
+                  </span>
+                </div>
+
+                <form
+                  onSubmit={handleSendBroadcast}
+                  style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+                >
+                  <div>
+                    <label
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#0a84ff',
+                        textTransform: 'uppercase',
+                        marginBottom: '4px',
+                        display: 'block',
+                      }}
+                    >
+                      Título de la Notificación:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej: 🚆 ¡Nueva versión de RielAR disponible!"
+                      value={broadcastTitle}
+                      onChange={(e) => setBroadcastTitle(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        color: '#f5f5f7',
+                        fontSize: '12.5px',
+                        fontWeight: 600,
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#0a84ff',
+                        textTransform: 'uppercase',
+                        marginBottom: '4px',
+                        display: 'block',
+                      }}
+                    >
+                      Mensaje / Novedades:
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Ej: Se actualizaron los horarios de todas las líneas y hay mejoras en vivo..."
+                      value={broadcastBody}
+                      onChange={(e) => setBroadcastBody(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        color: '#f5f5f7',
+                        fontSize: '12px',
+                        outline: 'none',
+                        resize: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+
+                  {broadcastFeedback && (
+                    <div
+                      style={{
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        color: broadcastFeedback.startsWith('🎉') ? '#30d158' : '#ff453a',
+                      }}
+                    >
+                      {broadcastFeedback}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isBroadcasting}
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      background: isBroadcasting
+                        ? '#555'
+                        : 'linear-gradient(135deg, #0a84ff, #0056b3)',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontWeight: 800,
+                      fontSize: '12.5px',
+                      cursor: isBroadcasting ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      boxShadow: '0 4px 14px rgba(10, 132, 255, 0.35)',
+                    }}
+                  >
+                    <Send size={13} />
+                    <span>
+                      {isBroadcasting
+                        ? 'Transmitiendo a teléfonos...'
+                        : 'Enviar Alerta a Todos los Teléfonos'}
+                    </span>
+                  </button>
+                </form>
+              </div>
 
               {/* Filtros de estado */}
               {(() => {

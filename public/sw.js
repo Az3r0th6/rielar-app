@@ -36,17 +36,56 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// Push Notification Handler (Triggers popup on phone even when app is closed!)
+self.addEventListener('push', (event) => {
+  let payload = {
+    title: '🚆 RielAR • Novedades',
+    body: 'Hay una nueva actualización disponible en el servicio.',
+    url: '/',
+  };
+
+  if (event.data) {
+    try {
+      payload = { ...payload, ...event.data.json() };
+    } catch (e) {
+      payload.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: payload.body,
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [150, 75, 150, 75, 200],
+    tag: 'rielar-push-broadcast',
+    renotify: true,
+    data: { url: payload.url || '/' },
+    actions: [
+      { action: 'open', title: 'Abrir RielAR' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, options)
+  );
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const targetUrl = event.notification.data?.url || '/';
+
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if (client.url && 'focus' in client) {
+        if ('focus' in client) {
+          if ('navigate' in client) {
+            client.navigate(targetUrl).catch(() => {});
+          }
           return client.focus();
         }
       }
       if (self.clients.openWindow) {
-        return self.clients.openWindow('/');
+        return self.clients.openWindow(targetUrl);
       }
     })
   );
