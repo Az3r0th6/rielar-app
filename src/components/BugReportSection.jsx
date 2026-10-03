@@ -51,9 +51,46 @@ export default function BugReportSection() {
     }
   });
 
+  // Secret Owner Mode State (Completely hidden from regular passengers)
+  const [isOwnerMode, setIsOwnerMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const isRemembered = localStorage.getItem('rielar_owner_device') === 'true';
+    const hasHash = window.location.hash.toLowerCase().includes('admin');
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasParam =
+      urlParams.get('admin') === '1' ||
+      urlParams.get('admin') === 'true' ||
+      urlParams.get('owner') === '1';
+    return isRemembered || hasHash || hasParam;
+  });
+
+  const secretTapRef = React.useRef({ count: 0, lastTime: 0 });
+
+  const handleSecretTap = () => {
+    const now = Date.now();
+    if (now - secretTapRef.current.lastTime > 2000) {
+      secretTapRef.current.count = 1;
+    } else {
+      secretTapRef.current.count += 1;
+      if (secretTapRef.current.count >= 5) {
+        setIsOwnerMode(true);
+        setActiveTab('admin');
+        triggerHaptic('success');
+        secretTapRef.current.count = 0;
+        return;
+      } else {
+        triggerHaptic('light');
+      }
+    }
+    secretTapRef.current.lastTime = now;
+  };
+
   // Admin Management State
   const [isAdminAuth, setIsAdminAuth] = useState(() => {
-    return typeof sessionStorage !== 'undefined' && sessionStorage.getItem('rielar_admin_auth') === 'true';
+    return (
+      typeof sessionStorage !== 'undefined' &&
+      sessionStorage.getItem('rielar_admin_auth') === 'true'
+    );
   });
   const [adminPinInput, setAdminPinInput] = useState('');
   const [adminPinError, setAdminPinError] = useState('');
@@ -288,8 +325,10 @@ export default function BugReportSection() {
     if (adminPinInput.trim() === 'rielar2026') {
       try {
         sessionStorage.setItem('rielar_admin_auth', 'true');
+        localStorage.setItem('rielar_owner_device', 'true');
       } catch {}
       setIsAdminAuth(true);
+      setIsOwnerMode(true);
       setAdminPinError('');
       fetchServerReports();
       triggerHaptic('medium');
@@ -307,6 +346,17 @@ export default function BugReportSection() {
     setAdminPinInput('');
     setEditingId(null);
     triggerHaptic('light');
+  };
+
+  const handleHideAdminPanel = () => {
+    try {
+      localStorage.removeItem('rielar_owner_device');
+      sessionStorage.removeItem('rielar_admin_auth');
+    } catch {}
+    setIsAdminAuth(false);
+    setIsOwnerMode(false);
+    setActiveTab('form');
+    triggerHaptic('medium');
   };
 
   const handleStartEdit = (report) => {
@@ -387,10 +437,10 @@ export default function BugReportSection() {
           }}
           style={{
             flex: 1,
-            padding: '8px 10px',
+            padding: '8px 12px',
             borderRadius: '9px',
             border: 'none',
-            fontSize: '12px',
+            fontSize: '12.5px',
             fontWeight: 700,
             cursor: 'pointer',
             background: activeTab === 'form' ? '#0a84ff' : 'transparent',
@@ -398,7 +448,7 @@ export default function BugReportSection() {
             transition: 'all 0.2s',
           }}
         >
-          ✍️ Crear
+          ✍️ Crear Reporte
         </button>
 
         <button
@@ -407,13 +457,14 @@ export default function BugReportSection() {
             triggerHaptic('light');
             setActiveTab('history');
             fetchServerReports();
+            handleSecretTap();
           }}
           style={{
-            flex: 1.2,
-            padding: '8px 10px',
+            flex: 1,
+            padding: '8px 12px',
             borderRadius: '9px',
             border: 'none',
-            fontSize: '12px',
+            fontSize: '12.5px',
             fontWeight: 700,
             cursor: 'pointer',
             background: activeTab === 'history' ? '#0a84ff' : 'transparent',
@@ -421,40 +472,43 @@ export default function BugReportSection() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '5px',
+            gap: '6px',
             transition: 'all 0.2s',
           }}
         >
-          <History size={13} />
+          <History size={14} />
           <span>Mis Reportes ({savedReports.length})</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => {
-            triggerHaptic('light');
-            setActiveTab('admin');
-            fetchServerReports();
-          }}
-          style={{
-            padding: '8px 12px',
-            borderRadius: '9px',
-            border: 'none',
-            fontSize: '12px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            background: activeTab === 'admin' ? '#bf5af2' : 'transparent',
-            color: activeTab === 'admin' ? '#ffffff' : '#8e8e93',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '5px',
-            transition: 'all 0.2s',
-          }}
-        >
-          <Shield size={13} />
-          <span>Admin</span>
-        </button>
+        {/* Pestaña Admin: 100% invisible para pasajeros comunes, solo visible si el propietario la activa */}
+        {isOwnerMode && (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setActiveTab('admin');
+              fetchServerReports();
+            }}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '9px',
+              border: 'none',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              background: activeTab === 'admin' ? '#bf5af2' : 'transparent',
+              color: activeTab === 'admin' ? '#ffffff' : '#8e8e93',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '5px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <Shield size={13} />
+            <span>Admin</span>
+          </button>
+        )}
       </div>
 
       {/* ========================================================
@@ -1079,6 +1133,21 @@ export default function BugReportSection() {
                   <Shield size={15} />
                   <span>Ingresar como Administrador</span>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={handleHideAdminPanel}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#8e8e93',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    padding: '4px',
+                  }}
+                >
+                  Cancelar y ocultar
+                </button>
               </form>
             </div>
           ) : (
@@ -1123,6 +1192,23 @@ export default function BugReportSection() {
                   >
                     <RefreshCw size={12} />
                     <span>Recargar</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleHideAdminPanel}
+                    title="Ocultar panel admin de esta pantalla"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      color: '#8e8e93',
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    🔒 Ocultar
                   </button>
                   <button
                     type="button"

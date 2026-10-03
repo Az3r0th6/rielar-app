@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Download,
   Copy,
@@ -38,6 +38,29 @@ export default function MoreView({
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [copiedDownload, setCopiedDownload] = useState(false);
+
+  const ownerCreditsTapRef = useRef({ count: 0, lastTime: 0 });
+
+  const handleOwnerCreditsTap = () => {
+    const now = Date.now();
+    if (now - ownerCreditsTapRef.current.lastTime > 2000) {
+      ownerCreditsTapRef.current.count = 1;
+    } else {
+      ownerCreditsTapRef.current.count += 1;
+      if (ownerCreditsTapRef.current.count >= 5) {
+        try {
+          localStorage.setItem('rielar_owner_device', 'true');
+        } catch {}
+        triggerHaptic('success');
+        setActiveSection('reports');
+        ownerCreditsTapRef.current.count = 0;
+        return;
+      } else {
+        triggerHaptic('light');
+      }
+    }
+    ownerCreditsTapRef.current.lastTime = now;
+  };
 
   const OFFICIAL_URL = 'https://rielar-app.onrender.com';
   const directDownloadUrl =
@@ -654,7 +677,17 @@ export default function MoreView({
                 marginBottom: '16px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+              <div
+                onClick={handleOwnerCreditsTap}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  marginBottom: '16px',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
                 <div
                   style={{
                     width: '54px',
