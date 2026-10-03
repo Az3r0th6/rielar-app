@@ -12,6 +12,7 @@ import FavoritesView from './views/FavoritesView';
 import MoreView from './views/MoreView';
 import ChangelogModal from './components/ChangelogModal';
 import InAppNotificationToast from './components/InAppNotificationToast';
+import UpdateNotificationToast from './components/UpdateNotificationToast';
 import { PRELOADED_STATIONS } from './data/linesData';
 import { triggerHaptic, playChimeSound, sendAppNotification } from './utils/notifications';
 import {
@@ -89,6 +90,62 @@ export default function App() {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
+
+  // Service Worker Background Update Detector
+  const [showUpdateToast, setShowUpdateToast] = useState(false);
+  const waitingWorkerRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    const onUpdateFound = (registration) => {
+      if (!registration) return;
+      if (registration.waiting && navigator.serviceWorker.controller) {
+        waitingWorkerRef.current = registration.waiting;
+        setShowUpdateToast(true);
+        return;
+      }
+
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            waitingWorkerRef.current = newWorker;
+            setShowUpdateToast(true);
+          }
+        });
+      });
+    };
+
+    navigator.serviceWorker.getRegistration().then((reg) => {
+      if (reg) onUpdateFound(reg);
+    });
+
+    const handleCustomUpdateEvent = (e) => {
+      if (e.detail?.registration) {
+        onUpdateFound(e.detail.registration);
+      } else {
+        setShowUpdateToast(true);
+      }
+    };
+
+    window.addEventListener('rielar:sw-update', handleCustomUpdateEvent);
+    return () => window.removeEventListener('rielar:sw-update', handleCustomUpdateEvent);
+  }, []);
+
+  const handleApplyUpdate = () => {
+    triggerHaptic('medium');
+    if (waitingWorkerRef.current) {
+      waitingWorkerRef.current.postMessage({ type: 'SKIP_WAITING' });
+    }
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+    setTimeout(() => {
+      window.location.reload();
+    }, 600);
+  };
 
   // Alert Monitoring Loop: periodically checks network status and alerts user for subscribed lines
   const checkSubscribedAlerts = async () => {
@@ -547,6 +604,13 @@ export default function App() {
             onClose={() => setInAppToast(null)}
             onAction={() => handleTabChange('lines')}
           />
+          {showUpdateToast && (
+            <UpdateNotificationToast
+              onUpdate={handleApplyUpdate}
+              onDismiss={() => setShowUpdateToast(false)}
+              isTabBarHidden={isTabBarHidden || !!selectedStationForInfo || !!selectedTrain}
+            />
+          )}
           <ChangelogModal
             isOpen={showChangelogModal}
             onClose={() => setShowChangelogModal(false)}

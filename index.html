@@ -33,7 +33,30 @@
     <script>
       if (window.isSecureContext && 'serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(err => {
+          navigator.serviceWorker.register('/sw.js').then(reg => {
+            const checkUpdate = (worker) => {
+              if (worker && worker.state === 'installed' && navigator.serviceWorker.controller) {
+                window.dispatchEvent(new CustomEvent('rielar:sw-update', { detail: { registration: reg } }));
+              }
+            };
+
+            if (reg.waiting && navigator.serviceWorker.controller) {
+              window.dispatchEvent(new CustomEvent('rielar:sw-update', { detail: { registration: reg } }));
+            }
+
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => checkUpdate(newWorker));
+              }
+            });
+
+            document.addEventListener('visibilitychange', () => {
+              if (document.visibilityState === 'visible') {
+                try { reg.update(); } catch(e) {}
+              }
+            });
+          }).catch(err => {
             console.log('SW registration note:', err.message);
           });
         });
