@@ -84,12 +84,12 @@
             };
 
             const checkUpdate = (worker) => {
-              if (worker && worker.state === 'installed' && navigator.serviceWorker.controller) {
+              if (worker && (worker.state === 'installed' || worker.state === 'activating')) {
                 notifyUpdate();
               }
             };
 
-            if (reg.waiting && navigator.serviceWorker.controller) {
+            if (reg.waiting) {
               notifyUpdate();
             }
 

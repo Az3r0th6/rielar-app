@@ -785,6 +785,21 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// App Version endpoint for instant update detection across all devices
+app.get('/api/version', (req, res) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+  });
+  res.json({
+    version: '1.0.6',
+    build: 27,
+    cacheName: 'rielar-v27',
+    timestamp: Date.now(),
+  });
+});
+
 // Serve frontend build static files with optimized cache headers:
 // - index.html, sw.js, manifest.json must NEVER be cached so updates apply immediately!
 // - Hashed assets (/assets/*) are cached safely with content hashes

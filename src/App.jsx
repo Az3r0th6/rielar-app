@@ -104,16 +104,53 @@ export default function App() {
     }
   }, []);
 
-  // Service Worker Background Update Detector
+  // Dual-Engine Update Detection System
+  const CURRENT_APP_BUILD = 27;
   const [showUpdateToast, setShowUpdateToast] = useState(false);
   const waitingWorkerRef = useRef(null);
 
+  // Engine 1: Instant Server Version Probe (works 100% reliably on Android WebViews, TWAs & iframes)
+  useEffect(() => {
+    const checkServerVersion = async () => {
+      try {
+        const res = await fetch(`/api/version?_t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.build && data.build > CURRENT_APP_BUILD) {
+            setShowUpdateToast(true);
+            return;
+          }
+        }
+      } catch (err) {
+        // Fallback to static version.json
+        try {
+          const res2 = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' });
+          if (res2.ok) {
+            const data2 = await res2.json();
+            if (data2 && data2.build && data2.build > CURRENT_APP_BUILD) {
+              setShowUpdateToast(true);
+              return;
+            }
+          }
+        } catch {}
+      }
+    };
+
+    checkServerVersion();
+    const timer = setInterval(checkServerVersion, 90 * 1000); // Check every 90 seconds
+    return () => clearInterval(timer);
+  }, []);
+
+  // Engine 2: Service Worker Lifecycle Listener (detects new sw.js waiting state)
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
     const onUpdateFound = (registration) => {
       if (!registration) return;
-      if (registration.waiting && navigator.serviceWorker.controller) {
+      if (registration.waiting) {
         waitingWorkerRef.current = registration.waiting;
         setShowUpdateToast(true);
         return;
@@ -123,7 +160,7 @@ export default function App() {
         const newWorker = registration.installing;
         if (!newWorker) return;
         newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          if (newWorker.state === 'installed' || newWorker.state === 'activating') {
             waitingWorkerRef.current = newWorker;
             setShowUpdateToast(true);
           }

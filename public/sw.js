@@ -1,5 +1,5 @@
 // Service Worker for RielAR Web App (iOS & Android Zero-Install)
-const CACHE_NAME = 'rielar-v26';
+const CACHE_NAME = 'rielar-v27';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -94,8 +94,8 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // 1. Live API requests: network first with offline fallback
-  if (url.pathname.startsWith('/api/')) {
+  // 1. Live API requests & version info: always network-first
+  if (url.pathname.startsWith('/api/') || url.pathname.endsWith('/version.json')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );

@@ -48,23 +48,42 @@ export default function MoreView({
     setCheckingUpdate(true);
     setUpdateStatusMsg('');
     try {
+      // 1. Check server version API
+      let serverHasNewer = false;
+      try {
+        const res = await fetch(`/api/version?_t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.build && data.build > 26) {
+            serverHasNewer = true;
+          }
+        }
+      } catch {}
+
+      // 2. Check Service Worker
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         const reg = await navigator.serviceWorker.getRegistration();
         if (reg) {
           await reg.update();
-          if (reg.waiting) {
+          if (reg.waiting || serverHasNewer) {
             window.dispatchEvent(new CustomEvent('rielar:sw-update', { detail: { registration: reg } }));
-            setUpdateStatusMsg('¡Nueva actualización lista!');
+            setUpdateStatusMsg('¡Nueva versión lista!');
             triggerHaptic('success');
-          } else {
-            setUpdateStatusMsg('¡RielAR ya está actualizado!');
-            triggerHaptic('light');
+            return;
           }
-        } else {
-          setUpdateStatusMsg('Versión web al día');
         }
+      }
+
+      if (serverHasNewer) {
+        window.dispatchEvent(new CustomEvent('rielar:sw-update', { detail: {} }));
+        setUpdateStatusMsg('¡Nueva versión lista!');
+        triggerHaptic('success');
       } else {
-        setUpdateStatusMsg('Versión al día');
+        setUpdateStatusMsg('🎉 ¡Estás en la última versión!');
+        triggerHaptic('light');
       }
     } catch {
       setUpdateStatusMsg('Al día con el servidor');
@@ -344,7 +363,7 @@ export default function MoreView({
                     borderRadius: '6px',
                   }}
                 >
-                  Build 26
+                  Build 27
                 </span>
               </div>
               <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)', marginTop: '2px' }}>
