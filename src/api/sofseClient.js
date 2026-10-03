@@ -149,6 +149,26 @@ export async function sendBugReport(reportData) {
   return await res.json();
 }
 
+export async function updateBugReport(reportId, updateData) {
+  const res = await fetchWithRetry(`${API_BASE}/reports/${encodeURIComponent(reportId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updateData),
+  });
+  if (!res.ok) throw new Error(`Error al actualizar el reporte: ${res.status}`);
+  return await res.json();
+}
+
+export async function deleteBugReport(reportId, adminKey) {
+  const res = await fetchWithRetry(`${API_BASE}/reports/${encodeURIComponent(reportId)}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ adminKey }),
+  });
+  if (!res.ok) throw new Error(`Error al eliminar el reporte: ${res.status}`);
+  return await res.json();
+}
+
 export async function getNetworkTrains() {
   const res = await fetchWithRetry(`${API_BASE}/network-trains?_t=${Date.now()}`, {
     cache: 'no-store',

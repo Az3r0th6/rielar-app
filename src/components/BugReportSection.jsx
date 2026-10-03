@@ -14,9 +14,16 @@ import {
   Info,
   RotateCcw,
   Check,
+  Shield,
+  Lock,
+  Trash2,
+  MessageSquare,
+  RefreshCw,
+  Search,
+  Filter,
 } from 'lucide-react';
 import { LINES_DATA, PRELOADED_STATIONS } from '../data/linesData';
-import { sendBugReport } from '../api/sofseClient';
+import { sendBugReport, updateBugReport, deleteBugReport } from '../api/sofseClient';
 import { triggerHaptic, playChimeSound, sendAppNotification } from '../utils/notifications';
 
 export default function BugReportSection() {
@@ -31,8 +38,8 @@ export default function BugReportSection() {
   const [submittedReport, setSubmittedReport] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   
-  // History tab toggle
-  const [activeTab, setActiveTab] = useState('form'); // 'form' | 'history'
+  // History tab toggle & Admin Panel
+  const [activeTab, setActiveTab] = useState('form'); // 'form' | 'history' | 'admin'
   const [savedReports, setSavedReports] = useState(() => {
     try {
       const raw =
@@ -44,35 +51,76 @@ export default function BugReportSection() {
     }
   });
 
-  // Sync reports with backend API on mount
-  useEffect(() => {
-    const fetchServerReports = async () => {
-      try {
-        const res = await fetch('/api/reports');
-        if (res.ok) {
-          const data = await res.json();
-          const serverList = Array.isArray(data) ? data : data?.reports || [];
-          if (serverList.length > 0) {
-            setSavedReports((prev) => {
-              const map = new Map();
-              serverList.forEach((r) => map.set(r.id, r));
-              prev.forEach((r) => map.set(r.id, r));
-              const merged = Array.from(map.values()).sort(
-                (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-              );
-              try {
-                const serialized = JSON.stringify(merged);
-                localStorage.setItem('rielar_user_reports', serialized);
-                localStorage.setItem('rielar_user_reports_backup', serialized);
-              } catch {}
-              return merged;
+  // Admin Management State
+  const [isAdminAuth, setIsAdminAuth] = useState(() => {
+    return typeof sessionStorage !== 'undefined' && sessionStorage.getItem('rielar_admin_auth') === 'true';
+  });
+  const [adminPinInput, setAdminPinInput] = useState('');
+  const [adminPinError, setAdminPinError] = useState('');
+  const [allServerReports, setAllServerReports] = useState([]);
+  const [adminFilter, setAdminFilter] = useState('ALL'); // 'ALL' | 'Recibido' | 'Trabajando en solución' | 'Resuelto'
+  const [editingId, setEditingId] = useState(null);
+  const [editStatus, setEditStatus] = useState('Resuelto');
+  const [editAdminNote, setEditAdminNote] = useState('');
+  const [isUpdatingAdmin, setIsUpdatingAdmin] = useState(false);
+  const [adminActionMsg, setAdminActionMsg] = useState('');
+
+  // Sync reports with backend API and notify passenger if any ticket changed status!
+  const fetchServerReports = async () => {
+    try {
+      const res = await fetch('/api/reports');
+      if (res.ok) {
+        const data = await res.json();
+        const serverList = Array.isArray(data) ? data : data?.reports || [];
+        setAllServerReports(serverList);
+
+        if (serverList.length > 0) {
+          setSavedReports((prev) => {
+            const map = new Map();
+            serverList.forEach((r) => map.set(r.id, r));
+
+            // Notify passenger if one of their reports was updated by admin!
+            prev.forEach((oldRep) => {
+              const serverRep = map.get(oldRep.id);
+              if (serverRep) {
+                const statusChanged = serverRep.status && serverRep.status !== oldRep.status;
+                const noteChanged = serverRep.adminNote && serverRep.adminNote !== oldRep.adminNote;
+                if (statusChanged || noteChanged) {
+                  const isResolved = serverRep.status === 'Resuelto' || serverRep.status === 'Cerrado';
+                  sendAppNotification(
+                    isResolved
+                      ? `🎉 ¡Tu reporte #${serverRep.id} fue resuelto!`
+                      : `🔔 Actualización en ticket #${serverRep.id} (${serverRep.status})`,
+                    serverRep.adminNote
+                      ? `RielAR: "${serverRep.adminNote}"`
+                      : `El estado de tu aviso sobre ${serverRep.stationName || serverRep.lineName} ahora es: ${serverRep.status}.`,
+                    { type: isResolved ? 'arrival' : 'alert' }
+                  );
+                }
+                map.set(oldRep.id, { ...oldRep, ...serverRep });
+              } else {
+                map.set(oldRep.id, oldRep);
+              }
             });
-          }
+
+            const merged = Array.from(map.values()).sort(
+              (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            );
+            try {
+              const serialized = JSON.stringify(merged);
+              localStorage.setItem('rielar_user_reports', serialized);
+              localStorage.setItem('rielar_user_reports_backup', serialized);
+            } catch {}
+            return merged;
+          });
         }
-      } catch (err) {
-        console.debug('Failed to sync reports with server:', err);
       }
-    };
+    } catch (err) {
+      console.debug('Failed to sync reports with server:', err);
+    }
+  };
+
+  useEffect(() => {
     fetchServerReports();
   }, []);
 
@@ -235,9 +283,93 @@ export default function BugReportSection() {
     setSubmittedReport(null);
   };
 
+  const handleAdminLogin = (e) => {
+    e?.preventDefault();
+    if (adminPinInput.trim() === 'rielar2026') {
+      try {
+        sessionStorage.setItem('rielar_admin_auth', 'true');
+      } catch {}
+      setIsAdminAuth(true);
+      setAdminPinError('');
+      fetchServerReports();
+      triggerHaptic('medium');
+    } else {
+      setAdminPinError('PIN incorrecto. Reintenta con el PIN de administrador.');
+      triggerHaptic('heavy');
+    }
+  };
+
+  const handleAdminLogout = () => {
+    try {
+      sessionStorage.removeItem('rielar_admin_auth');
+    } catch {}
+    setIsAdminAuth(false);
+    setAdminPinInput('');
+    setEditingId(null);
+    triggerHaptic('light');
+  };
+
+  const handleStartEdit = (report) => {
+    setEditingId(report.id);
+    setEditStatus(report.status || 'Resuelto');
+    setEditAdminNote(report.adminNote || '');
+    setAdminActionMsg('');
+    triggerHaptic('light');
+  };
+
+  const handleSaveTicketUpdate = async (reportId) => {
+    setIsUpdatingAdmin(true);
+    setAdminActionMsg('');
+    try {
+      await updateBugReport(reportId, {
+        status: editStatus,
+        adminNote: editAdminNote,
+        adminKey: 'rielar2026',
+      });
+      setAdminActionMsg(`¡Ticket #${reportId} actualizado con éxito!`);
+      triggerHaptic('medium');
+      playChimeSound('arrival');
+      setEditingId(null);
+      await fetchServerReports();
+    } catch (err) {
+      setAdminActionMsg(`Error al actualizar: ${err.message}`);
+      triggerHaptic('heavy');
+    } finally {
+      setIsUpdatingAdmin(false);
+    }
+  };
+
+  const handleDeleteTicket = async (reportId) => {
+    if (!window.confirm(`¿Eliminar definitivamente el reporte #${reportId}?`)) {
+      return;
+    }
+    try {
+      await deleteBugReport(reportId, 'rielar2026');
+      triggerHaptic('medium');
+      setAdminActionMsg(`Ticket #${reportId} eliminado.`);
+      await fetchServerReports();
+    } catch (err) {
+      setAdminActionMsg(`Error al eliminar: ${err.message}`);
+      triggerHaptic('heavy');
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Resuelto':
+      case 'Cerrado':
+        return { bg: 'rgba(48, 209, 88, 0.15)', color: '#30d158', label: 'Resuelto' };
+      case 'Trabajando en solución':
+        return { bg: 'rgba(255, 159, 10, 0.15)', color: '#ff9f0a', label: 'En Progreso' };
+      case 'Recibido':
+      default:
+        return { bg: 'rgba(10, 132, 255, 0.15)', color: '#0a84ff', label: status || 'Recibido' };
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* Sub-selector: Nuevo Reporte vs Mis Reportes Anteriores */}
+      {/* Sub-selector: Nuevo Reporte vs Mis Reportes Anteriores vs Panel Admin */}
       <div
         style={{
           display: 'flex',
@@ -255,10 +387,10 @@ export default function BugReportSection() {
           }}
           style={{
             flex: 1,
-            padding: '8px 12px',
+            padding: '8px 10px',
             borderRadius: '9px',
             border: 'none',
-            fontSize: '12.5px',
+            fontSize: '12px',
             fontWeight: 700,
             cursor: 'pointer',
             background: activeTab === 'form' ? '#0a84ff' : 'transparent',
@@ -266,7 +398,7 @@ export default function BugReportSection() {
             transition: 'all 0.2s',
           }}
         >
-          ✍️ Crear Reporte
+          ✍️ Crear
         </button>
 
         <button
@@ -274,13 +406,14 @@ export default function BugReportSection() {
           onClick={() => {
             triggerHaptic('light');
             setActiveTab('history');
+            fetchServerReports();
           }}
           style={{
-            flex: 1,
-            padding: '8px 12px',
+            flex: 1.2,
+            padding: '8px 10px',
             borderRadius: '9px',
             border: 'none',
-            fontSize: '12.5px',
+            fontSize: '12px',
             fontWeight: 700,
             cursor: 'pointer',
             background: activeTab === 'history' ? '#0a84ff' : 'transparent',
@@ -288,12 +421,39 @@ export default function BugReportSection() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '6px',
+            gap: '5px',
             transition: 'all 0.2s',
           }}
         >
-          <History size={14} />
+          <History size={13} />
           <span>Mis Reportes ({savedReports.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('light');
+            setActiveTab('admin');
+            fetchServerReports();
+          }}
+          style={{
+            padding: '8px 12px',
+            borderRadius: '9px',
+            border: 'none',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            background: activeTab === 'admin' ? '#bf5af2' : 'transparent',
+            color: activeTab === 'admin' ? '#ffffff' : '#8e8e93',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '5px',
+            transition: 'all 0.2s',
+          }}
+        >
+          <Shield size={13} />
+          <span>Admin</span>
         </button>
       </div>
 
@@ -738,18 +898,23 @@ export default function BugReportSection() {
                       </span>
                       <span style={{ fontSize: '11px', color: '#8e8e93' }}>• {dateStr}</span>
                     </div>
-                    <span
-                      style={{
-                        fontSize: '10.5px',
-                        fontWeight: 700,
-                        background: 'rgba(48, 209, 88, 0.15)',
-                        color: '#30d158',
-                        padding: '2px 8px',
-                        borderRadius: '6px',
-                      }}
-                    >
-                      {rep.status || 'Recibido'}
-                    </span>
+                    {(() => {
+                      const badge = getStatusBadge(rep.status);
+                      return (
+                        <span
+                          style={{
+                            fontSize: '10.5px',
+                            fontWeight: 700,
+                            background: badge.bg,
+                            color: badge.color,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                          }}
+                        >
+                          {badge.label}
+                        </span>
+                      );
+                    })()}
                   </div>
 
                   <div style={{ fontSize: '13px', fontWeight: 700, color: '#f5f5f7', marginBottom: '4px' }}>
@@ -775,9 +940,587 @@ export default function BugReportSection() {
                   >
                     "{rep.description}"
                   </div>
+
+                  {/* Respuesta oficial del administrador visible para el usuario */}
+                  {rep.adminNote && (
+                    <div
+                      style={{
+                        marginTop: '8px',
+                        padding: '10px 12px',
+                        background: 'rgba(48, 209, 88, 0.1)',
+                        border: '1px solid rgba(48, 209, 88, 0.25)',
+                        borderRadius: '10px',
+                        fontSize: '12px',
+                        color: '#f5f5f7',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: 800,
+                          color: '#30d158',
+                          marginBottom: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          fontSize: '11px',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        <CheckCircle2 size={13} /> Respuesta del equipo de RielAR
+                      </div>
+                      <div style={{ lineHeight: 1.45 }}>{rep.adminNote}</div>
+                    </div>
+                  )}
                 </div>
               );
             })
+          )}
+        </div>
+      )}
+
+      {/* ========================================================
+          VISTA 3: PANEL ADMINISTRADOR DE GESTIÓN Y RESOLUCIÓN
+          ======================================================== */}
+      {activeTab === 'admin' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {!isAdminAuth ? (
+            /* Pantalla de Desbloqueo PIN Admin */
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '24px 20px',
+                textAlign: 'center',
+              }}
+            >
+              <div
+                style={{
+                  width: '52px',
+                  height: '52px',
+                  borderRadius: '50%',
+                  background: 'rgba(191, 90, 242, 0.15)',
+                  color: '#bf5af2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
+                }}
+              >
+                <Lock size={26} />
+              </div>
+              <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#f5f5f7', marginBottom: '6px' }}>
+                Panel de Administración RielAR
+              </h3>
+              <p
+                style={{
+                  fontSize: '12.5px',
+                  color: '#8e8e93',
+                  margin: '0 auto 18px',
+                  maxWidth: '320px',
+                  lineHeight: 1.4,
+                }}
+              >
+                Acceso para resolver tickets de usuarios, responder notas y notificar a los pasajeros en sus dispositivos.
+              </p>
+
+              <form
+                onSubmit={handleAdminLogin}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  maxWidth: '280px',
+                  margin: '0 auto',
+                }}
+              >
+                <input
+                  type="password"
+                  placeholder="PIN de administrador"
+                  value={adminPinInput}
+                  onChange={(e) => setAdminPinInput(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: adminPinError ? '1px solid #ff453a' : '1px solid rgba(255, 255, 255, 0.15)',
+                    color: '#f5f5f7',
+                    fontSize: '14px',
+                    textAlign: 'center',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+
+                {adminPinError && (
+                  <div style={{ color: '#ff453a', fontSize: '11.5px', fontWeight: 600 }}>
+                    {adminPinError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  style={{
+                    padding: '12px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #bf5af2, #5e5ce6)',
+                    color: '#ffffff',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '13.5px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Shield size={15} />
+                  <span>Ingresar como Administrador</span>
+                </button>
+              </form>
+            </div>
+          ) : (
+            /* Panel de Administración Desbloqueado */
+            <>
+              {/* Barra Superior con Controles */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  padding: '10px 12px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Shield size={16} color="#bf5af2" />
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#f5f5f7' }}>
+                    Panel Soporte ({allServerReports.length || savedReports.length})
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={fetchServerReports}
+                    title="Refrescar lista"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: 'none',
+                      color: '#f5f5f7',
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <RefreshCw size={12} />
+                    <span>Recargar</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAdminLogout}
+                    style={{
+                      background: 'rgba(255, 69, 58, 0.15)',
+                      border: '1px solid rgba(255, 69, 58, 0.3)',
+                      color: '#ff453a',
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Salir
+                  </button>
+                </div>
+              </div>
+
+              {/* Mensaje de acción de admin */}
+              {adminActionMsg && (
+                <div
+                  style={{
+                    background: 'rgba(48, 209, 88, 0.15)',
+                    border: '1px solid rgba(48, 209, 88, 0.3)',
+                    color: '#30d158',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <CheckCircle2 size={14} />
+                  <span>{adminActionMsg}</span>
+                </div>
+              )}
+
+              {/* Filtros de estado */}
+              {(() => {
+                const list = allServerReports.length > 0 ? allServerReports : savedReports;
+                const countAll = list.length;
+                const countRecibido = list.filter((r) => (r.status || 'Recibido') === 'Recibido').length;
+                const countProgreso = list.filter((r) => r.status === 'Trabajando en solución').length;
+                const countResuelto = list.filter((r) => r.status === 'Resuelto' || r.status === 'Cerrado').length;
+
+                const filters = [
+                  { id: 'ALL', label: `Todos (${countAll})` },
+                  { id: 'Recibido', label: `Recibidos (${countRecibido})` },
+                  { id: 'Trabajando en solución', label: `En Progreso (${countProgreso})` },
+                  { id: 'Resuelto', label: `Resueltos (${countResuelto})` },
+                ];
+
+                return (
+                  <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+                    {filters.map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic('light');
+                          setAdminFilter(f.id);
+                        }}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          background: adminFilter === f.id ? '#bf5af2' : 'rgba(255, 255, 255, 0.06)',
+                          color: adminFilter === f.id ? '#ffffff' : '#8e8e93',
+                        }}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* Lista de Tickets en Admin */}
+              {(() => {
+                const list = allServerReports.length > 0 ? allServerReports : savedReports;
+                const filtered = list.filter((r) => {
+                  if (adminFilter === 'ALL') return true;
+                  if (adminFilter === 'Recibido') return (r.status || 'Recibido') === 'Recibido';
+                  if (adminFilter === 'Trabajando en solución') return r.status === 'Trabajando en solución';
+                  if (adminFilter === 'Resuelto') return r.status === 'Resuelto' || r.status === 'Cerrado';
+                  return true;
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        padding: '24px 16px',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        borderRadius: '12px',
+                        color: '#8e8e93',
+                        fontSize: '12.5px',
+                      }}
+                    >
+                      No hay reportes en esta categoría.
+                    </div>
+                  );
+                }
+
+                return filtered.map((rep) => {
+                  const isEditing = editingId === rep.id;
+                  const badge = getStatusBadge(rep.status);
+                  const dateStr = rep.timestamp
+                    ? new Date(rep.timestamp).toLocaleString('es-AR', {
+                        day: '2-digit',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : 'Reciente';
+
+                  return (
+                    <div
+                      key={rep.id}
+                      style={{
+                        background: isEditing ? 'rgba(191, 90, 242, 0.08)' : 'rgba(255, 255, 255, 0.04)',
+                        border: isEditing
+                          ? '1px solid rgba(191, 90, 242, 0.35)'
+                          : '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '14px',
+                        padding: '12px 14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                      }}
+                    >
+                      {/* Cabecera del ticket */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#bf5af2' }}>
+                            #{rep.id}
+                          </span>
+                          <span style={{ fontSize: '11px', color: '#8e8e93' }}>• {dateStr}</span>
+                        </div>
+                        <span
+                          style={{
+                            fontSize: '10.5px',
+                            fontWeight: 700,
+                            background: badge.bg,
+                            color: badge.color,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                          }}
+                        >
+                          {badge.label}
+                        </span>
+                      </div>
+
+                      {/* Detalles: Tipo, Línea, Estación */}
+                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#f5f5f7' }}>
+                        {rep.category} • {rep.lineName}
+                      </div>
+
+                      {rep.stationName && rep.stationName !== 'No especificada' && (
+                        <div style={{ fontSize: '11px', color: '#8e8e93' }}>
+                          📍 Estación: {rep.stationName}
+                        </div>
+                      )}
+
+                      {/* Email de contacto si lo dejó */}
+                      {rep.contactEmail && (
+                        <div style={{ fontSize: '11px', color: '#64d2ff' }}>
+                          ✉️ Contacto: {rep.contactEmail}
+                        </div>
+                      )}
+
+                      {/* Dispositivo */}
+                      {rep.deviceDetails?.platform && (
+                        <div style={{ fontSize: '10.5px', color: '#8e8e93' }}>
+                          📱 Dispositivo: {rep.deviceDetails.platform}
+                        </div>
+                      )}
+
+                      {/* Descripción del usuario */}
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: '#d1d1d6',
+                          background: 'rgba(0,0,0,0.2)',
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        "{rep.description}"
+                      </div>
+
+                      {/* Nota de admin guardada previamente */}
+                      {rep.adminNote && !isEditing && (
+                        <div
+                          style={{
+                            padding: '8px 10px',
+                            background: 'rgba(48, 209, 88, 0.08)',
+                            borderLeft: '3px solid #30d158',
+                            borderRadius: '6px',
+                            fontSize: '11.5px',
+                            color: '#f5f5f7',
+                          }}
+                        >
+                          <span style={{ fontWeight: 700, color: '#30d158' }}>Respuesta actual: </span>
+                          {rep.adminNote}
+                        </div>
+                      )}
+
+                      {/* Editor de ticket (si está en modo edición) */}
+                      {isEditing ? (
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px',
+                            marginTop: '6px',
+                            paddingTop: '8px',
+                            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                          }}
+                        >
+                          <div>
+                            <label
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                color: '#bf5af2',
+                                textTransform: 'uppercase',
+                                marginBottom: '4px',
+                                display: 'block',
+                              }}
+                            >
+                              Estado del Ticket:
+                            </label>
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                              {['Recibido', 'Trabajando en solución', 'Resuelto', 'Cerrado'].map((st) => (
+                                <button
+                                  key={st}
+                                  type="button"
+                                  onClick={() => setEditStatus(st)}
+                                  style={{
+                                    padding: '5px 8px',
+                                    borderRadius: '6px',
+                                    border: 'none',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    background: editStatus === st ? '#0a84ff' : 'rgba(255,255,255,0.08)',
+                                    color: editStatus === st ? '#ffffff' : '#8e8e93',
+                                  }}
+                                >
+                                  {st}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                color: '#bf5af2',
+                                textTransform: 'uppercase',
+                                marginBottom: '4px',
+                                display: 'block',
+                              }}
+                            >
+                              Respuesta para el pasajero (notificación):
+                            </label>
+                            <textarea
+                              rows={3}
+                              placeholder="Ej: Se verificó con SOFSE y se actualizó el horario en el feed..."
+                              value={editAdminNote}
+                              onChange={(e) => setEditAdminNote(e.target.value)}
+                              style={{
+                                width: '100%',
+                                background: 'rgba(0,0,0,0.3)',
+                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                borderRadius: '8px',
+                                padding: '8px 10px',
+                                color: '#f5f5f7',
+                                fontSize: '12px',
+                                outline: 'none',
+                                resize: 'none',
+                                boxSizing: 'border-box',
+                              }}
+                            />
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              type="button"
+                              disabled={isUpdatingAdmin}
+                              onClick={() => handleSaveTicketUpdate(rep.id)}
+                              style={{
+                                flex: 1,
+                                padding: '9px 12px',
+                                borderRadius: '8px',
+                                background: 'linear-gradient(135deg, #30d158, #28a745)',
+                                color: '#ffffff',
+                                border: 'none',
+                                fontWeight: 700,
+                                fontSize: '12px',
+                                cursor: isUpdatingAdmin ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '5px',
+                              }}
+                            >
+                              <Check size={14} />
+                              <span>{isUpdatingAdmin ? 'Guardando...' : 'Guardar y Notificar'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setEditingId(null)}
+                              style={{
+                                padding: '9px 12px',
+                                borderRadius: '8px',
+                                background: 'rgba(255, 255, 255, 0.08)',
+                                color: '#8e8e93',
+                                border: 'none',
+                                fontWeight: 600,
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Botones de acción normales */
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: '8px',
+                            justifyContent: 'flex-end',
+                            marginTop: '4px',
+                          }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(rep)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              background: 'rgba(10, 132, 255, 0.15)',
+                              color: '#0a84ff',
+                              border: '1px solid rgba(10, 132, 255, 0.3)',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <MessageSquare size={12} />
+                            <span>Responder / Estado</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteTicket(rep.id)}
+                            title="Eliminar ticket"
+                            style={{
+                              padding: '6px 10px',
+                              borderRadius: '8px',
+                              background: 'rgba(255, 69, 58, 0.12)',
+                              color: '#ff453a',
+                              border: '1px solid rgba(255, 69, 58, 0.25)',
+                              fontSize: '11.5px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+            </>
           )}
         </div>
       )}

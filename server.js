@@ -563,6 +563,65 @@ app.get('/api/reports', (req, res) => {
   res.json({ count: inMemoryReports.length, reports: inMemoryReports.slice(0, 100) });
 });
 
+// Update report status and administrator note
+app.patch('/api/reports/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, adminNote, adminKey } = req.body || {};
+
+    const ADMIN_SECRET = process.env.ADMIN_KEY || 'rielar2026';
+    if (adminKey && adminKey !== ADMIN_SECRET) {
+      return res.status(401).json({ error: 'Clave de administrador incorrecta.' });
+    }
+
+    const reportIndex = inMemoryReports.findIndex((r) => r.id === id);
+    if (reportIndex === -1) {
+      return res.status(404).json({ error: 'Reporte no encontrado.' });
+    }
+
+    const current = inMemoryReports[reportIndex];
+    const isClosing = status === 'Resuelto' || status === 'Cerrado';
+    const updated = {
+      ...current,
+      status: status || current.status,
+      adminNote: adminNote !== undefined ? adminNote.trim() : (current.adminNote || ''),
+      updatedAt: new Date().toISOString(),
+      resolvedAt: isClosing ? (current.resolvedAt || new Date().toISOString()) : current.resolvedAt,
+    };
+
+    inMemoryReports[reportIndex] = updated;
+    saveStoredReports(inMemoryReports);
+    console.log(`[RielAR Reportes] Reporte #${id} actualizado: status="${updated.status}", nota="${updated.adminNote || 'ninguna'}"`);
+    res.json({ success: true, report: updated });
+  } catch (err) {
+    res.status(500).json({ error: 'Error actualizando reporte', details: err.message });
+  }
+});
+
+// Delete report (Admin)
+app.delete('/api/reports/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { adminKey } = req.query || req.body || {};
+    const ADMIN_SECRET = process.env.ADMIN_KEY || 'rielar2026';
+    if (adminKey && adminKey !== ADMIN_SECRET) {
+      return res.status(401).json({ error: 'Clave de administrador incorrecta.' });
+    }
+
+    const reportIndex = inMemoryReports.findIndex((r) => r.id === id);
+    if (reportIndex === -1) {
+      return res.status(404).json({ error: 'Reporte no encontrado.' });
+    }
+
+    inMemoryReports.splice(reportIndex, 1);
+    saveStoredReports(inMemoryReports);
+    console.log(`[RielAR Reportes] Reporte #${id} eliminado.`);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error eliminando reporte', details: err.message });
+  }
+});
+
 // Health check & keep-alive target
 app.get('/api/health', (req, res) => {
   res.json({
