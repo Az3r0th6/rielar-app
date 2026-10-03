@@ -1,18 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Trash2, Info } from 'lucide-react';
+import { Star, Trash2, Info, Search, Plus, Check, X } from 'lucide-react';
 import LineBadge from '../components/LineBadge';
 import { getStationArrivals } from '../api/sofseClient';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { triggerHaptic } from '../utils/notifications';
+import { PRELOADED_STATIONS } from '../data/linesData';
 
 export default function FavoritesView({
-  favorites,
+  favorites = [],
   onRemoveFavorite,
+  onToggleFavorite,
   onSelectStation,
   onOpenStationInfo,
 }) {
   const [favoriteArrivals, setFavoriteArrivals] = useState({});
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+  // Search through PRELOADED_STATIONS to easily add favorites
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const q = searchQuery.toLowerCase().trim();
+    const matches = PRELOADED_STATIONS.filter(
+      (st) =>
+        st.name.toLowerCase().includes(q) ||
+        (st.ramal && st.ramal.toLowerCase().includes(q)) ||
+        (st.lineName && st.lineName.toLowerCase().includes(q))
+    ).slice(0, 5);
+    setSearchResults(matches);
+  }, [searchQuery]);
 
   const fetchAllFavorites = async () => {
     if (!favorites.length) return;
@@ -75,6 +95,130 @@ export default function FavoritesView({
       </div>
 
       <div style={{ padding: '0 16px 24px' }}>
+        {/* Quick Add Station Search Bar */}
+        <div style={{ marginBottom: '16px', position: 'relative' }}>
+          <div
+            className="ios-search-bar"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'rgba(118, 118, 128, 0.16)',
+              borderRadius: '12px',
+              padding: '8px 12px',
+              gap: '8px',
+            }}
+          >
+            <Search size={16} color="var(--ios-text-secondary)" />
+            <input
+              type="text"
+              placeholder="Buscar estación para agregar a favoritos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--ios-text-primary)',
+                fontSize: '13.5px',
+                width: '100%',
+                outline: 'none',
+              }}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--ios-text-secondary)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '2px',
+                }}
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+
+          {/* Autocomplete Search Results Dropdown */}
+          {searchResults.length > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                marginTop: '6px',
+                background: 'rgba(28, 28, 35, 0.98)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '14px',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                boxShadow: '0 12px 36px rgba(0,0,0,0.5)',
+                zIndex: 50,
+                overflow: 'hidden',
+              }}
+            >
+              {searchResults.map((st) => {
+                const isFav = favorites.some((f) => Number(f.id) === Number(st.id));
+                return (
+                  <div
+                    key={`${st.lineId}-${st.id}`}
+                    style={{
+                      padding: '10px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                      gap: '8px',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontWeight: 700, fontSize: '14px', color: '#ffffff' }}>
+                          {st.name}
+                        </span>
+                        <LineBadge lineId={st.lineId} size="small" />
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' }}>
+                        {st.lineName} • {st.ramal || 'Ramal urbano'}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        triggerHaptic('medium');
+                        if (isFav) {
+                          onRemoveFavorite(st.id);
+                        } else if (onToggleFavorite) {
+                          onToggleFavorite(st);
+                        }
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '16px',
+                        border: isFav ? '1px solid rgba(255, 214, 10, 0.5)' : '1px solid rgba(10, 132, 255, 0.4)',
+                        background: isFav ? 'rgba(255, 214, 10, 0.18)' : 'rgba(10, 132, 255, 0.15)',
+                        color: isFav ? '#ffd60a' : '#0a84ff',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <Star size={13} fill={isFav ? '#ffd60a' : 'none'} />
+                      <span>{isFav ? 'Guardada' : 'Guardar'}</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         <div
           style={{
             fontSize: '12px',
@@ -98,7 +242,7 @@ export default function FavoritesView({
               Aún no tienes estaciones favoritas
             </div>
             <div style={{ fontSize: '13.5px', marginTop: '8px', lineHeight: 1.5 }}>
-              Toca la estrella ⭐ en cualquier estación de las pestañas <strong>"Cerca"</strong> o <strong>"Mapa"</strong> para tener sus horarios y trenes siempre a mano.
+              Usa el buscador de arriba o toca la estrella ⭐ en cualquier estación de las pestañas <strong>"Cerca"</strong> o <strong>"Mapa"</strong> para tener sus horarios siempre a mano.
             </div>
           </div>
         ) : (

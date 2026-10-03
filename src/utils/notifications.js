@@ -119,7 +119,7 @@ export function triggerHaptic(style = 'light') {
 }
 
 /**
- * Requests Notification permission
+ * Requests Notification permission safely across mobile browsers & PWAs
  */
 export async function requestNotificationPermission() {
   if (typeof window === 'undefined' || !('Notification' in window)) {
@@ -128,47 +128,81 @@ export async function requestNotificationPermission() {
   if (Notification.permission === 'granted') {
     return 'granted';
   }
-  return await Notification.requestPermission();
+  try {
+    const permission = await Notification.requestPermission();
+    return permission;
+  } catch (err) {
+    console.debug('Notification permission request error:', err);
+    return 'denied';
+  }
 }
 
 /**
- * Dispatches a native or simulated push notification
+ * Dispatches a native push notification (using Android-compatible PNG icons)
+ * and dispatches an in-app toast event for instant visual feedback on mobile/tablet.
  */
 export async function sendAppNotification(title, body, options = {}) {
+  // Sound & Haptics
   playChimeSound(options.type || 'arrival');
   triggerHaptic(options.type === 'alert' ? 'warning' : 'medium');
 
-  if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-    // 1. Use Service Worker registration (essential for Mobile Android & iOS PWA where new Notification() fails)
-    if ('serviceWorker' in navigator) {
-      try {
-        const reg = await navigator.serviceWorker.ready;
-        if (reg && reg.showNotification) {
-          await reg.showNotification(title, {
-            body,
-            icon: '/icon.svg',
-            badge: '/icon.svg',
-            vibrate: [80, 50, 80],
-            ...options,
-          });
-          return true;
-        }
-      } catch (e) {
-        console.debug('SW notification attempt:', e);
-      }
-    }
-
-    // 2. Desktop Window Notification fallback
+  // 1. Dispatch in-app visual notification event (works 100% on iOS, Android & tablets)
+  if (typeof window !== 'undefined') {
     try {
-      new Notification(title, {
-        body,
-        icon: '/icon.svg',
-        badge: '/icon.svg',
-        ...options,
-      });
-      return true;
-    } catch {
-      // Notification fallback
+      window.dispatchEvent(
+        new CustomEvent('rielar:in-app-notification', {
+          detail: {
+            title,
+            body,
+            type: options.type || 'arrival',
+            tag: options.tag || `toast-${Date.now()}`,
+          },
+        })
+      );
+    } catch {}
+  }
+
+  // 2. Mobile OS & Desktop System Notification
+  if (typeof window !== 'undefined' && 'Notification' in window) {
+    if (Notification.permission === 'granted') {
+      // NOTE: Android OS / Chrome requires raster PNG icons (SVG is unsupported by Android NotificationManager)
+      const iconUrl = '/icon-192.png';
+      const badgeUrl = '/icon-192.png';
+
+      // Use Service Worker registration (essential for Android Chrome, Android TWA and installed PWA)
+      if ('serviceWorker' in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          if (reg && reg.showNotification) {
+            await reg.showNotification(title, {
+              body,
+              icon: iconUrl,
+              badge: badgeUrl,
+              vibrate: [100, 50, 100, 50, 100],
+              tag: options.tag || `rielar-alert-${Date.now()}`,
+              renotify: true,
+              data: options.data || { url: '/' },
+              ...options,
+            });
+            return true;
+          }
+        } catch (e) {
+          console.debug('ServiceWorker showNotification note:', e);
+        }
+      }
+
+      // Fallback for desktop window notifications
+      try {
+        new Notification(title, {
+          body,
+          icon: iconUrl,
+          badge: badgeUrl,
+          ...options,
+        });
+        return true;
+      } catch (e) {
+        console.debug('Window Notification fallback note:', e);
+      }
     }
   }
   return false;

@@ -727,7 +727,7 @@ export default function NearbyView({
           </div>
         ) : (
           stationsWithArrivals.map((station) => {
-            const isFav = favorites.some((f) => f.id === station.id);
+            const isFav = favorites.some((f) => Number(f.id) === Number(station.id));
 
             // Filter arrivals by Direction (Sentido 1 = Provincia, Sentido 2 = CABA/Retiro)
             const arrivals = (station.arrivals || []).filter((arr) => {

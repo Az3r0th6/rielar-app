@@ -31,7 +31,7 @@ import LineBadge from '../components/LineBadge';
 import LastTrainsSection from '../components/LastTrainsSection';
 import RideAffiliateCard from '../components/RideAffiliateCard';
 import SwipeableAlertCard from '../components/SwipeableAlertCard';
-import { triggerHaptic, playChimeSound, sendAppNotification } from '../utils/notifications';
+import { triggerHaptic, playChimeSound, sendAppNotification, requestNotificationPermission } from '../utils/notifications';
 import {
   getAlertKey,
   dismissAlert,
@@ -140,7 +140,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
     return () => window.removeEventListener(ALERTS_CHANGED_EVENT, handleSync);
   }, []);
 
-  const handleToggleSubscribe = (lineId, lineName) => {
+  const handleToggleSubscribe = async (lineId, lineName) => {
     triggerHaptic('medium');
     const isSubscribed = subscribedLines.includes(lineId);
     let updated;
@@ -148,6 +148,8 @@ export default function LineStatusView({ onNavigateToPlanner }) {
       updated = subscribedLines.filter((id) => id !== lineId);
     } else {
       updated = [...subscribedLines, lineId];
+      // Explicitly request notification permission during this user tap
+      await requestNotificationPermission();
       sendAppNotification(
         `Alertas activadas • Línea ${lineName}`,
         `Recibirás avisos inmediatos ante demoras, obras o cancelaciones en la línea ${lineName}.`,

@@ -1302,3 +1302,14 @@ html, body {
     transform: scale(1) translateY(0);
   }
 }
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}

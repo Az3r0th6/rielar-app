@@ -11,6 +11,7 @@ import TripPlannerView from './views/TripPlannerView';
 import FavoritesView from './views/FavoritesView';
 import MoreView from './views/MoreView';
 import ChangelogModal from './components/ChangelogModal';
+import InAppNotificationToast from './components/InAppNotificationToast';
 import { PRELOADED_STATIONS } from './data/linesData';
 import { triggerHaptic, playChimeSound, sendAppNotification } from './utils/notifications';
 import {
@@ -68,24 +69,89 @@ export default function App() {
     }
   };
 
-  const updateAlertsCount = () => {
-    fetch('/api/network-status')
-      .then((r) => r.json())
-      .then((d) => {
-        const incidents = d.summary?.criticalIncidents || [];
-        const unread = getUnreadAlertsCount(incidents);
-        setNetworkAlertsCount(unread);
-      })
-      .catch(() => setNetworkAlertsCount(0));
+  const [inAppToast, setInAppToast] = useState(null);
+  const toastTimerRef = useRef(null);
+
+  // In-app visual notification listener (displays floating banner on mobile / tablet)
+  useEffect(() => {
+    const handleInAppNotif = (e) => {
+      const { title, body, type } = e.detail || {};
+      if (!title) return;
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      setInAppToast({ title, body, type });
+      toastTimerRef.current = setTimeout(() => {
+        setInAppToast(null);
+      }, 5000);
+    };
+    window.addEventListener('rielar:in-app-notification', handleInAppNotif);
+    return () => {
+      window.removeEventListener('rielar:in-app-notification', handleInAppNotif);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  // Alert Monitoring Loop: periodically checks network status and alerts user for subscribed lines
+  const checkSubscribedAlerts = async () => {
+    try {
+      const res = await fetch('/api/network-status');
+      if (!res.ok) return;
+      const data = await res.json();
+      const incidents = data.summary?.criticalIncidents || [];
+
+      // Update badge count
+      const unread = getUnreadAlertsCount(incidents);
+      setNetworkAlertsCount(unread);
+
+      // Check if any incident belongs to user's subscribed lines
+      const rawSubscribed = localStorage.getItem('subscribed_lines');
+      if (!rawSubscribed) return;
+      const subscribed = JSON.parse(rawSubscribed);
+      if (!Array.isArray(subscribed) || subscribed.length === 0) return;
+
+      const notifiedRaw = sessionStorage.getItem('rielar_notified_alerts') || '[]';
+      const notifiedSet = new Set(JSON.parse(notifiedRaw));
+
+      for (const inc of incidents) {
+        const incLineId = Number(inc.lineId);
+        if (subscribed.some((id) => Number(id) === incLineId)) {
+          const alertKey = `${incLineId}_${inc.ramalName || ''}_${(inc.content || inc.title || '').slice(0, 30)}`;
+          if (!notifiedSet.has(alertKey)) {
+            notifiedSet.add(alertKey);
+            try {
+              sessionStorage.setItem('rielar_notified_alerts', JSON.stringify(Array.from(notifiedSet)));
+            } catch {}
+
+            sendAppNotification(
+              `⚠️ Alerta en Línea ${inc.lineName || 'de Trenes'}`,
+              inc.content || inc.title || `Incidente reportado en ramal ${inc.ramalName || 'urbano'}.`,
+              { type: 'alert', tag: alertKey }
+            );
+          }
+        }
+      }
+    } catch {}
   };
 
   useEffect(() => {
-    updateAlertsCount();
+    checkSubscribedAlerts();
+    const interval = setInterval(checkSubscribedAlerts, 25000);
     const handleSync = () => {
-      updateAlertsCount();
+      checkSubscribedAlerts();
     };
     window.addEventListener(ALERTS_CHANGED_EVENT, handleSync);
-    return () => window.removeEventListener(ALERTS_CHANGED_EVENT, handleSync);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkSubscribedAlerts();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener(ALERTS_CHANGED_EVENT, handleSync);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   const handleContentScroll = (e) => {
@@ -168,67 +234,35 @@ export default function App() {
     } catch {}
   }, [theme]);
 
-  // App Version & Update Announcement Modal for Installed PWA / Mobile users
-  // Appears AUTOMATICALLY when entering the app!
-  const [showChangelogModal, setShowChangelogModal] = useState(() => {
-    try {
-      const neverShow = localStorage.getItem('rielar_changelog_v20_never_show');
-      if (neverShow === 'true' || window.location.search.includes('nochangelog') || window.location.search.includes('screenshot')) return false;
-
-      const dismissedSession = sessionStorage.getItem('rielar_changelog_dismissed_session');
-      if (dismissedSession === 'true') return false;
-
-      return true; // Pops up automatically on app launch / entry!
-    } catch {
-      return true;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      // Send system push notification if permitted
-      sendAppNotification(
-        '🎉 ¡RielAR se actualizó a la versión 2.0!',
-        'Horarios por línea y ramal, grilla completa de trenes, modo claro y alertas optimizadas.',
-        { type: 'updated' }
-      );
-    } catch {}
-
-    const handleAppUpdated = () => {
-      setShowChangelogModal(true);
-      sendAppNotification(
-        '🎉 ¡Actualización lista en RielAR v2.0!',
-        'Horarios por ramal y nuevas mejoras disponibles.',
-        { type: 'updated' }
-      );
-    };
-
-    window.addEventListener('rielar-app-updated', handleAppUpdated);
-    return () => window.removeEventListener('rielar-app-updated', handleAppUpdated);
-  }, []);
+  // Version / Changelog Modal (Closed by default; updates are delivered via Google Play Store)
+  const [showChangelogModal, setShowChangelogModal] = useState(false);
 
   const handleToggleTheme = () => {
     triggerHaptic('light');
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Favorites in localStorage (defaults to empty array)
+  // Favorites multi-layer persistence (localStorage + backup key)
   const [favorites, setFavorites] = useState(() => {
     try {
-      const saved = localStorage.getItem('trenes_favorites');
+      const saved =
+        localStorage.getItem('trenes_favorites') ||
+        localStorage.getItem('rielar_favorites_backup');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // If it was the legacy default with only Retiro and Tigre, reset to clean empty list
-        if (
-          Array.isArray(parsed) &&
-          parsed.length === 2 &&
-          parsed.some((s) => s?.name === 'Retiro' || s?.id === 332) &&
-          parsed.some((s) => s?.name === 'Tigre' || s?.id === 389)
-        ) {
-          localStorage.removeItem('trenes_favorites');
-          return [];
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map((st) => ({
+              id: Number(st.id),
+              name: st.name || '',
+              lineId: Number(st.lineId) || 5,
+              lineName: st.lineName || '',
+              ramal: st.ramal || '',
+              lat: Number(st.lat || st.latitud) || 0,
+              lng: Number(st.lng || st.longitud) || 0,
+            }))
+            .filter((st) => st.id && !isNaN(st.id));
         }
-        return Array.isArray(parsed) ? parsed : [];
       }
     } catch (e) {
       console.warn('Error reading favorites:', e);
@@ -236,13 +270,32 @@ export default function App() {
     return [];
   });
 
-  // Save favorites to localStorage
-  useEffect(() => {
+  // Helper to safely write clean favorites to multiple storage targets synchronously
+  const saveFavoritesToStorage = (favList) => {
     try {
-      localStorage.setItem('trenes_favorites', JSON.stringify(favorites));
+      const cleanList = favList
+        .map((st) => ({
+          id: Number(st.id),
+          name: st.name || '',
+          lineId: Number(st.lineId) || 5,
+          lineName: st.lineName || '',
+          ramal: st.ramal || '',
+          lat: Number(st.lat || st.latitud) || 0,
+          lng: Number(st.lng || st.longitud) || 0,
+        }))
+        .filter((st) => st.id && !isNaN(st.id));
+
+      const serialized = JSON.stringify(cleanList);
+      localStorage.setItem('trenes_favorites', serialized);
+      localStorage.setItem('rielar_favorites_backup', serialized);
     } catch (e) {
       console.warn('Error saving favorites:', e);
     }
+  };
+
+  // Sync to storage on state changes
+  useEffect(() => {
+    saveFavoritesToStorage(favorites);
   }, [favorites]);
 
   const [gpsState, setGpsState] = useState('idle'); // 'idle' | 'requesting' | 'active' | 'denied' | 'timeout'
@@ -399,18 +452,31 @@ export default function App() {
     }
   };
 
-  // Toggle favorite station
+  // Toggle favorite station with deep sanitization and synchronous multi-layer save
   const handleToggleFavorite = (station) => {
-    const exists = favorites.some((f) => f.id === station.id);
-    if (exists) {
-      setFavorites(favorites.filter((f) => f.id !== station.id));
-    } else {
-      setFavorites([...favorites, station]);
-    }
+    if (!station || !station.id) return;
+    const cleanStation = {
+      id: Number(station.id),
+      name: station.name || 'Estación',
+      lineId: station.lineId !== undefined ? Number(station.lineId) : 5,
+      lineName: station.lineName || '',
+      ramal: station.ramal || '',
+      lat: Number(station.lat || station.latitud) || 0,
+      lng: Number(station.lng || station.longitud) || 0,
+    };
+    const exists = favorites.some((f) => Number(f.id) === Number(station.id));
+    const nextFavorites = exists
+      ? favorites.filter((f) => Number(f.id) !== Number(station.id))
+      : [...favorites, cleanStation];
+
+    setFavorites(nextFavorites);
+    saveFavoritesToStorage(nextFavorites);
   };
 
   const handleRemoveFavorite = (stationId) => {
-    setFavorites(favorites.filter((f) => f.id !== stationId));
+    const nextFavorites = favorites.filter((f) => Number(f.id) !== Number(stationId));
+    setFavorites(nextFavorites);
+    saveFavoritesToStorage(nextFavorites);
   };
 
   // Tracking Train in Dynamic Island Live Activity
@@ -475,13 +541,20 @@ export default function App() {
         />
       }
       overlayModals={
-        <ChangelogModal
-          isOpen={showChangelogModal}
-          onClose={() => setShowChangelogModal(false)}
-          onNavigateToPlanner={() => {
-            handleNavigateToPlanner(null, null, 'departures');
-          }}
-        />
+        <>
+          <InAppNotificationToast
+            toast={inAppToast}
+            onClose={() => setInAppToast(null)}
+            onAction={() => handleTabChange('lines')}
+          />
+          <ChangelogModal
+            isOpen={showChangelogModal}
+            onClose={() => setShowChangelogModal(false)}
+            onNavigateToPlanner={() => {
+              handleNavigateToPlanner(null, null, 'departures');
+            }}
+          />
+        </>
       }
       modals={
         <>
@@ -498,7 +571,7 @@ export default function App() {
             station={selectedStationForInfo}
             onClose={() => setSelectedStationForInfo(null)}
             onSelectTrain={(train) => setSelectedTrain(train)}
-            isFavorite={Boolean(selectedStationForInfo && favorites.some((f) => f.id === selectedStationForInfo.id))}
+            isFavorite={Boolean(selectedStationForInfo && favorites.some((f) => Number(f.id) === Number(selectedStationForInfo.id)))}
             onToggleFavorite={handleToggleFavorite}
             onSelectStation={(st) => {
               setSelectedCustomStation(st);
@@ -532,6 +605,7 @@ export default function App() {
           <FavoritesView
             favorites={favorites}
             onRemoveFavorite={handleRemoveFavorite}
+            onToggleFavorite={handleToggleFavorite}
             onSelectStation={(st) => {
               setSelectedCustomStation(st);
               setActiveTab('nearby');

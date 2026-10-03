@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -504,12 +505,35 @@ app.get('/api/all-stations', async (req, res) => {
   }
 });
 
-// 6. User Bug & Incident Reports Engine
-const inMemoryReports = [];
+// 6. User Bug & Incident Reports Engine with Persistent Disk Storage
+const REPORTS_FILE = path.join(__dirname, 'reports.json');
+
+function loadStoredReports() {
+  try {
+    if (fs.existsSync(REPORTS_FILE)) {
+      const data = fs.readFileSync(REPORTS_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {
+    console.error('[RielAR] Error loading reports file:', e);
+  }
+  return [];
+}
+
+function saveStoredReports(reports) {
+  try {
+    fs.writeFileSync(REPORTS_FILE, JSON.stringify(reports, null, 2), 'utf8');
+  } catch (e) {
+    console.error('[RielAR] Error saving reports file:', e);
+  }
+}
+
+const inMemoryReports = loadStoredReports();
 
 app.post('/api/reports', (req, res) => {
   try {
-    const { category, lineName, stationName, description, deviceDetails } = req.body || {};
+    const { category, lineName, stationName, description, contactEmail, deviceDetails } = req.body || {};
     if (!description || !description.trim()) {
       return res.status(400).json({ error: 'La descripción del reporte es obligatoria.' });
     }
@@ -521,12 +545,14 @@ app.post('/api/reports', (req, res) => {
       lineName: lineName || 'No especificada',
       stationName: stationName || 'No especificada',
       description: description.trim(),
+      contactEmail: contactEmail || '',
       deviceDetails: deviceDetails || {},
       status: 'Recibido',
     };
     inMemoryReports.unshift(newReport);
-    if (inMemoryReports.length > 200) inMemoryReports.pop();
-    console.log(`[RielAR Reportes] Nuevo reporte recibido #${reportId}: ${newReport.category} - ${newReport.lineName}`);
+    if (inMemoryReports.length > 500) inMemoryReports.pop();
+    saveStoredReports(inMemoryReports);
+    console.log(`[RielAR Reportes] Nuevo reporte guardado #${reportId}: ${newReport.category} - ${newReport.lineName}`);
     res.json({ success: true, report: newReport });
   } catch (err) {
     res.status(500).json({ error: 'Error procesando el reporte', details: err.message });
@@ -534,7 +560,7 @@ app.post('/api/reports', (req, res) => {
 });
 
 app.get('/api/reports', (req, res) => {
-  res.json({ count: inMemoryReports.length, reports: inMemoryReports.slice(0, 50) });
+  res.json({ count: inMemoryReports.length, reports: inMemoryReports.slice(0, 100) });
 });
 
 // Health check & keep-alive target

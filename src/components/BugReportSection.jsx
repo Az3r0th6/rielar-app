@@ -35,11 +35,46 @@ export default function BugReportSection() {
   const [activeTab, setActiveTab] = useState('form'); // 'form' | 'history'
   const [savedReports, setSavedReports] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('rielar_user_reports') || '[]');
+      const raw =
+        localStorage.getItem('rielar_user_reports') ||
+        localStorage.getItem('rielar_user_reports_backup');
+      return raw ? JSON.parse(raw) : [];
     } catch {
       return [];
     }
   });
+
+  // Sync reports with backend API on mount
+  useEffect(() => {
+    const fetchServerReports = async () => {
+      try {
+        const res = await fetch('/api/reports');
+        if (res.ok) {
+          const data = await res.json();
+          const serverList = Array.isArray(data) ? data : data?.reports || [];
+          if (serverList.length > 0) {
+            setSavedReports((prev) => {
+              const map = new Map();
+              serverList.forEach((r) => map.set(r.id, r));
+              prev.forEach((r) => map.set(r.id, r));
+              const merged = Array.from(map.values()).sort(
+                (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+              );
+              try {
+                const serialized = JSON.stringify(merged);
+                localStorage.setItem('rielar_user_reports', serialized);
+                localStorage.setItem('rielar_user_reports_backup', serialized);
+              } catch {}
+              return merged;
+            });
+          }
+        }
+      } catch (err) {
+        console.debug('Failed to sync reports with server:', err);
+      }
+    };
+    fetchServerReports();
+  }, []);
 
   // Autocomplete hints for station name
   useEffect(() => {
@@ -152,10 +187,12 @@ export default function BugReportSection() {
       };
 
       // Save to local storage history
-      const updated = [createdReport, ...savedReports].slice(0, 30);
+      const updated = [createdReport, ...savedReports.filter((r) => r.id !== createdReport.id)].slice(0, 50);
       setSavedReports(updated);
       try {
-        localStorage.setItem('rielar_user_reports', JSON.stringify(updated));
+        const serialized = JSON.stringify(updated);
+        localStorage.setItem('rielar_user_reports', serialized);
+        localStorage.setItem('rielar_user_reports_backup', serialized);
       } catch (err) {
         console.warn('Storage save failed:', err);
       }
@@ -180,10 +217,12 @@ export default function BugReportSection() {
         ...payload,
         status: 'Guardado localmente',
       };
-      const updated = [fallbackReport, ...savedReports].slice(0, 30);
+      const updated = [fallbackReport, ...savedReports.filter((r) => r.id !== fallbackReport.id)].slice(0, 50);
       setSavedReports(updated);
       try {
-        localStorage.setItem('rielar_user_reports', JSON.stringify(updated));
+        const serialized = JSON.stringify(updated);
+        localStorage.setItem('rielar_user_reports', serialized);
+        localStorage.setItem('rielar_user_reports_backup', serialized);
       } catch {}
       setSubmittedReport(fallbackReport);
     } finally {

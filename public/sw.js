@@ -26,24 +26,7 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim()).then(() => {
-      // Notify mobile installed clients about new version
-      try {
-        if (self.Notification && self.Notification.permission === 'granted') {
-          self.registration.showNotification('🎉 ¡RielAR se actualizó a la versión 2.0!', {
-            body: 'Horarios por línea y ramal, grilla completa de trenes, modo claro de alto contraste y alertas optimizadas.',
-            icon: '/icon.svg',
-            badge: '/icon.svg',
-            vibrate: [100, 50, 100],
-            tag: 'rielar-app-update-v20',
-            renotify: true,
-            data: { url: '/?tab=planner' }
-          });
-        }
-      } catch (e) {
-        // Notification attempt ignored if unsupported
-      }
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
