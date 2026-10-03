@@ -147,17 +147,47 @@ export default function App() {
     return () => window.removeEventListener('rielar:sw-update', handleCustomUpdateEvent);
   }, []);
 
-  const handleApplyUpdate = () => {
+  const handleApplyUpdate = async () => {
     triggerHaptic('medium');
-    if (waitingWorkerRef.current) {
-      waitingWorkerRef.current.postMessage({ type: 'SKIP_WAITING' });
+    setShowUpdateToast(false);
+
+    try {
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        // 1. Send SKIP_WAITING to all possible worker instances
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
+          if (reg.installing) {
+            reg.installing.postMessage({ type: 'SKIP_WAITING' });
+          }
+        }
+        if (waitingWorkerRef.current) {
+          waitingWorkerRef.current.postMessage({ type: 'SKIP_WAITING' });
+        }
+
+        // 2. Clear old caches directly from window
+        if (typeof window !== 'undefined' && 'caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(
+            keys.map((k) => {
+              if (k !== 'rielar-v26') {
+                return caches.delete(k);
+              }
+            })
+          );
+        }
+      }
+    } catch (err) {
+      console.warn('Error applying update:', err);
     }
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
-    });
+
+    // 3. Force hard reload with timestamp parameter so WebView and browser bypass any disk cache
+    const targetUrl = window.location.origin + window.location.pathname + '?_v=' + Date.now();
     setTimeout(() => {
-      window.location.reload();
-    }, 600);
+      window.location.replace(targetUrl);
+    }, 250);
   };
 
   // Alert Monitoring Loop: periodically checks network status and alerts user for subscribed lines

@@ -1,5 +1,5 @@
 // Service Worker for RielAR Web App (iOS & Android Zero-Install)
-const CACHE_NAME = 'rielar-v25';
+const CACHE_NAME = 'rielar-v26';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -102,25 +102,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Instant App Launch for Document / Page Navigation:
-  // Race network with a 1200ms timeout. If cellular network is slow or sleeping,
-  // serve cached index.html immediately so the app boots in <100ms with zero blank screen.
+  // 2. Navigation / Document requests: network first so updates are applied instantly
   if (event.request.mode === 'navigate' || event.request.destination === 'document') {
     event.respondWith(
       (async () => {
         try {
-          const networkPromise = fetch(event.request);
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Navigation timeout')), 1200)
-          );
-          const response = await Promise.race([networkPromise, timeoutPromise]);
+          const response = await fetch(event.request);
           if (response && response.status === 200) {
             const copy = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
             return response;
           }
         } catch (e) {
-          // Network timed out or connection offline, fallback immediately to cache
+          // Offline fallback
         }
 
         const cached = await caches.match(event.request);
