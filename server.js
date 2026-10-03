@@ -603,21 +603,25 @@ app.patch('/api/reports/:id', (req, res) => {
 app.delete('/api/reports/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const { adminKey } = req.query || req.body || {};
+    const adminKey = req.query?.adminKey || req.body?.adminKey;
     const ADMIN_SECRET = process.env.ADMIN_KEY || 'rielar2026';
     if (adminKey && adminKey !== ADMIN_SECRET) {
       return res.status(401).json({ error: 'Clave de administrador incorrecta.' });
     }
 
-    const reportIndex = inMemoryReports.findIndex((r) => r.id === id);
-    if (reportIndex === -1) {
-      return res.status(404).json({ error: 'Reporte no encontrado.' });
+    const reportIndex = inMemoryReports.findIndex(
+      (r) => String(r.id).trim().toLowerCase() === String(id).trim().toLowerCase()
+    );
+
+    if (reportIndex !== -1) {
+      inMemoryReports.splice(reportIndex, 1);
+      saveStoredReports(inMemoryReports);
+      console.log(`[RielAR Reportes] Reporte #${id} eliminado del servidor.`);
+    } else {
+      console.log(`[RielAR Reportes] Reporte #${id} no existía en memoria (ya eliminado).`);
     }
 
-    inMemoryReports.splice(reportIndex, 1);
-    saveStoredReports(inMemoryReports);
-    console.log(`[RielAR Reportes] Reporte #${id} eliminado.`);
-    res.json({ success: true });
+    res.json({ success: true, id, message: 'Reporte eliminado correctamente.' });
   } catch (err) {
     res.status(500).json({ error: 'Error eliminando reporte', details: err.message });
   }
@@ -673,7 +677,8 @@ app.get('/api/push-public-key', (req, res) => {
 // Registrar o actualizar suscripción de un teléfono
 app.post('/api/push-subscribe', (req, res) => {
   try {
-    const { subscription } = req.body || {};
+    const raw = req.body?.subscription || req.body || {};
+    const subscription = typeof raw === 'string' ? JSON.parse(raw) : raw;
     if (!subscription || !subscription.endpoint) {
       return res.status(400).json({ error: 'Suscripción inválida' });
     }

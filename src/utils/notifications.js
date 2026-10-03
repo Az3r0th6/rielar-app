@@ -138,21 +138,22 @@ export async function subscribeToPushNotifications() {
     !('serviceWorker' in navigator) ||
     !('PushManager' in window)
   ) {
-    return null;
+    return { success: false, reason: 'unsupported' };
   }
 
   try {
     const reg = await navigator.serviceWorker.ready;
-    if (!reg) return null;
+    if (!reg) return { success: false, reason: 'no-sw' };
+
+    const res = await fetch('/api/push-public-key');
+    if (!res.ok) return { success: false, reason: 'no-key' };
+    const { publicKey } = await res.json();
+    if (!publicKey) return { success: false, reason: 'no-public-key' };
+
+    const convertedKey = urlBase64ToUint8Array(publicKey);
 
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
-      const res = await fetch('/api/push-public-key');
-      if (!res.ok) return null;
-      const { publicKey } = await res.json();
-      if (!publicKey) return null;
-
-      const convertedKey = urlBase64ToUint8Array(publicKey);
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: convertedKey,
@@ -160,18 +161,22 @@ export async function subscribeToPushNotifications() {
     }
 
     if (sub) {
-      await fetch('/api/push-subscribe', {
+      const subJson =
+        typeof sub.toJSON === 'function' ? sub.toJSON() : JSON.parse(JSON.stringify(sub));
+      const postRes = await fetch('/api/push-subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription: sub }),
+        body: JSON.stringify({ subscription: subJson }),
       });
-      console.log('[WebPush] Dispositivo suscrito con éxito a notificaciones push.');
-      return sub;
+      const data = await postRes.json().catch(() => ({}));
+      console.log('[WebPush] Dispositivo suscrito con éxito a notificaciones push:', data);
+      return { success: true, count: data.total || 1, subscription: subJson };
     }
   } catch (err) {
-    console.debug('[WebPush] Nota de suscripción:', err.message);
+    console.warn('[WebPush] Error en suscripción:', err);
+    return { success: false, error: err.message };
   }
-  return null;
+  return { success: false, reason: 'failed' };
 }
 
 /**

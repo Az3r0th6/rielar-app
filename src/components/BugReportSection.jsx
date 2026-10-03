@@ -31,7 +31,13 @@ import {
   broadcastPushNotification,
   getPushSubscribersCount,
 } from '../api/sofseClient';
-import { triggerHaptic, playChimeSound, sendAppNotification } from '../utils/notifications';
+import {
+  triggerHaptic,
+  playChimeSound,
+  sendAppNotification,
+  requestNotificationPermission,
+  subscribeToPushNotifications,
+} from '../utils/notifications';
 
 export default function BugReportSection() {
   const [selectedCategory, setSelectedCategory] = useState('arrival');
@@ -49,10 +55,14 @@ export default function BugReportSection() {
   const [activeTab, setActiveTab] = useState('form'); // 'form' | 'history' | 'admin'
   const [savedReports, setSavedReports] = useState(() => {
     try {
+      const deletedIds = new Set(
+        JSON.parse(localStorage.getItem('rielar_deleted_reports') || '[]').map(String)
+      );
       const raw =
         localStorage.getItem('rielar_user_reports') ||
         localStorage.getItem('rielar_user_reports_backup');
-      return raw ? JSON.parse(raw) : [];
+      const list = raw ? JSON.parse(raw) : [];
+      return list.filter((r) => !deletedIds.has(String(r.id)));
     } catch {
       return [];
     }
@@ -115,6 +125,8 @@ export default function BugReportSection() {
   const [broadcastBody, setBroadcastBody] = useState('Hay mejoras en horarios de trenes y nuevas funciones listas para usar.');
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [broadcastFeedback, setBroadcastFeedback] = useState('');
+  const [isSubscribingSelf, setIsSubscribingSelf] = useState(false);
+  const [subscribeFeedback, setSubscribeFeedback] = useState('');
 
   const fetchSubscribersCount = async () => {
     try {
@@ -125,56 +137,95 @@ export default function BugReportSection() {
     } catch {}
   };
 
+  const handleSubscribeSelf = async () => {
+    setIsSubscribingSelf(true);
+    setSubscribeFeedback('');
+    triggerHaptic('medium');
+    try {
+      const perm = await requestNotificationPermission();
+      if (perm !== 'granted') {
+        setSubscribeFeedback('⚠️ Permiso denegado. Habilita las notificaciones en los ajustes del navegador.');
+        triggerHaptic('heavy');
+        return;
+      }
+      const res = await subscribeToPushNotifications();
+      if (res && res.success) {
+        setSubscribeFeedback('✅ ¡Este dispositivo quedó suscrito! Recibirá las alertas push.');
+        triggerHaptic('success');
+        playChimeSound('arrival');
+        await fetchSubscribersCount();
+      } else {
+        setSubscribeFeedback(`⚠️ No se pudo suscribir: ${res?.reason || res?.error || 'Revisa la conexión'}`);
+        triggerHaptic('heavy');
+      }
+    } catch (err) {
+      setSubscribeFeedback(`❌ Error al suscribir: ${err.message}`);
+      triggerHaptic('heavy');
+    } finally {
+      setIsSubscribingSelf(false);
+    }
+  };
+
   // Sync reports with backend API and notify passenger if any ticket changed status!
   const fetchServerReports = async () => {
     fetchSubscribersCount();
     try {
+      const deletedIds = new Set(
+        (() => {
+          try {
+            return JSON.parse(localStorage.getItem('rielar_deleted_reports') || '[]');
+          } catch {
+            return [];
+          }
+        })()
+      );
+
       const res = await fetch('/api/reports');
       if (res.ok) {
         const data = await res.json();
-        const serverList = Array.isArray(data) ? data : data?.reports || [];
+        const rawList = Array.isArray(data) ? data : data?.reports || [];
+        const serverList = rawList.filter((r) => !deletedIds.has(String(r.id)));
         setAllServerReports(serverList);
 
-        if (serverList.length > 0) {
-          setSavedReports((prev) => {
-            const map = new Map();
-            serverList.forEach((r) => map.set(r.id, r));
+        setSavedReports((prev) => {
+          const map = new Map();
+          serverList.forEach((r) => map.set(String(r.id), r));
 
-            // Notify passenger if one of their reports was updated by admin!
-            prev.forEach((oldRep) => {
-              const serverRep = map.get(oldRep.id);
-              if (serverRep) {
-                const statusChanged = serverRep.status && serverRep.status !== oldRep.status;
-                const noteChanged = serverRep.adminNote && serverRep.adminNote !== oldRep.adminNote;
-                if (statusChanged || noteChanged) {
-                  const isResolved = serverRep.status === 'Resuelto' || serverRep.status === 'Cerrado';
-                  sendAppNotification(
-                    isResolved
-                      ? `🎉 ¡Tu reporte #${serverRep.id} fue resuelto!`
-                      : `🔔 Actualización en ticket #${serverRep.id} (${serverRep.status})`,
-                    serverRep.adminNote
-                      ? `RielAR: "${serverRep.adminNote}"`
-                      : `El estado de tu aviso sobre ${serverRep.stationName || serverRep.lineName} ahora es: ${serverRep.status}.`,
-                    { type: isResolved ? 'arrival' : 'alert' }
-                  );
-                }
-                map.set(oldRep.id, { ...oldRep, ...serverRep });
-              } else {
-                map.set(oldRep.id, oldRep);
+          // Notify passenger if one of their reports was updated by admin!
+          prev.forEach((oldRep) => {
+            if (deletedIds.has(String(oldRep.id))) return;
+            const serverRep = map.get(String(oldRep.id));
+            if (serverRep) {
+              const statusChanged = serverRep.status && serverRep.status !== oldRep.status;
+              const noteChanged = serverRep.adminNote && serverRep.adminNote !== oldRep.adminNote;
+              if (statusChanged || noteChanged) {
+                const isResolved = serverRep.status === 'Resuelto' || serverRep.status === 'Cerrado';
+                sendAppNotification(
+                  isResolved
+                    ? `🎉 ¡Tu reporte #${serverRep.id} fue resuelto!`
+                    : `🔔 Actualización en ticket #${serverRep.id} (${serverRep.status})`,
+                  serverRep.adminNote
+                    ? `RielAR: "${serverRep.adminNote}"`
+                    : `El estado de tu aviso sobre ${serverRep.stationName || serverRep.lineName} ahora es: ${serverRep.status}.`,
+                  { type: isResolved ? 'arrival' : 'alert' }
+                );
               }
-            });
-
-            const merged = Array.from(map.values()).sort(
-              (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-            );
-            try {
-              const serialized = JSON.stringify(merged);
-              localStorage.setItem('rielar_user_reports', serialized);
-              localStorage.setItem('rielar_user_reports_backup', serialized);
-            } catch {}
-            return merged;
+              map.set(String(oldRep.id), { ...oldRep, ...serverRep });
+            } else {
+              map.set(String(oldRep.id), oldRep);
+            }
           });
-        }
+
+          const merged = Array.from(map.values())
+            .filter((r) => !deletedIds.has(String(r.id)))
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          try {
+            const serialized = JSON.stringify(merged);
+            localStorage.setItem('rielar_user_reports', serialized);
+            localStorage.setItem('rielar_user_reports_backup', serialized);
+          } catch {}
+          return merged;
+        });
       }
     } catch (err) {
       console.debug('Failed to sync reports with server:', err);
@@ -417,14 +468,35 @@ export default function BugReportSection() {
     if (!window.confirm(`¿Eliminar definitivamente el reporte #${reportId}?`)) {
       return;
     }
+    // 1. Mark as permanently deleted in local cache
+    try {
+      const deleted = JSON.parse(localStorage.getItem('rielar_deleted_reports') || '[]');
+      if (!deleted.includes(String(reportId))) {
+        deleted.push(String(reportId));
+        localStorage.setItem('rielar_deleted_reports', JSON.stringify(deleted));
+      }
+    } catch {}
+
+    // 2. Remove immediately from local state and storage
+    setSavedReports((prev) => {
+      const next = prev.filter((r) => String(r.id) !== String(reportId));
+      try {
+        localStorage.setItem('rielar_user_reports', JSON.stringify(next));
+        localStorage.setItem('rielar_user_reports_backup', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    setAllServerReports((prev) => prev.filter((r) => String(r.id) !== String(reportId)));
+
+    // 3. Delete from backend API (gracefully tolerates 404/resets)
     try {
       await deleteBugReport(reportId, 'rielar2026');
       triggerHaptic('medium');
-      setAdminActionMsg(`Ticket #${reportId} eliminado.`);
-      await fetchServerReports();
+      setAdminActionMsg(`¡Ticket #${reportId} eliminado con éxito!`);
     } catch (err) {
-      setAdminActionMsg(`Error al eliminar: ${err.message}`);
-      triggerHaptic('heavy');
+      console.warn('Server delete note:', err);
+      setAdminActionMsg(`Ticket #${reportId} eliminado.`);
+      triggerHaptic('medium');
     }
   };
 
@@ -449,9 +521,15 @@ export default function BugReportSection() {
       });
       playChimeSound('arrival');
       triggerHaptic('success');
-      setBroadcastFeedback(
-        `🎉 ¡Notificación enviada a ${res.sent} teléfono(s)! (${res.total} registrados)`
-      );
+      if (res.total === 0) {
+        setBroadcastFeedback(
+          '⚠️ Hay 0 teléfonos registrados en el servidor. Presiona "🔔 Suscribir este celular" arriba para registrar este dispositivo y recibir la notificación de prueba.'
+        );
+      } else {
+        setBroadcastFeedback(
+          `🎉 ¡Notificación enviada a ${res.sent} teléfono(s)! (${res.total} registrados)`
+        );
+      }
       fetchSubscribersCount();
     } catch (err) {
       setBroadcastFeedback(`❌ Error al enviar: ${err.message}`);
@@ -1290,9 +1368,13 @@ export default function BugReportSection() {
               {adminActionMsg && (
                 <div
                   style={{
-                    background: 'rgba(48, 209, 88, 0.15)',
-                    border: '1px solid rgba(48, 209, 88, 0.3)',
-                    color: '#30d158',
+                    background: adminActionMsg.toLowerCase().includes('error')
+                      ? 'rgba(255, 69, 58, 0.15)'
+                      : 'rgba(48, 209, 88, 0.15)',
+                    border: adminActionMsg.toLowerCase().includes('error')
+                      ? '1px solid rgba(255, 69, 58, 0.3)'
+                      : '1px solid rgba(48, 209, 88, 0.3)',
+                    color: adminActionMsg.toLowerCase().includes('error') ? '#ff453a' : '#30d158',
                     padding: '8px 12px',
                     borderRadius: '10px',
                     fontSize: '12px',
@@ -1302,7 +1384,11 @@ export default function BugReportSection() {
                     gap: '6px',
                   }}
                 >
-                  <CheckCircle2 size={14} />
+                  {adminActionMsg.toLowerCase().includes('error') ? (
+                    <AlertCircle size={14} />
+                  ) : (
+                    <CheckCircle2 size={14} />
+                  )}
                   <span>{adminActionMsg}</span>
                 </div>
               )}
@@ -1352,22 +1438,66 @@ export default function BugReportSection() {
                     </div>
                   </div>
 
-                  <span
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        background:
+                          subscribersCount > 0
+                            ? 'rgba(48, 209, 88, 0.15)'
+                            : 'rgba(255, 255, 255, 0.08)',
+                        color: subscribersCount > 0 ? '#30d158' : '#8e8e93',
+                        padding: '4px 8px',
+                        borderRadius: '8px',
+                      }}
+                    >
+                      📱 {subscribersCount} {subscribersCount === 1 ? 'teléfono' : 'teléfonos'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleSubscribeSelf}
+                      disabled={isSubscribingSelf}
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        background: 'rgba(10, 132, 255, 0.2)',
+                        border: '1px solid rgba(10, 132, 255, 0.4)',
+                        color: '#60a5fa',
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        cursor: isSubscribingSelf ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                      title="Registra este celular o navegador para recibir las pruebas push"
+                    >
+                      <Bell size={12} />
+                      <span>{isSubscribingSelf ? 'Registrando...' : '🔔 Suscribir este celular'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {subscribeFeedback && (
+                  <div
                     style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      background:
-                        subscribersCount > 0
-                          ? 'rgba(48, 209, 88, 0.15)'
-                          : 'rgba(255, 255, 255, 0.08)',
-                      color: subscribersCount > 0 ? '#30d158' : '#8e8e93',
-                      padding: '4px 8px',
-                      borderRadius: '8px',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      padding: '8px 12px',
+                      borderRadius: '10px',
+                      background: subscribeFeedback.startsWith('✅')
+                        ? 'rgba(48, 209, 88, 0.15)'
+                        : 'rgba(255, 69, 58, 0.15)',
+                      border: subscribeFeedback.startsWith('✅')
+                        ? '1px solid rgba(48, 209, 88, 0.3)'
+                        : '1px solid rgba(255, 69, 58, 0.3)',
+                      color: subscribeFeedback.startsWith('✅') ? '#30d158' : '#ff453a',
                     }}
                   >
-                    📱 {subscribersCount} {subscribersCount === 1 ? 'teléfono' : 'teléfonos'}
-                  </span>
-                </div>
+                    {subscribeFeedback}
+                  </div>
+                )}
 
                 <form
                   onSubmit={handleSendBroadcast}

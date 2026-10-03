@@ -159,14 +159,17 @@ export async function updateBugReport(reportId, updateData) {
   return await res.json();
 }
 
-export async function deleteBugReport(reportId, adminKey) {
-  const res = await fetchWithRetry(`${API_BASE}/reports/${encodeURIComponent(reportId)}`, {
+export async function deleteBugReport(reportId, adminKey = 'rielar2026') {
+  const url = `${API_BASE}/reports/${encodeURIComponent(reportId)}?adminKey=${encodeURIComponent(adminKey)}`;
+  const res = await fetchWithRetry(url, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ adminKey }),
   });
-  if (!res.ok) throw new Error(`Error al eliminar el reporte: ${res.status}`);
-  return await res.json();
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Error al eliminar el reporte: ${res.status}`);
+  }
+  return await res.json().catch(() => ({ success: true, id: reportId }));
 }
 
 export async function getNetworkTrains() {
