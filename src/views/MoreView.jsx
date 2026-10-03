@@ -17,6 +17,7 @@ import {
   Sun,
   Moon,
   ChevronRight,
+  RefreshCw,
 } from 'lucide-react';
 import {
   triggerHaptic,
@@ -39,6 +40,39 @@ export default function MoreView({
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [copiedDownload, setCopiedDownload] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [updateStatusMsg, setUpdateStatusMsg] = useState('');
+
+  const handleCheckUpdate = async () => {
+    triggerHaptic('light');
+    setCheckingUpdate(true);
+    setUpdateStatusMsg('');
+    try {
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          await reg.update();
+          if (reg.waiting) {
+            window.dispatchEvent(new CustomEvent('rielar:sw-update', { detail: { registration: reg } }));
+            setUpdateStatusMsg('¡Nueva actualización lista!');
+            triggerHaptic('success');
+          } else {
+            setUpdateStatusMsg('¡RielAR ya está actualizado!');
+            triggerHaptic('light');
+          }
+        } else {
+          setUpdateStatusMsg('Versión web al día');
+        }
+      } else {
+        setUpdateStatusMsg('Versión al día');
+      }
+    } catch {
+      setUpdateStatusMsg('Al día con el servidor');
+    } finally {
+      setCheckingUpdate(false);
+      setTimeout(() => setUpdateStatusMsg(''), 4500);
+    }
+  };
 
   const ownerCreditsTapRef = useRef({ count: 0, lastTime: 0 });
 
@@ -266,6 +300,78 @@ export default function MoreView({
           >
             {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             <span>{theme === 'dark' ? 'Activar Claro' : 'Activar Oscuro'}</span>
+          </button>
+        </div>
+
+        {/* Version & Update Detector Card */}
+        <div
+          className="ios-card"
+          style={{
+            margin: '0 0 16px',
+            padding: '14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '12px',
+                background: 'rgba(48, 209, 88, 0.15)',
+                color: '#30d158',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+              }}
+            >
+              🚀
+            </div>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
+                Versión v1.0.5{' '}
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: '#30d158',
+                    background: 'rgba(48, 209, 88, 0.12)',
+                    padding: '2px 6px',
+                    borderRadius: '6px',
+                  }}
+                >
+                  Build 25
+                </span>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)', marginTop: '2px' }}>
+                {updateStatusMsg || 'Servidor sincronizado con Render'}
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleCheckUpdate}
+            disabled={checkingUpdate}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              background: 'rgba(255, 255, 255, 0.08)',
+              color: 'var(--ios-text-primary)',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              cursor: checkingUpdate ? 'default' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <RefreshCw size={13} style={{ animation: checkingUpdate ? 'spin 1s linear infinite' : 'none' }} />
+            <span>{checkingUpdate ? 'Buscando...' : 'Buscar'}</span>
           </button>
         </div>
         {/* ========================================================

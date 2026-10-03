@@ -79,14 +79,18 @@
       if (window.isSecureContext && 'serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').then(reg => {
+            const notifyUpdate = () => {
+              window.dispatchEvent(new CustomEvent('rielar:sw-update', { detail: { registration: reg } }));
+            };
+
             const checkUpdate = (worker) => {
               if (worker && worker.state === 'installed' && navigator.serviceWorker.controller) {
-                window.dispatchEvent(new CustomEvent('rielar:sw-update', { detail: { registration: reg } }));
+                notifyUpdate();
               }
             };
 
             if (reg.waiting && navigator.serviceWorker.controller) {
-              window.dispatchEvent(new CustomEvent('rielar:sw-update', { detail: { registration: reg } }));
+              notifyUpdate();
             }
 
             reg.addEventListener('updatefound', () => {
@@ -95,6 +99,14 @@
                 newWorker.addEventListener('statechange', () => checkUpdate(newWorker));
               }
             });
+
+            // Immediately check server for new version on launch
+            try { reg.update(); } catch(e) {}
+
+            // Periodically check for updates every 10 minutes while app is in foreground
+            setInterval(() => {
+              try { reg.update(); } catch(e) {}
+            }, 10 * 60 * 1000);
 
             document.addEventListener('visibilitychange', () => {
               if (document.visibilityState === 'visible') {
