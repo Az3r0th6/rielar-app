@@ -4,7 +4,7 @@ import {
   Clock,
   MapPin,
   AlertTriangle,
-  Map,
+  Map as MapIcon,
   Smartphone,
   Sparkles,
   Send,
@@ -208,7 +208,7 @@ export default function BugReportSection() {
         setAllServerReports(serverList);
 
         setSavedReports((prev) => {
-          const map = new Map();
+          const map = new (window.Map || Map)();
           serverList.forEach((r) => map.set(String(r.id), r));
 
           const validPrev = Array.isArray(prev) ? prev.filter(Boolean) : [];
@@ -295,7 +295,7 @@ export default function BugReportSection() {
     {
       id: 'map_glitch',
       name: 'Mapa Interactivo',
-      icon: Map,
+      icon: MapIcon,
       color: '#bf5af2',
       desc: 'Problema visual, pines o trazado del mapa',
     },
