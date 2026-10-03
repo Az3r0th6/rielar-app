@@ -27,6 +27,7 @@ import {
 import BugReportSection from '../components/BugReportSection';
 import SupportProjectSection from '../components/SupportProjectSection';
 import PassengerGuideSection from '../components/PassengerGuideSection';
+import { safeLocalStorage } from '../utils/safeStorage';
 
 export default function MoreView({
   onInstallApp,
@@ -49,7 +50,7 @@ export default function MoreView({
       ownerCreditsTapRef.current.count += 1;
       if (ownerCreditsTapRef.current.count >= 5) {
         try {
-          localStorage.setItem('rielar_owner_device', 'true');
+          safeLocalStorage.setItem('rielar_owner_device', 'true');
         } catch {}
         triggerHaptic('success');
         setActiveSection('reports');

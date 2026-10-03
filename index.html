@@ -26,6 +26,51 @@
     
     <!-- Leaflet Map CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Bulletproof Storage Polyfill for Android WebViews & Restricted Storage -->
+    <script>
+      (function() {
+        function createMemStorage() {
+          var store = new Map();
+          return {
+            getItem: function(k) { return store.has(k) ? store.get(k) : null; },
+            setItem: function(k, v) { store.set(k, String(v)); },
+            removeItem: function(k) { store.delete(k); },
+            clear: function() { store.clear(); },
+            get length() { return store.size; },
+            key: function(i) { return Array.from(store.keys())[i] || null; }
+          };
+        }
+        try {
+          var test = window.localStorage;
+          test.getItem('__test__');
+        } catch (e) {
+          try {
+            var mem = createMemStorage();
+            Object.defineProperty(window, 'localStorage', {
+              value: mem,
+              configurable: true,
+              enumerable: true,
+              writable: true
+            });
+          } catch (err) {}
+        }
+        try {
+          var testSession = window.sessionStorage;
+          testSession.getItem('__test__');
+        } catch (e) {
+          try {
+            var memS = createMemStorage();
+            Object.defineProperty(window, 'sessionStorage', {
+              value: memS,
+              configurable: true,
+              enumerable: true,
+              writable: true
+            });
+          } catch (err) {}
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

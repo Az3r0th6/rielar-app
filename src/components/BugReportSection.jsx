@@ -38,6 +38,7 @@ import {
   requestNotificationPermission,
   subscribeToPushNotifications,
 } from '../utils/notifications';
+import { safeLocalStorage, safeSessionStorage } from '../utils/safeStorage';
 
 function sanitizeReport(r) {
   if (!r || typeof r !== 'object' || !r.id) return null;
@@ -71,13 +72,13 @@ export default function BugReportSection() {
   const [activeTab, setActiveTab] = useState('form'); // 'form' | 'history' | 'admin'
   const [savedReports, setSavedReports] = useState(() => {
     try {
-      const deletedRaw = localStorage.getItem('rielar_deleted_reports');
+      const deletedRaw = safeLocalStorage.getItem('rielar_deleted_reports');
       const deletedArr = deletedRaw ? JSON.parse(deletedRaw) : [];
       const deletedIds = new Set(Array.isArray(deletedArr) ? deletedArr.map(String) : []);
 
       const raw =
-        localStorage.getItem('rielar_user_reports') ||
-        localStorage.getItem('rielar_user_reports_backup');
+        safeLocalStorage.getItem('rielar_user_reports') ||
+        safeLocalStorage.getItem('rielar_user_reports_backup');
       const parsed = raw ? JSON.parse(raw) : [];
       const list = Array.isArray(parsed) ? parsed : [];
       return list
@@ -90,15 +91,19 @@ export default function BugReportSection() {
 
   // Secret Owner Mode State (Completely hidden from regular passengers)
   const [isOwnerMode, setIsOwnerMode] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const isRemembered = localStorage.getItem('rielar_owner_device') === 'true';
-    const hasHash = window.location.hash.toLowerCase().includes('admin');
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasParam =
-      urlParams.get('admin') === '1' ||
-      urlParams.get('admin') === 'true' ||
-      urlParams.get('owner') === '1';
-    return isRemembered || hasHash || hasParam;
+    try {
+      if (typeof window === 'undefined') return false;
+      const isRemembered = safeLocalStorage.getItem('rielar_owner_device') === 'true';
+      const hasHash = window.location.hash.toLowerCase().includes('admin');
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasParam =
+        urlParams.get('admin') === '1' ||
+        urlParams.get('admin') === 'true' ||
+        urlParams.get('owner') === '1';
+      return isRemembered || hasHash || hasParam;
+    } catch {
+      return false;
+    }
   });
 
   const secretTapRef = useRef({ count: 0, lastTime: 0 });
@@ -124,10 +129,11 @@ export default function BugReportSection() {
 
   // Admin Management State
   const [isAdminAuth, setIsAdminAuth] = useState(() => {
-    return (
-      typeof sessionStorage !== 'undefined' &&
-      sessionStorage.getItem('rielar_admin_auth') === 'true'
-    );
+    try {
+      return safeSessionStorage.getItem('rielar_admin_auth') === 'true';
+    } catch {
+      return false;
+    }
   });
   const [adminPinInput, setAdminPinInput] = useState('');
   const [adminPinError, setAdminPinError] = useState('');
@@ -190,7 +196,7 @@ export default function BugReportSection() {
   const fetchServerReports = async () => {
     fetchSubscribersCount();
     try {
-      const deletedRaw = localStorage.getItem('rielar_deleted_reports');
+      const deletedRaw = safeLocalStorage.getItem('rielar_deleted_reports');
       const deletedArr = deletedRaw ? JSON.parse(deletedRaw) : [];
       const deletedIds = new Set(Array.isArray(deletedArr) ? deletedArr.map(String) : []);
 
@@ -242,8 +248,8 @@ export default function BugReportSection() {
             .sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime());
           try {
             const serialized = JSON.stringify(merged);
-            localStorage.setItem('rielar_user_reports', serialized);
-            localStorage.setItem('rielar_user_reports_backup', serialized);
+            safeLocalStorage.setItem('rielar_user_reports', serialized);
+            safeLocalStorage.setItem('rielar_user_reports_backup', serialized);
           } catch {}
           return merged;
         });
@@ -372,8 +378,8 @@ export default function BugReportSection() {
       setSavedReports(updated);
       try {
         const serialized = JSON.stringify(updated);
-        localStorage.setItem('rielar_user_reports', serialized);
-        localStorage.setItem('rielar_user_reports_backup', serialized);
+        safeLocalStorage.setItem('rielar_user_reports', serialized);
+        safeLocalStorage.setItem('rielar_user_reports_backup', serialized);
       } catch (err) {
         console.warn('Storage save failed:', err);
       }
@@ -402,8 +408,8 @@ export default function BugReportSection() {
       setSavedReports(updated);
       try {
         const serialized = JSON.stringify(updated);
-        localStorage.setItem('rielar_user_reports', serialized);
-        localStorage.setItem('rielar_user_reports_backup', serialized);
+        safeLocalStorage.setItem('rielar_user_reports', serialized);
+        safeLocalStorage.setItem('rielar_user_reports_backup', serialized);
       } catch {}
       setSubmittedReport(fallbackReport);
     } finally {
@@ -420,8 +426,8 @@ export default function BugReportSection() {
     e?.preventDefault();
     if (adminPinInput.trim() === 'rielar2026') {
       try {
-        sessionStorage.setItem('rielar_admin_auth', 'true');
-        localStorage.setItem('rielar_owner_device', 'true');
+        safeSessionStorage.setItem('rielar_admin_auth', 'true');
+        safeLocalStorage.setItem('rielar_owner_device', 'true');
       } catch {}
       setIsAdminAuth(true);
       setIsOwnerMode(true);
@@ -436,7 +442,7 @@ export default function BugReportSection() {
 
   const handleAdminLogout = () => {
     try {
-      sessionStorage.removeItem('rielar_admin_auth');
+      safeSessionStorage.removeItem('rielar_admin_auth');
     } catch {}
     setIsAdminAuth(false);
     setAdminPinInput('');
@@ -446,8 +452,8 @@ export default function BugReportSection() {
 
   const handleHideAdminPanel = () => {
     try {
-      localStorage.removeItem('rielar_owner_device');
-      sessionStorage.removeItem('rielar_admin_auth');
+      safeLocalStorage.removeItem('rielar_owner_device');
+      safeSessionStorage.removeItem('rielar_admin_auth');
     } catch {}
     setIsAdminAuth(false);
     setIsOwnerMode(false);
@@ -491,10 +497,10 @@ export default function BugReportSection() {
     }
     // 1. Mark as permanently deleted in local cache
     try {
-      const deleted = JSON.parse(localStorage.getItem('rielar_deleted_reports') || '[]');
+      const deleted = JSON.parse(safeLocalStorage.getItem('rielar_deleted_reports') || '[]');
       if (!deleted.includes(String(reportId))) {
         deleted.push(String(reportId));
-        localStorage.setItem('rielar_deleted_reports', JSON.stringify(deleted));
+        safeLocalStorage.setItem('rielar_deleted_reports', JSON.stringify(deleted));
       }
     } catch {}
 
@@ -503,8 +509,8 @@ export default function BugReportSection() {
       const list = Array.isArray(prev) ? prev : [];
       const next = list.filter((r) => r && String(r.id) !== String(reportId));
       try {
-        localStorage.setItem('rielar_user_reports', JSON.stringify(next));
-        localStorage.setItem('rielar_user_reports_backup', JSON.stringify(next));
+        safeLocalStorage.setItem('rielar_user_reports', JSON.stringify(next));
+        safeLocalStorage.setItem('rielar_user_reports_backup', JSON.stringify(next));
       } catch {}
       return next;
     });

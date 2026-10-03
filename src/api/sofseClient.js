@@ -1,4 +1,5 @@
 // SOFSE API Client for Frontend with Cold-Start Resilience
+import { safeSessionStorage } from '../utils/safeStorage';
 
 const API_BASE = '/api';
 
@@ -56,12 +57,12 @@ export async function getNetworkStatus() {
     if (!res.ok) throw new Error(`Error fetching network status: ${res.status}`);
     const data = await res.json();
     try {
-      sessionStorage.setItem('cached_network_status', JSON.stringify(data));
+      safeSessionStorage.setItem('cached_network_status', JSON.stringify(data));
     } catch {}
     return data;
   } catch (err) {
     try {
-      const saved = sessionStorage.getItem('cached_network_status');
+      const saved = safeSessionStorage.getItem('cached_network_status');
       if (saved) return JSON.parse(saved);
     } catch {}
     throw err;
@@ -113,8 +114,8 @@ export async function getStationArrivals(stationId, params = {}, forceRefresh = 
     if (!res.ok) throw new Error(`Error fetching arrivals for station ${stationId}: ${res.status}`);
     const data = await res.json();
     try {
-      sessionStorage.setItem(`arr_${stationId}`, JSON.stringify(data));
-      sessionStorage.setItem(`arr_${stationId}_ts`, String(Date.now()));
+      safeSessionStorage.setItem(`arr_${stationId}`, JSON.stringify(data));
+      safeSessionStorage.setItem(`arr_${stationId}_ts`, String(Date.now()));
     } catch {}
     return data;
   } catch (err) {
@@ -123,7 +124,7 @@ export async function getStationArrivals(stationId, params = {}, forceRefresh = 
     }
     // Gracefully serve cached arrivals from sessionStorage if available
     try {
-      const saved = sessionStorage.getItem(`arr_${stationId}`);
+      const saved = safeSessionStorage.getItem(`arr_${stationId}`);
       if (saved) {
         console.warn(`[RielAR] Usando arribos cacheados para estación ${stationId} por retraso de red`);
         return JSON.parse(saved);

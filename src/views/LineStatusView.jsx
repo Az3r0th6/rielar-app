@@ -32,6 +32,7 @@ import LastTrainsSection from '../components/LastTrainsSection';
 import RideAffiliateCard from '../components/RideAffiliateCard';
 import SwipeableAlertCard from '../components/SwipeableAlertCard';
 import { triggerHaptic, playChimeSound, sendAppNotification, requestNotificationPermission } from '../utils/notifications';
+import { safeLocalStorage } from '../utils/safeStorage';
 import {
   getAlertKey,
   dismissAlert,
@@ -107,7 +108,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
   const [dismissedKeys, setDismissedKeys] = useState(() => getDismissedAlertKeys());
   const [subscribedLines, setSubscribedLines] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('subscribed_lines') || '[]');
+      return JSON.parse(safeLocalStorage.getItem('subscribed_lines') || '[]');
     } catch {
       return [];
     }
@@ -158,7 +159,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
     }
     setSubscribedLines(updated);
     try {
-      localStorage.setItem('subscribed_lines', JSON.stringify(updated));
+      safeLocalStorage.setItem('subscribed_lines', JSON.stringify(updated));
     } catch {}
   };
 

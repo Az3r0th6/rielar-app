@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { triggerHaptic, playChimeSound } from '../utils/notifications';
+import { safeLocalStorage, safeSessionStorage } from '../utils/safeStorage';
 
 export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner }) {
   if (!isOpen) return null;
@@ -21,9 +22,9 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
   const handleDismiss = () => {
     triggerHaptic('light');
     try {
-      sessionStorage.setItem('rielar_changelog_dismissed_session', 'true');
+      safeSessionStorage.setItem('rielar_changelog_dismissed_session', 'true');
       if (dontShowAgain) {
-        localStorage.setItem('rielar_changelog_v20_never_show', 'true');
+        safeLocalStorage.setItem('rielar_changelog_v20_never_show', 'true');
       }
     } catch {}
     onClose();
@@ -33,9 +34,9 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
     triggerHaptic('medium');
     playChimeSound('arrival');
     try {
-      sessionStorage.setItem('rielar_changelog_dismissed_session', 'true');
+      safeSessionStorage.setItem('rielar_changelog_dismissed_session', 'true');
       if (dontShowAgain) {
-        localStorage.setItem('rielar_changelog_v20_never_show', 'true');
+        safeLocalStorage.setItem('rielar_changelog_v20_never_show', 'true');
       }
     } catch {}
     onClose();

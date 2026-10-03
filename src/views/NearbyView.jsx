@@ -24,6 +24,7 @@ import { getNearestStations } from '../utils/geo';
 import { getStationArrivals, getAllStationsCatalog } from '../api/sofseClient';
 import { formatArrivalSeconds, formatLocalTime, getCountdownBadgeClass } from '../utils/time';
 import { triggerHaptic, playChimeSound, unlockAudio } from '../utils/notifications';
+import { safeSessionStorage } from '../utils/safeStorage';
 
 export default function NearbyView({
   userCoords,
@@ -67,7 +68,7 @@ export default function NearbyView({
     try {
       const initial = nearestStations.slice(0, 4);
       return initial.map((st) => {
-        const cached = sessionStorage.getItem(`arr_${st.id}`);
+        const cached = safeSessionStorage.getItem(`arr_${st.id}`);
         const arrivals = cached ? JSON.parse(cached) : [];
         return {
           ...st,

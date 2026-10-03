@@ -25,6 +25,7 @@ import {
   markAlertsAsRead,
   ALERTS_CHANGED_EVENT,
 } from './utils/alertManager';
+import { safeLocalStorage, safeSessionStorage } from './utils/safeStorage';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => {
@@ -172,12 +173,12 @@ export default function App() {
       setNetworkAlertsCount(unread);
 
       // Check if any incident belongs to user's subscribed lines
-      const rawSubscribed = localStorage.getItem('subscribed_lines');
+      const rawSubscribed = safeLocalStorage.getItem('subscribed_lines');
       if (!rawSubscribed) return;
       const subscribed = JSON.parse(rawSubscribed);
       if (!Array.isArray(subscribed) || subscribed.length === 0) return;
 
-      const notifiedRaw = sessionStorage.getItem('rielar_notified_alerts') || '[]';
+      const notifiedRaw = safeSessionStorage.getItem('rielar_notified_alerts') || '[]';
       const notifiedSet = new Set(JSON.parse(notifiedRaw));
 
       for (const inc of incidents) {
@@ -187,7 +188,7 @@ export default function App() {
           if (!notifiedSet.has(alertKey)) {
             notifiedSet.add(alertKey);
             try {
-              sessionStorage.setItem('rielar_notified_alerts', JSON.stringify(Array.from(notifiedSet)));
+              safeSessionStorage.setItem('rielar_notified_alerts', JSON.stringify(Array.from(notifiedSet)));
             } catch {}
 
             sendAppNotification(
@@ -270,7 +271,7 @@ export default function App() {
   // User Geolocation Coordinates (reads last known coordinates from localStorage for instant launch)
   const [userCoords, setUserCoords] = useState(() => {
     try {
-      const saved = localStorage.getItem('rielar_last_coords');
+      const saved = safeLocalStorage.getItem('rielar_last_coords');
       if (saved) return JSON.parse(saved);
     } catch {}
     return {
@@ -281,7 +282,7 @@ export default function App() {
   });
   const [locationPreset, setLocationPreset] = useState(() => {
     try {
-      const saved = localStorage.getItem('rielar_last_coords');
+      const saved = safeLocalStorage.getItem('rielar_last_coords');
       if (saved) return 'GPS';
     } catch {}
     return 'Retiro';
@@ -290,7 +291,7 @@ export default function App() {
   // Global Theme (Dark / Light) with persistent storage
   const [theme, setTheme] = useState(() => {
     try {
-      return localStorage.getItem('rielar_theme') || 'dark';
+      return safeLocalStorage.getItem('rielar_theme') || 'dark';
     } catch {
       return 'dark';
     }
@@ -299,7 +300,7 @@ export default function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     try {
-      localStorage.setItem('rielar_theme', theme);
+      safeLocalStorage.setItem('rielar_theme', theme);
     } catch {}
   }, [theme]);
 
@@ -315,8 +316,8 @@ export default function App() {
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved =
-        localStorage.getItem('trenes_favorites') ||
-        localStorage.getItem('rielar_favorites_backup');
+        safeLocalStorage.getItem('trenes_favorites') ||
+        safeLocalStorage.getItem('rielar_favorites_backup');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
@@ -355,8 +356,8 @@ export default function App() {
         .filter((st) => st.id && !isNaN(st.id));
 
       const serialized = JSON.stringify(cleanList);
-      localStorage.setItem('trenes_favorites', serialized);
-      localStorage.setItem('rielar_favorites_backup', serialized);
+      safeLocalStorage.setItem('trenes_favorites', serialized);
+      safeLocalStorage.setItem('rielar_favorites_backup', serialized);
     } catch (e) {
       console.warn('Error saving favorites:', e);
     }
@@ -396,7 +397,7 @@ export default function App() {
         setGpsState('active');
         setGpsErrorMsg('');
         try {
-          localStorage.setItem('rielar_last_coords', JSON.stringify(newCoords));
+          safeLocalStorage.setItem('rielar_last_coords', JSON.stringify(newCoords));
         } catch {}
       }
     };
@@ -467,7 +468,7 @@ export default function App() {
                 const distLng = Math.abs(prev.lng - newCoords.lng);
                 if (distLat > 0.0003 || distLng > 0.0003) {
                   try {
-                    localStorage.setItem('rielar_last_coords', JSON.stringify(newCoords));
+                    safeLocalStorage.setItem('rielar_last_coords', JSON.stringify(newCoords));
                   } catch {}
                   return newCoords;
                 }
@@ -516,7 +517,7 @@ export default function App() {
       setUserCoords(presets[presetName]);
       setGpsState('idle');
       try {
-        localStorage.setItem('rielar_last_coords', JSON.stringify(presets[presetName]));
+        safeLocalStorage.setItem('rielar_last_coords', JSON.stringify(presets[presetName]));
       } catch {}
     }
   };

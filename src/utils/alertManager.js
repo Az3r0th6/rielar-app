@@ -1,5 +1,6 @@
 // Alert and Incident State Manager: Dismissal, Read Tracking & Unread Counter
-// Persists read & dismissed state in localStorage so the user is never repeatedly nagged.
+// Persists read & dismissed state in safeLocalStorage so the user is never repeatedly nagged.
+import { safeLocalStorage } from './safeStorage';
 
 const DISMISSED_STORAGE_KEY = 'rielar_dismissed_alerts';
 const READ_STORAGE_KEY = 'rielar_read_alerts';
@@ -21,7 +22,7 @@ export function getAlertKey(alert) {
  */
 export function getDismissedAlertKeys() {
   try {
-    const raw = localStorage.getItem(DISMISSED_STORAGE_KEY);
+    const raw = safeLocalStorage.getItem(DISMISSED_STORAGE_KEY);
     if (!raw) return new Set();
     const arr = JSON.parse(raw);
     return new Set(Array.isArray(arr) ? arr : []);
@@ -35,7 +36,7 @@ export function getDismissedAlertKeys() {
  */
 export function getReadAlertKeys() {
   try {
-    const raw = localStorage.getItem(READ_STORAGE_KEY);
+    const raw = safeLocalStorage.getItem(READ_STORAGE_KEY);
     if (!raw) return new Set();
     const arr = JSON.parse(raw);
     return new Set(Array.isArray(arr) ? arr : []);
@@ -55,7 +56,7 @@ export function dismissAlert(alert) {
   dismissed.add(key);
 
   try {
-    localStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify(Array.from(dismissed)));
+    safeLocalStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify(Array.from(dismissed)));
   } catch (e) {
     console.warn('Error saving dismissed alerts:', e);
   }
@@ -74,7 +75,7 @@ export function dismissAllAlerts(alertsList = []) {
   });
 
   try {
-    localStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify(Array.from(dismissed)));
+    safeLocalStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify(Array.from(dismissed)));
   } catch (e) {
     console.warn('Error saving dismissed alerts:', e);
   }
@@ -99,7 +100,7 @@ export function markAlertsAsRead(alertsList = []) {
 
   if (changed) {
     try {
-      localStorage.setItem(READ_STORAGE_KEY, JSON.stringify(Array.from(read)));
+      safeLocalStorage.setItem(READ_STORAGE_KEY, JSON.stringify(Array.from(read)));
     } catch (e) {
       console.warn('Error saving read alerts:', e);
     }
@@ -112,7 +113,7 @@ export function markAlertsAsRead(alertsList = []) {
  */
 export function restoreDismissedAlerts() {
   try {
-    localStorage.removeItem(DISMISSED_STORAGE_KEY);
+    safeLocalStorage.removeItem(DISMISSED_STORAGE_KEY);
   } catch {}
   notifyAlertsChanged();
 }
