@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   AlertCircle,
   Clock,
@@ -39,6 +39,22 @@ import {
   subscribeToPushNotifications,
 } from '../utils/notifications';
 
+function sanitizeReport(r) {
+  if (!r || typeof r !== 'object' || !r.id) return null;
+  return {
+    id: String(r.id),
+    timestamp: r.timestamp || new Date().toISOString(),
+    category: r.category || 'General',
+    lineName: r.lineName || 'Mitre',
+    stationName: r.stationName || 'No especificada',
+    description: r.description || '',
+    status: r.status || 'Recibido',
+    contactEmail: r.contactEmail || '',
+    adminNote: r.adminNote || '',
+    deviceDetails: r.deviceDetails && typeof r.deviceDetails === 'object' ? r.deviceDetails : {},
+  };
+}
+
 export default function BugReportSection() {
   const [selectedCategory, setSelectedCategory] = useState('arrival');
   const [selectedLine, setSelectedLine] = useState('5'); // default Mitre
@@ -55,14 +71,18 @@ export default function BugReportSection() {
   const [activeTab, setActiveTab] = useState('form'); // 'form' | 'history' | 'admin'
   const [savedReports, setSavedReports] = useState(() => {
     try {
-      const deletedIds = new Set(
-        JSON.parse(localStorage.getItem('rielar_deleted_reports') || '[]').map(String)
-      );
+      const deletedRaw = localStorage.getItem('rielar_deleted_reports');
+      const deletedArr = deletedRaw ? JSON.parse(deletedRaw) : [];
+      const deletedIds = new Set(Array.isArray(deletedArr) ? deletedArr.map(String) : []);
+
       const raw =
         localStorage.getItem('rielar_user_reports') ||
         localStorage.getItem('rielar_user_reports_backup');
-      const list = raw ? JSON.parse(raw) : [];
-      return list.filter((r) => !deletedIds.has(String(r.id)));
+      const parsed = raw ? JSON.parse(raw) : [];
+      const list = Array.isArray(parsed) ? parsed : [];
+      return list
+        .map(sanitizeReport)
+        .filter((r) => r && !deletedIds.has(String(r.id)));
     } catch {
       return [];
     }
@@ -81,7 +101,7 @@ export default function BugReportSection() {
     return isRemembered || hasHash || hasParam;
   });
 
-  const secretTapRef = React.useRef({ count: 0, lastTime: 0 });
+  const secretTapRef = useRef({ count: 0, lastTime: 0 });
 
   const handleSecretTap = () => {
     const now = Date.now();
@@ -170,30 +190,30 @@ export default function BugReportSection() {
   const fetchServerReports = async () => {
     fetchSubscribersCount();
     try {
-      const deletedIds = new Set(
-        (() => {
-          try {
-            return JSON.parse(localStorage.getItem('rielar_deleted_reports') || '[]');
-          } catch {
-            return [];
-          }
-        })()
-      );
+      const deletedRaw = localStorage.getItem('rielar_deleted_reports');
+      const deletedArr = deletedRaw ? JSON.parse(deletedRaw) : [];
+      const deletedIds = new Set(Array.isArray(deletedArr) ? deletedArr.map(String) : []);
 
       const res = await fetch('/api/reports');
       if (res.ok) {
         const data = await res.json();
-        const rawList = Array.isArray(data) ? data : data?.reports || [];
-        const serverList = rawList.filter((r) => !deletedIds.has(String(r.id)));
+        const rawList = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.reports)
+          ? data.reports
+          : [];
+        const serverList = rawList
+          .map(sanitizeReport)
+          .filter((r) => r && !deletedIds.has(String(r.id)));
         setAllServerReports(serverList);
 
         setSavedReports((prev) => {
           const map = new Map();
           serverList.forEach((r) => map.set(String(r.id), r));
 
-          // Notify passenger if one of their reports was updated by admin!
-          prev.forEach((oldRep) => {
-            if (deletedIds.has(String(oldRep.id))) return;
+          const validPrev = Array.isArray(prev) ? prev.filter(Boolean) : [];
+          validPrev.forEach((oldRep) => {
+            if (!oldRep || !oldRep.id || deletedIds.has(String(oldRep.id))) return;
             const serverRep = map.get(String(oldRep.id));
             if (serverRep) {
               const statusChanged = serverRep.status && serverRep.status !== oldRep.status;
@@ -217,8 +237,9 @@ export default function BugReportSection() {
           });
 
           const merged = Array.from(map.values())
-            .filter((r) => !deletedIds.has(String(r.id)))
-            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            .map(sanitizeReport)
+            .filter((r) => r && !deletedIds.has(String(r.id)))
+            .sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime());
           try {
             const serialized = JSON.stringify(merged);
             localStorage.setItem('rielar_user_reports', serialized);
@@ -479,14 +500,18 @@ export default function BugReportSection() {
 
     // 2. Remove immediately from local state and storage
     setSavedReports((prev) => {
-      const next = prev.filter((r) => String(r.id) !== String(reportId));
+      const list = Array.isArray(prev) ? prev : [];
+      const next = list.filter((r) => r && String(r.id) !== String(reportId));
       try {
         localStorage.setItem('rielar_user_reports', JSON.stringify(next));
         localStorage.setItem('rielar_user_reports_backup', JSON.stringify(next));
       } catch {}
       return next;
     });
-    setAllServerReports((prev) => prev.filter((r) => String(r.id) !== String(reportId)));
+    setAllServerReports((prev) => {
+      const list = Array.isArray(prev) ? prev : [];
+      return list.filter((r) => r && String(r.id) !== String(reportId));
+    });
 
     // 3. Delete from backend API (gracefully tolerates 404/resets)
     try {
@@ -1060,15 +1085,17 @@ export default function BugReportSection() {
               </div>
             </div>
           ) : (
-            savedReports.map((rep) => {
-              const dateStr = rep.timestamp
-                ? new Date(rep.timestamp).toLocaleString('es-AR', {
-                    day: '2-digit',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : 'Reciente';
+            (Array.isArray(savedReports) ? savedReports : [])
+              .filter((r) => r && typeof r === 'object' && r.id)
+              .map((rep) => {
+                const dateStr = rep.timestamp && !isNaN(new Date(rep.timestamp).getTime())
+                  ? new Date(rep.timestamp).toLocaleString('es-AR', {
+                      day: '2-digit',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'Reciente';
 
               return (
                 <div
@@ -1614,11 +1641,12 @@ export default function BugReportSection() {
 
               {/* Filtros de estado */}
               {(() => {
-                const list = allServerReports.length > 0 ? allServerReports : savedReports;
+                const rawList = allServerReports.length > 0 ? allServerReports : savedReports;
+                const list = (Array.isArray(rawList) ? rawList : []).filter((r) => r && typeof r === 'object' && r.id);
                 const countAll = list.length;
-                const countRecibido = list.filter((r) => (r.status || 'Recibido') === 'Recibido').length;
-                const countProgreso = list.filter((r) => r.status === 'Trabajando en solución').length;
-                const countResuelto = list.filter((r) => r.status === 'Resuelto' || r.status === 'Cerrado').length;
+                const countRecibido = list.filter((r) => (r?.status || 'Recibido') === 'Recibido').length;
+                const countProgreso = list.filter((r) => r?.status === 'Trabajando en solución').length;
+                const countResuelto = list.filter((r) => r?.status === 'Resuelto' || r?.status === 'Cerrado').length;
 
                 const filters = [
                   { id: 'ALL', label: `Todos (${countAll})` },
@@ -1658,12 +1686,13 @@ export default function BugReportSection() {
 
               {/* Lista de Tickets en Admin */}
               {(() => {
-                const list = allServerReports.length > 0 ? allServerReports : savedReports;
+                const rawList = allServerReports.length > 0 ? allServerReports : savedReports;
+                const list = (Array.isArray(rawList) ? rawList : []).filter((r) => r && typeof r === 'object' && r.id);
                 const filtered = list.filter((r) => {
                   if (adminFilter === 'ALL') return true;
-                  if (adminFilter === 'Recibido') return (r.status || 'Recibido') === 'Recibido';
-                  if (adminFilter === 'Trabajando en solución') return r.status === 'Trabajando en solución';
-                  if (adminFilter === 'Resuelto') return r.status === 'Resuelto' || r.status === 'Cerrado';
+                  if (adminFilter === 'Recibido') return (r?.status || 'Recibido') === 'Recibido';
+                  if (adminFilter === 'Trabajando en solución') return r?.status === 'Trabajando en solución';
+                  if (adminFilter === 'Resuelto') return r?.status === 'Resuelto' || r?.status === 'Cerrado';
                   return true;
                 });
 
@@ -1687,7 +1716,7 @@ export default function BugReportSection() {
                 return filtered.map((rep) => {
                   const isEditing = editingId === rep.id;
                   const badge = getStatusBadge(rep.status);
-                  const dateStr = rep.timestamp
+                  const dateStr = rep.timestamp && !isNaN(new Date(rep.timestamp).getTime())
                     ? new Date(rep.timestamp).toLocaleString('es-AR', {
                         day: '2-digit',
                         month: 'short',

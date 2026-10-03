@@ -50,6 +50,26 @@ export default class ErrorBoundary extends React.Component {
               La sección no pudo cargarse correctamente. Podés reintentar o volver al inicio.
             </p>
 
+            {this.state.error && (
+              <div
+                style={{
+                  fontSize: '11.5px',
+                  color: '#ff453a',
+                  background: 'rgba(255, 69, 58, 0.1)',
+                  border: '1px solid rgba(255, 69, 58, 0.25)',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  marginBottom: '18px',
+                  textAlign: 'left',
+                  fontFamily: 'monospace',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all',
+                }}
+              >
+                {this.state.error.message || String(this.state.error)}
+              </div>
+            )}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button
                 onClick={this.handleReset}
