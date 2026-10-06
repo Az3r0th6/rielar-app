@@ -83,9 +83,9 @@ export default function SupportProjectSection() {
         className="ios-card"
         style={{
           padding: '20px 16px',
-          background: 'linear-gradient(145deg, rgba(0, 159, 227, 0.15) 0%, rgba(28, 28, 35, 0.98) 100%)',
+          background: 'linear-gradient(145deg, rgba(0, 159, 227, 0.15) 0%, var(--ios-card-solid) 100%)',
           border: '1px solid rgba(0, 159, 227, 0.35)',
-          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.45)',
+          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.22)',
           marginBottom: '16px',
           position: 'relative',
           overflow: 'hidden',

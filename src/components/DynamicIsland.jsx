@@ -3,24 +3,25 @@ import { ChevronUp, ChevronDown, Bell, X, Navigation } from 'lucide-react';
 import { formatArrivalSeconds } from '../utils/time';
 import LineBadge from './LineBadge';
 
+export function SofseLivePill() {
+  return (
+    <div className="sofse-live-pill">
+      <span className="pill-left">
+        <span style={{ fontSize: '12px' }}>🚆</span>
+        <span>SOFSE Live</span>
+      </span>
+      <span className="pill-right">
+        <span className="live-pulse-dot" style={{ width: '5px', height: '5px' }} />
+      </span>
+    </div>
+  );
+}
+
 export default function DynamicIsland({ trackingTrain, onClearTracking, onOpenDetails }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!trackingTrain) {
-    // Idle / camera sensor pill
-    return (
-      <div className="dynamic-island-container">
-        <div className="dynamic-island compact" style={{ width: '120px', height: '32px' }}>
-          <div className="pill-left">
-            <span style={{ fontSize: '12px' }}>🚆</span>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#8e8e93' }}>SOFSE Live</span>
-          </div>
-          <div className="pill-right">
-            <div className="live-pulse-dot" style={{ width: '5px', height: '5px' }} />
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const { servicio, arribo, stationName } = trackingTrain;

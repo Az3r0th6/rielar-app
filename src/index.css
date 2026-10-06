@@ -148,8 +148,6 @@ select option {
 
 [data-theme='light'] .iphone-frame {
   background: #f2f2f7;
-  border-color: rgba(0, 0, 0, 0.18);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme='light'] .app-screen-content {
@@ -261,203 +259,38 @@ html, body {
    ========================================================================== */
 
 .app-viewport-container {
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: radial-gradient(circle at 50% 20%, #151824 0%, #060608 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-/* Background Ambient Glow */
-.app-viewport-container::before {
-  content: '';
-  position: absolute;
-  top: -100px;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(0, 159, 227, 0.15), transparent 70%);
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Top Toolbar for Desktop Preview */
-.simulator-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  z-index: 10;
-  background: rgba(26, 26, 32, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--ios-card-border);
-  padding: 8px 16px;
-  border-radius: 30px;
-  box-shadow: var(--shadow-sm);
-}
-
-.simulator-btn {
-  background: transparent;
-  border: none;
-  color: var(--ios-text-secondary);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s var(--ios-ease);
-}
-
-.simulator-btn:hover, .simulator-btn.active {
-  color: var(--ios-text-primary);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.simulator-btn.active {
-  color: #ffffff;
-  background: var(--ios-blue);
-}
-
-/* Realistic iPhone 16 Pro Frame */
-.iphone-frame {
-  width: 402px;
-  height: 874px;
-  max-height: 90vh;
   background: var(--ios-bg);
-  border-radius: 56px;
   position: relative;
   overflow: hidden;
-  box-shadow: 
-    0 0 0 12px #2a2a2f,
-    0 0 0 14px #1c1c20,
-    0 30px 80px rgba(0, 0, 0, 0.8),
-    0 0 40px rgba(0, 159, 227, 0.2);
+}
+
+/* Main Screen Viewport: always full-bleed, on every screen size and orientation.
+   Deliberately no max-width / no centered column: some Android browsers
+   (notably Samsung) report a desktop-width viewport, and a phone-sized
+   shell must never kick in on a real handset. */
+.iphone-frame {
+  width: 100%;
+  height: 100dvh;
+  background: var(--ios-bg);
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   z-index: 1;
-  transition: all 0.4s var(--ios-ease);
-}
-
-/* Real Mobile Viewport (iOS Safari & Android Chrome Native Experience) */
-.app-viewport-container.native-mobile {
-  padding: 0 !important;
-  min-height: 100dvh !important;
-  height: 100dvh !important;
-  width: 100vw !important;
-  background: var(--ios-bg) !important;
-  overflow: hidden !important;
-}
-
-.iphone-frame.mobile-viewport {
-  width: 100vw !important;
-  height: 100dvh !important;
-  max-height: 100dvh !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  border: none !important;
-}
-
-@media (max-width: 600px) {
-  html, body {
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .app-viewport-container {
-    padding: 0 !important;
-    min-height: 100dvh !important;
-    height: 100dvh !important;
-    background: var(--ios-bg) !important;
-  }
-
-  .iphone-frame {
-    width: 100vw !important;
-    height: 100dvh !important;
-    max-height: 100dvh !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
-  }
-
-  .simulator-controls {
-    display: none !important;
-  }
-
-  .ios-status-bar {
-    display: none !important;
-  }
-
-  .ios-home-indicator {
-    display: none !important;
-  }
-}
-
-/* Fullscreen mode on Desktop (takes over window cleanly) */
-.app-viewport-container.fullscreen-mode {
-  padding: 0;
-  background: var(--ios-bg);
-}
-
-.app-viewport-container.fullscreen-mode .simulator-controls {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  margin-bottom: 0;
-  z-index: 9999;
-}
-
-.app-viewport-container.fullscreen-mode .iphone-frame {
-  width: 100vw;
-  height: 100vh;
-  border-radius: 0;
-  box-shadow: none;
 }
 
 /* ==========================================================================
-   iOS Top Elements: Status Bar & Dynamic Island
+   iOS Top Elements: Dynamic Island
    ========================================================================== */
 
-.ios-status-bar {
-  height: 48px;
-  padding: 0 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ios-text-primary);
-  z-index: 30;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-}
-
-.ios-status-time {
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.ios-status-icons {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Dynamic Island */
+/* Dynamic Island (tracked train widget, floats below the sticky header) */
 .dynamic-island-container {
   position: absolute;
-  top: 11px;
+  top: 88px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 40;
@@ -556,7 +389,6 @@ html, body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding-top: 56px; /* Below status bar & Dynamic island */
   padding-bottom: 76px; /* Above iOS tab bar */
   overflow-y: auto;
   overflow-x: hidden;
@@ -566,10 +398,11 @@ html, body {
 
 /* Header Banner */
 .ios-nav-header {
-  padding: 16px 20px 12px;
+  padding: 14px 16px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   position: sticky;
   top: 0;
   background: rgba(0, 0, 0, 0.85);
@@ -579,6 +412,80 @@ html, body {
   border-bottom: 1px solid var(--ios-separator);
   transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.28s ease;
   will-change: transform, opacity;
+}
+
+/* Header title/subtitle cluster (shrinks so the right-side controls never get pushed) */
+.ios-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ios-header-text .ios-large-title {
+  font-size: 23px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ios-header-text .ios-subtitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Stacked variant: second line drops below the live pill instead of sitting beside it */
+.ios-header-text .ios-subtitle-stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  white-space: normal;
+  overflow: visible;
+}
+
+.ios-header-text .ios-subtitle-stacked .ios-subtitle-meta {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ios-text-secondary);
+}
+
+/* SOFSE Live status pill (left of the header action buttons) */
+.sofse-live-pill {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--ios-card-border);
+  border-radius: 16px;
+  height: 32px;
+  padding: 0 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.sofse-live-pill .pill-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ios-text-secondary);
+  white-space: nowrap;
+}
+
+.sofse-live-pill .pill-right {
+  display: flex;
+  align-items: center;
+}
+
+[data-theme='light'] .sofse-live-pill {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Hide the SOFSE Live pill on mobile / short viewports (no room next to the action buttons) */
+@media (max-width: 699px), (max-height: 559px) {
+  .sofse-live-pill {
+    display: none;
+  }
 }
 
 .header-hidden .ios-nav-header,
@@ -741,6 +648,7 @@ html, body {
   border: none;
   width: 34px;
   height: 34px;
+  flex-shrink: 0;
   border-radius: 50%;
   color: var(--ios-text-secondary);
   display: flex;
@@ -941,18 +849,46 @@ html, body {
   box-shadow: 0 2px 5px rgba(255, 69, 58, 0.5);
 }
 
-/* Home Indicator Pill */
-.ios-home-indicator {
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 134px;
-  height: 5px;
-  background-color: rgba(255, 255, 255, 0.4);
-  border-radius: 100px;
-  z-index: 35;
-  pointer-events: none;
+/* Header Location Simulator Select */
+.header-location-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.header-location-select select {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  color: var(--ios-text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.header-location-select select option {
+  background: #1c1c20;
+  color: #f5f5f7;
+}
+
+[data-theme='light'] .header-location-select {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .header-location-select select {
+  color: var(--ios-text-primary);
+}
+
+[data-theme='light'] .header-location-select select option {
+  background: #ffffff;
+  color: #000000;
 }
 
 /* ==========================================================================

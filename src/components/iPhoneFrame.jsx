@@ -1,19 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  Smartphone,
-  Maximize2,
-  Minimize2,
-  Wifi,
-  Battery,
-  Moon,
-  Sun,
-  MapPin,
-  QrCode,
   Copy,
   Check,
   X,
   Share2,
-  ExternalLink,
   ShieldCheck,
   Download,
   FileArchive,
@@ -30,68 +20,12 @@ export default function iPhoneFrame({
   isHeaderHidden,
   showDownloadModal,
   onCloseDownloadModal,
-  onOpenDownloadModal,
   onInstallApp,
   trackingTrain,
   onClearTracking,
   onOpenDetails,
-  onSimulateLocation,
-  currentLocationName,
-  theme = 'dark',
-  onToggleTheme,
 }) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const isDark = theme === 'dark';
-  const [currentTime, setCurrentTime] = useState('09:41');
-  const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  // Detect if running on a real mobile device or narrow viewport
-  const [isMobile, setIsMobile] = useState(() => {
-    return typeof window !== 'undefined' && (
-      /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-      window.innerWidth <= 600
-    );
-  });
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(
-        /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        window.innerWidth <= 600
-      );
-    };
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Real-time clock for desktop mockup
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      setCurrentTime(`${hours}:${minutes}`);
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const toggleTheme = () => {
-    triggerHaptic('light');
-    if (onToggleTheme) {
-      onToggleTheme();
-    } else {
-      const nextTheme = isDark ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', nextTheme);
-    }
-  };
-
-  const toggleFullscreen = () => {
-    triggerHaptic('medium');
-    setIsFullscreen(!isFullscreen);
-  };
 
   const OFFICIAL_URL = 'https://rielar-app.onrender.com';
   const mobileUrl = typeof window !== 'undefined' && window.location.protocol === 'https:' ? window.location.origin : OFFICIAL_URL;
@@ -124,94 +58,15 @@ export default function iPhoneFrame({
   };
 
   return (
-    <div className={`app-viewport-container ${isFullscreen ? 'fullscreen-mode' : ''} ${isMobile ? 'native-mobile' : ''}`}>
-      {/* Simulator Quick Controls (Desktop Only) */}
-      {!isMobile && (
-        <div className="simulator-controls">
-          <button
-            className={`simulator-btn ${!isFullscreen ? 'active' : ''}`}
-            onClick={toggleFullscreen}
-            title="Alternar entre marco de iPhone y pantalla completa"
-          >
-            {isFullscreen ? <Minimize2 size={14} /> : <Smartphone size={14} />}
-            <span>{isFullscreen ? 'Modo Marco' : 'iPhone 16 Pro'}</span>
-          </button>
-
-          <button
-            className="simulator-btn"
-            onClick={() => {
-              if (onOpenDownloadModal) onOpenDownloadModal();
-              else setShowShareModal(true);
-            }}
-            title="Descargar o Abrir en tu teléfono celular (iOS o Android)"
-            style={{ color: '#30d158' }}
-          >
-            <Download size={14} />
-            <span>📲 Descargar App</span>
-          </button>
-
-          <button
-            className="simulator-btn"
-            onClick={toggleTheme}
-            title="Alternar modo claro / oscuro"
-          >
-            {isDark ? <Sun size={14} /> : <Moon size={14} />}
-            <span>{isDark ? 'Claro' : 'Oscuro'}</span>
-          </button>
-
-          {/* Location Simulator Quick Picker */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <MapPin size={13} style={{ color: '#0a84ff' }} />
-            <select
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#f5f5f7',
-                fontFamily: 'inherit',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                outline: 'none',
-              }}
-              value={currentLocationName}
-              onChange={(e) => {
-                triggerHaptic('light');
-                onSimulateLocation(e.target.value);
-              }}
-            >
-              <option value="GPS" style={{ background: '#1c1c20' }}>📍 GPS Real</option>
-              <option value="Retiro" style={{ background: '#1c1c20' }}>📍 Retiro</option>
-              <option value="Palermo" style={{ background: '#1c1c20' }}>📍 Palermo</option>
-              <option value="Once" style={{ background: '#1c1c20' }}>📍 Once</option>
-              <option value="San Isidro" style={{ background: '#1c1c20' }}>📍 San Isidro</option>
-              <option value="Constitución" style={{ background: '#1c1c20' }}>📍 Constitución</option>
-            </select>
-          </div>
-        </div>
-      )}
-
-      {/* Main Chassis / Mobile Viewport */}
-      <div className={`iphone-frame ${isMobile ? 'mobile-viewport' : ''}`}>
-        {/* iOS Status Bar (Only shown on Desktop simulator to avoid duplicate status bar on real phones) */}
-        {!isMobile && (
-          <div className="ios-status-bar">
-            <span className="ios-status-time">{currentTime}</span>
-            <div className="ios-status-icons">
-              <span style={{ fontSize: '11px', fontWeight: 700, marginRight: '2px' }}>5G</span>
-              <Wifi size={14} strokeWidth={2.5} />
-              <Battery size={17} strokeWidth={2} style={{ transform: 'rotate(90deg)' }} />
-            </div>
-          </div>
-        )}
-
+    <div className="app-viewport-container">
+      {/* Main Screen Viewport */}
+      <div className="iphone-frame">
         {/* Dynamic Island (Floating widget for live countdowns) */}
-        {(!isMobile || trackingTrain) && (
-          <DynamicIsland
-            trackingTrain={trackingTrain}
-            onClearTracking={onClearTracking}
-            onOpenDetails={onOpenDetails}
-          />
-        )}
+        <DynamicIsland
+          trackingTrain={trackingTrain}
+          onClearTracking={onClearTracking}
+          onOpenDetails={onOpenDetails}
+        />
 
         {/* Screen View */}
         <div
@@ -221,21 +76,18 @@ export default function iPhoneFrame({
           {children}
         </div>
 
-        {/* Fixed Tab Bar at Bottom of Chassis */}
+        {/* Fixed Tab Bar at Bottom */}
         {tabBar}
-
-        {/* Home Indicator Bar (Desktop only, real phones have their own native gesture bar) */}
-        {!isMobile && <div className="ios-home-indicator" />}
 
         {/* Full-screen bottom sheet modals (Placed AFTER tabBar so they always layer ABOVE tabBar!) */}
         {modals}
       </div>
 
-      {/* Full-screen Application Overlay Modals (Rendered outside frame to prevent overlap by simulator bar) */}
+      {/* Full-screen Application Overlay Modals */}
       {overlayModals}
 
       {/* Modal: Download & Install App on iOS / Android (Zero Install) */}
-      {(showShareModal || showDownloadModal) && (
+      {(showDownloadModal) && (
         <div
           style={{
             position: 'fixed',
@@ -249,7 +101,6 @@ export default function iPhoneFrame({
             padding: '20px',
           }}
           onClick={() => {
-            setShowShareModal(false);
             if (onCloseDownloadModal) onCloseDownloadModal();
           }}
         >
@@ -269,7 +120,6 @@ export default function iPhoneFrame({
           >
             <button
               onClick={() => {
-                setShowShareModal(false);
                 if (onCloseDownloadModal) onCloseDownloadModal();
               }}
               className="close-round-btn"

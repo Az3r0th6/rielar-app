@@ -19,6 +19,7 @@ import {
   requestNotificationPermission,
 } from '../utils/notifications';
 import BugReportSection from '../components/BugReportSection';
+import { SofseLivePill } from '../components/DynamicIsland';
 import SupportProjectSection from '../components/SupportProjectSection';
 import PassengerGuideSection from '../components/PassengerGuideSection';
 import { safeLocalStorage } from '../utils/safeStorage';
@@ -124,7 +125,7 @@ export default function MoreView({
     <div>
       {/* Header */}
       <div className="ios-nav-header">
-        <div>
+        <div className="ios-header-text">
           <h1 className="ios-large-title">Otros</h1>
           <div className="ios-subtitle">
             <span>
@@ -136,6 +137,7 @@ export default function MoreView({
             </span>
           </div>
         </div>
+        <SofseLivePill />
       </div>
 
       {/* Segmented Control Bar */}

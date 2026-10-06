@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Navigation,
   Search,
@@ -17,8 +17,10 @@ import {
   Info,
   Sun,
   Moon,
+  Download,
 } from 'lucide-react';
 import LineBadge from '../components/LineBadge';
+import { SofseLivePill } from '../components/DynamicIsland';
 import { LINES_DATA, PRELOADED_STATIONS } from '../data/linesData';
 import { getNearestStations } from '../utils/geo';
 import { getStationArrivals, getAllStationsCatalog } from '../api/sofseClient';
@@ -41,12 +43,24 @@ export default function NearbyView({
   onClearCustomStation,
   theme,
   onToggleTheme,
+  onOpenDownloadModal,
 }) {
   const [selectedLine, setSelectedLine] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [directionFilter, setDirectionFilter] = useState('ALL'); // 'ALL', '1' (Provincia), '2' (CABA/Retiro)
   const [browseMode, setBrowseMode] = useState('nearby'); // 'nearby' or 'all'
   const [selectedCustomStation, setSelectedCustomStation] = useState(externalStation || null);
+
+  // Hard cap on how many station cards can ever be listed for the active filter.
+  // Mitre (56) and Roca (94) are the big ones; Tren de la Costa only has 11, so
+  // it naturally shows all of them without hitting this ceiling.
+  const MAX_STATIONS = 60;
+  // Cards mounted per scroll step, and how many are mounted initially.
+  const PAGE_SIZE = 12;
+
+  // Regionales (id 501) has no stations mapped in officialStations.json, so it
+  // can never return results. LineStatusView already hides it for that reason.
+  const FILTERABLE_LINES = LINES_DATA.filter((l) => l.id !== 501);
 
   useEffect(() => {
     if (externalStation) {
@@ -55,18 +69,44 @@ export default function NearbyView({
   }, [externalStation]);
   const [showZonePicker, setShowZonePicker] = useState(false);
 
-  // Compute nearest stations
-  const nearestStations = getNearestStations(
-    userCoords.lat,
-    userCoords.lng,
-    PRELOADED_STATIONS,
-    8
+  // Stations matching the active line filter (ALL = every line)
+  const stationsForLine = useMemo(() => {
+    if (selectedLine === 'ALL') return PRELOADED_STATIONS;
+    const lineId = Number(selectedLine);
+    return PRELOADED_STATIONS.filter((s) => s.lineId === lineId);
+  }, [selectedLine]);
+
+  const lineLabel = useMemo(() => {
+    if (selectedLine === 'ALL') return 'Todas las líneas';
+    return LINES_DATA.find((l) => l.id === Number(selectedLine))?.name || 'la línea';
+  }, [selectedLine]);
+
+  // Compute nearest stations (scoped to the active line filter).
+  // Sorted by distance, then capped later by MAX_STATIONS / PAGE_SIZE.
+  const nearestStations = useMemo(
+    () => getNearestStations(userCoords.lat, userCoords.lng, stationsForLine, stationsForLine.length),
+    [userCoords.lat, userCoords.lng, stationsForLine]
   );
 
-  // Pre-fill initial state with nearest stations and any cached arrivals from sessionStorage
+  // Full ordered list of stations for the active mode + line filter.
+  // Not sliced by page here: PAGE_SIZE only controls how many cards are MOUNTED,
+  // and arrivals are fetched lazily for the ones actually on screen.
+  const stationList = useMemo(() => {
+    if (selectedCustomStation) return [selectedCustomStation];
+    if (searchQuery.trim().length >= 2) {
+      const q = searchQuery.toLowerCase();
+      return stationsForLine.filter(
+        (s) => s.name.toLowerCase().includes(q) || s.ramal?.toLowerCase().includes(q)
+      ).slice(0, MAX_STATIONS);
+    }
+    if (browseMode === 'all') return stationsForLine.slice(0, MAX_STATIONS);
+    return nearestStations.slice(0, MAX_STATIONS);
+  }, [selectedCustomStation, searchQuery, browseMode, stationsForLine, nearestStations]);
+
+  // Pre-fill initial state with the mounted page, using any cached arrivals
   const [stationsWithArrivals, setStationsWithArrivals] = useState(() => {
     try {
-      const initial = nearestStations.slice(0, 4);
+      const initial = nearestStations.slice(0, PAGE_SIZE);
       return initial.map((st) => {
         const cached = safeSessionStorage.getItem(`arr_${st.id}`);
         const arrivals = cached ? JSON.parse(cached) : [];
@@ -80,11 +120,20 @@ export default function NearbyView({
     }
   });
 
+  // How many cards are mounted. Grows on scroll; resets when the filter changes.
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [selectedCustomStation, searchQuery, browseMode, selectedLine]);
+
   // When userCoords changes, immediately reorder stationsWithArrivals
   // with the new nearest stations so the UI reflects the real location instantaneously
+  // NOTE: selectedLine is intentionally not a dependency here. Changing only the
+  // line filter is handled by the fetchArrivals effect below, which repopulates
+  // arrivals; re-running this effect would blank them out first.
   useEffect(() => {
     if (browseMode === 'nearby' && !selectedCustomStation && searchQuery.trim().length < 2) {
-      const freshNearest = getNearestStations(userCoords.lat, userCoords.lng, PRELOADED_STATIONS, 8).slice(0, 4);
+      const freshNearest = nearestStations.slice(0, PAGE_SIZE);
       setStationsWithArrivals((prev) => {
         return freshNearest.map((st) => {
           const existing = prev.find((p) => p.id === st.id);
@@ -102,30 +151,96 @@ export default function NearbyView({
   const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
   const [justRefreshed, setJustRefreshed] = useState(false);
   const abortControllerRef = useRef(null);
+  const lazyAbortControllerRef = useRef(new AbortController());
+  // Station ids currently intersecting the viewport. Only these get their
+  // arrivals requested, which is what keeps the request count flat no matter
+  // how many stations the active line exposes.
+  // Ids are stored as strings because the observer reads them from the DOM
+  // attribute, while the dataset holds numbers.
+  const visibleIdsRef = useRef(new Set());
+  const stationListRef = useRef(stationList);
+  const lastListRef = useRef(stationList);
+  stationListRef.current = stationList;
+  const listRef = useRef(null);
+  const sentinelRef = useRef(null);
+  const cardObserverRef = useRef(null);
+  const pendingIdsRef = useRef(new Set());
+  // Ids with a request currently in flight. Guards against duplicate concurrent
+  // requests (StrictMode double-invokes effects) without permanently marking an
+  // id as done, so an aborted batch can still be retried.
+  const inFlightIdsRef = useRef(new Set());
+  const observedNodesRef = useRef(new Set());
+  if (lastListRef.current !== stationList) {
+    lastListRef.current = stationList;
+    visibleIdsRef.current = new Set();
+    pendingIdsRef.current = new Set();
+    inFlightIdsRef.current = new Set();
+  }
 
-  // Determine active stations to query
-  const getActiveStationsToQuery = () => {
-    if (selectedCustomStation) {
-      return [selectedCustomStation];
-    }
-    if (searchQuery.trim().length >= 2) {
-      const q = searchQuery.toLowerCase();
-      const matches = PRELOADED_STATIONS.filter(
-        (s) => s.name.toLowerCase().includes(q) || s.ramal?.toLowerCase().includes(q)
+  // Determine active stations to query. With no explicit ids, falls back to the
+  // visible ones (or the first page if the observer hasn't reported yet).
+  const getActiveStationsToQuery = (ids = null) => {
+    const list = stationListRef.current;
+    if (ids && ids.size > 0) return list.filter((s) => ids.has(String(s.id)));
+    return list.slice(0, PAGE_SIZE);
+  };
+
+  // Fetch a batch of stations and merge the arrivals into state.
+  // Shared by the batch poll / manual refresh and by the lazy per-card fetch.
+  const runFetch = async (targets, isManual, controller) => {
+    if (targets.length === 0) return;
+    const ids = targets.map((t) => String(t.id));
+    ids.forEach((id) => inFlightIdsRef.current.add(id));
+    try {
+      const results = await Promise.all(
+        targets.map(async (station) => {
+          try {
+            const data = await getStationArrivals(station.id, {}, isManual, controller.signal);
+            const arrivals = Array.isArray(data) ? data : data?.results || data?.arribos || [];
+            return { ...station, arrivals: Array.isArray(arrivals) ? arrivals : [] };
+          } catch (e) {
+            // arrivals: null is a sentinel meaning "keep whatever we already had"
+            // for this station, so a single failed request never blanks a card.
+            return { ...station, arrivals: null };
+          }
+        })
       );
-      return matches.slice(0, 4);
+
+      if (controller.signal.aborted) return;
+
+      // Merge into the full list instead of replacing it, otherwise the stations
+      // outside the viewport would be dropped from state.
+      setStationsWithArrivals((prev) => {
+        const byId = new Map(prev.map((p) => [p.id, p]));
+        for (const r of results) {
+          const old = byId.get(r.id);
+          byId.set(r.id, { ...old, ...r, arrivals: r.arrivals ?? old?.arrivals ?? [] });
+        }
+        // Keep the canonical ordering / membership from stationList.
+        return stationListRef.current.map((s) => byId.get(s.id) || { ...s, arrivals: [] });
+      });
+
+      const now = new Date();
+      setLastUpdatedAt(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setLoading(false);
+
+      if (isManual) {
+        triggerHaptic('success');
+        playChimeSound('success');
+        setJustRefreshed(true);
+        setTimeout(() => setJustRefreshed(false), 2000);
+      }
+    } finally {
+      ids.forEach((id) => {
+        inFlightIdsRef.current.delete(id);
+        // An aborted batch never delivered data, so let it be requested again.
+        if (controller.signal.aborted) visibleIdsRef.current.delete(id);
+      });
     }
-    if (browseMode === 'all') {
-      const filteredByLine = selectedLine === 'ALL'
-        ? PRELOADED_STATIONS
-        : PRELOADED_STATIONS.filter((s) => s.lineId === Number(selectedLine));
-      return filteredByLine.slice(0, 4);
-    }
-    return nearestStations.slice(0, 4);
   };
 
   // Fetch arrivals for active stations with high precision & non-blocking cancelation
-  const fetchArrivals = async (isManual = false) => {
+  const fetchArrivals = async (isManual = false, forcedIds = null, dedupe = true) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -139,42 +254,10 @@ export default function NearbyView({
     }
     setRefreshing(true);
     try {
-      const targets = getActiveStationsToQuery();
-      const results = await Promise.all(
-        targets.map(async (station) => {
-          try {
-            const data = await getStationArrivals(station.id, {}, isManual, controller.signal);
-            const arrivals = Array.isArray(data)
-              ? data
-              : data?.results || data?.arribos || [];
-            return {
-              ...station,
-              arrivals: Array.isArray(arrivals) ? arrivals : [],
-            };
-          } catch (e) {
-            // Keep existing arrivals for this station if a single request hiccups or aborts
-            const existing = stationsWithArrivals.find((st) => st.id === station.id);
-            return {
-              ...station,
-              arrivals: existing?.arrivals || [],
-            };
-          }
-        })
-      );
-
-      if (!controller.signal.aborted) {
-        setStationsWithArrivals(results);
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        setLastUpdatedAt(timeStr);
-
-        if (isManual) {
-          triggerHaptic('success');
-          playChimeSound('success');
-          setJustRefreshed(true);
-          setTimeout(() => setJustRefreshed(false), 2000);
-        }
-      }
+      let targets = getActiveStationsToQuery(forcedIds);
+      if (dedupe) targets = targets.filter((s) => !inFlightIdsRef.current.has(String(s.id)));
+      targets.forEach((s) => visibleIdsRef.current.add(String(s.id)));
+      await runFetch(targets, isManual, controller);
     } catch (err) {
       if (err.name !== 'AbortError') {
         console.error('Error fetching arrivals:', err);
@@ -191,9 +274,30 @@ export default function NearbyView({
     }
   };
 
+  // Lazy fetch for cards that just scrolled into view (and for the first page).
+  // Uses its own controller that is never aborted during normal operation, so
+  // StrictMode's abandoned first pass still delivers its data instead of
+  // cancelling the surviving one.
+  const fetchLazy = async (ids) => {
+    if (!ids || ids.size === 0) return;
+    const targets = stationListRef.current.filter((s) => ids.has(String(s.id)) && !inFlightIdsRef.current.has(String(s.id)));
+    if (targets.length === 0) return;
+    try {
+      await runFetch(targets, false, lazyAbortControllerRef.current);
+    } catch (err) {
+      if (err.name !== 'AbortError') console.error('Error en carga diferida:', err);
+    }
+  };
+  const fetchLazyRef = useRef(fetchLazy);
+  fetchLazyRef.current = fetchLazy;
+
+  // Kick off the first page for the active filter, then poll every 20s but only
+  // the stations currently on screen. Additional cards are picked up by the
+  // IntersectionObserver below as they scroll in.
   useEffect(() => {
-    fetchArrivals(false);
-    const interval = setInterval(() => fetchArrivals(false), 20000);
+    const firstPage = new Set(stationList.slice(0, PAGE_SIZE).map((s) => String(s.id)));
+    fetchLazyRef.current(firstPage);
+    const interval = setInterval(() => fetchArrivals(false, visibleIdsRef.current, false), 20000);
     return () => {
       clearInterval(interval);
       if (abortControllerRef.current) {
@@ -201,6 +305,75 @@ export default function NearbyView({
       }
     };
   }, [userCoords.lat, userCoords.lng, selectedLine, searchQuery, browseMode, selectedCustomStation]);
+
+  // One observer drives both lazy arrivals and the infinite-scroll sentinel.
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        let grew = false;
+        for (const en of entries) {
+          if (en.target === sentinelRef.current) {
+            if (en.isIntersecting) grew = true;
+            continue;
+          }
+          const id = en.target.getAttribute('data-station-id');
+          if (!id) continue;
+          if (en.isIntersecting) {
+            if (!visibleIdsRef.current.has(id)) {
+              visibleIdsRef.current.add(id);
+              pendingIdsRef.current.add(id);
+            }
+          } else {
+            visibleIdsRef.current.delete(id);
+          }
+        }
+        if (pendingIdsRef.current.size > 0) {
+          const batch = new Set(pendingIdsRef.current);
+          pendingIdsRef.current = new Set();
+          fetchLazyRef.current(batch);
+        }
+        if (grew) setVisibleCount((c) => Math.min(c + PAGE_SIZE, MAX_STATIONS));
+      },
+      { rootMargin: '300px 0px' }
+    );
+    cardObserverRef.current = io;
+
+    // Cards may already be mounted (StrictMode remount reuses the same DOM),
+    // so observe whatever is there and drop the per-node markers afterwards,
+    // otherwise the recreated observer would skip them as "already observed".
+    const sync = () => {
+      listRef.current
+        ?.querySelectorAll('[data-station-id]:not([data-observed])')
+        .forEach((node) => {
+          node.setAttribute('data-observed', '1');
+          observedNodesRef.current.add(node);
+          io.observe(node);
+        });
+      if (sentinelRef.current) io.observe(sentinelRef.current);
+    };
+    sync();
+
+    return () => {
+      io.disconnect();
+      if (cardObserverRef.current === io) cardObserverRef.current = null;
+      observedNodesRef.current.forEach((n) => n.removeAttribute('data-observed'));
+      observedNodesRef.current = new Set();
+    };
+  }, []);
+
+  // Observe newly mounted cards. Runs after every render on purpose so cards
+  // appended by the sentinel get picked up; already-observed nodes are skipped.
+  useEffect(() => {
+    const io = cardObserverRef.current;
+    if (!io || !listRef.current) return;
+    listRef.current.querySelectorAll('[data-station-id]:not([data-observed])').forEach((node) => {
+      node.setAttribute('data-observed', '1');
+      observedNodesRef.current.add(node);
+      io.observe(node);
+    });
+    if (sentinelRef.current) io.observe(sentinelRef.current);
+  });
 
   // Second-by-second countdown decrementer
   useEffect(() => {
@@ -228,35 +401,49 @@ export default function NearbyView({
     <div>
       {/* iOS Navigation Header */}
       <div className="ios-nav-header">
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="ios-header-text">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
             <h1 className="ios-large-title">RielAR</h1>
             <span
               style={{
-                fontSize: '11px',
+                fontSize: '10px',
                 fontWeight: 800,
                 background: 'linear-gradient(135deg, #00b4d8, #0077b6)',
                 color: '#ffffff',
-                padding: '2px 8px',
-                borderRadius: '8px',
+                padding: '2px 6px',
+                borderRadius: '7px',
                 letterSpacing: '0.04em',
+                flexShrink: 0,
               }}
             >
               EN VIVO
             </span>
           </div>
-          <div className="ios-subtitle">
+          <div className="ios-subtitle ios-subtitle-stacked">
             <span className="ios-live-indicator">
               <span className="live-pulse-dot" />
               <span>Tiempo Real</span>
             </span>
-            <span style={{ color: justRefreshed ? 'var(--ios-green)' : 'var(--ios-text-secondary)', transition: 'color 0.3s' }}>
-              • {justRefreshed ? '✓ Arribos al día' : lastUpdatedAt ? `Actualizado ${lastUpdatedAt}` : (browseMode === 'nearby' ? 'Cercanas a tu ubicación' : 'Toda la red AMBA')}
+            <span className="ios-subtitle-meta" style={{ color: justRefreshed ? 'var(--ios-green)' : undefined, transition: 'color 0.3s' }}>
+              {justRefreshed ? '✓ Arribos al día' : lastUpdatedAt ? `Actualizado ${lastUpdatedAt}` : (browseMode === 'nearby' ? 'Cercanas a tu ubicación' : 'Toda la red AMBA')}
             </span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <SofseLivePill />
+          {onOpenDownloadModal && (
+            <button
+              className="fav-button"
+              onClick={onOpenDownloadModal}
+              title="Descargar o Abrir en tu teléfono celular (iOS o Android)"
+              aria-label="Descargar app"
+              style={{ color: '#30d158' }}
+            >
+              <Download size={17} />
+            </button>
+          )}
+
           {onToggleTheme && (
             <button
               className="fav-button"
@@ -291,6 +478,30 @@ export default function NearbyView({
           </button>
         </div>
       </div>
+
+      {/* Location Preset Picker (2nd row) */}
+      {onSetLocationPreset && (
+        <div style={{ padding: '8px 16px 0' }}>
+          <div className="header-location-select">
+            <MapPin size={13} style={{ color: '#0a84ff', flexShrink: 0 }} />
+            <select
+              value={locationPreset}
+              onChange={(e) => {
+                triggerHaptic('light');
+                onSetLocationPreset(e.target.value);
+              }}
+              aria-label="Simular ubicación"
+            >
+              <option value="GPS">GPS Real</option>
+              <option value="Retiro">Retiro</option>
+              <option value="Palermo">Palermo</option>
+              <option value="Once">Once</option>
+              <option value="San Isidro">San Isidro</option>
+              <option value="Constitución">Constitución</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Mode Switcher: Cercanía vs Explorar Red */}
       <div style={{ padding: '8px 16px 4px', display: 'flex', gap: '8px' }}>
@@ -462,9 +673,9 @@ export default function NearbyView({
               className="ios-card"
               style={{
                 padding: '12px 14px',
-                background: 'linear-gradient(135deg, rgba(28, 28, 35, 0.95), rgba(20, 20, 25, 0.98))',
+                background: 'linear-gradient(135deg, rgba(255, 159, 10, 0.14), var(--ios-card-solid))',
                 border: '1px solid rgba(255, 159, 10, 0.3)',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -620,7 +831,7 @@ export default function NearbyView({
         >
           Todas
         </button>
-        {LINES_DATA.map((line) => (
+        {FILTERABLE_LINES.map((line) => (
           <button
             key={line.id}
             className={`segmented-option ${selectedLine === String(line.id) ? 'active' : ''}`}
@@ -715,7 +926,7 @@ export default function NearbyView({
       </div>
 
       {/* Station Cards List */}
-      <div style={{ paddingBottom: '20px' }}>
+      <div style={{ paddingBottom: '20px' }} ref={listRef}>
         {loading && stationsWithArrivals.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--ios-text-secondary)' }}>
             <RotateCw size={28} className="animate-spin" style={{ margin: '0 auto 12px', color: 'var(--ios-blue)' }} />
@@ -727,7 +938,7 @@ export default function NearbyView({
             <div>No se encontraron estaciones coincidentes.</div>
           </div>
         ) : (
-          stationsWithArrivals.map((station) => {
+          stationsWithArrivals.slice(0, visibleCount).map((station) => {
             const isFav = favorites.some((f) => Number(f.id) === Number(station.id));
 
             // Filter arrivals by Direction (Sentido 1 = Provincia, Sentido 2 = CABA/Retiro)
@@ -737,7 +948,7 @@ export default function NearbyView({
             });
 
             return (
-              <div key={station.id} className="ios-card">
+              <div key={station.id} className="ios-card" data-station-id={station.id}>
                 {/* Station Card Header */}
                 <div className="station-header">
                   <div
@@ -959,6 +1170,40 @@ export default function NearbyView({
               </div>
             );
           })
+        )}
+
+        {/* Infinite scroll sentinel + progress footer */}
+        {stationsWithArrivals.length > 0 && (
+          <div ref={sentinelRef} style={{ padding: '14px 16px 0', textAlign: 'center' }}>
+            {visibleCount < stationsWithArrivals.length ? (
+              <div
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  color: 'var(--ios-text-secondary)',
+                }}
+              >
+                {lineLabel} · mostrando {Math.min(visibleCount, stationsWithArrivals.length)} de{' '}
+                {stationsWithArrivals.length}
+                {stationsWithArrivals.length >= MAX_STATIONS ? '+' : ''}
+                <div style={{ fontWeight: 500, opacity: 0.75, marginTop: '2px' }}>
+                  Seguí scrolleando para cargar más
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  color: 'var(--ios-text-secondary)',
+                }}
+              >
+                {stationsWithArrivals.length >= MAX_STATIONS
+                  ? `Mostrando las primeras ${MAX_STATIONS} estaciones de ${lineLabel}`
+                  : `${lineLabel}: sus ${stationsWithArrivals.length} estaciones`}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
