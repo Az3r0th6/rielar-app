@@ -15,6 +15,7 @@ import {
 import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import { getStationArrivals } from '../api/sofseClient';
 import LineBadge from '../components/LineBadge';
+import { SofseLivePill } from '../components/DynamicIsland';
 import LastTrainsSection from '../components/LastTrainsSection';
 import ServiceTimetableGrid from '../components/ServiceTimetableGrid';
 import RideAffiliateCard from '../components/RideAffiliateCard';
@@ -238,7 +239,7 @@ export default function TripPlannerView({
     <div>
       {/* Header */}
       <div className="ios-nav-header">
-        <div>
+        <div className="ios-header-text">
           <h1 className="ios-large-title">Horarios</h1>
           <div className="ios-subtitle">
             <span className="ios-live-indicator">
@@ -254,6 +255,7 @@ export default function TripPlannerView({
             </span>
           </div>
         </div>
+        <SofseLivePill />
       </div>
 
       {/* Main Sub-Navigation Switcher */}

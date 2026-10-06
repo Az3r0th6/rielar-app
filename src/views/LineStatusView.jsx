@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { getNetworkStatus } from '../api/sofseClient';
 import LineBadge from '../components/LineBadge';
+import { SofseLivePill } from '../components/DynamicIsland';
 import LastTrainsSection from '../components/LastTrainsSection';
 import RideAffiliateCard from '../components/RideAffiliateCard';
 import SwipeableAlertCard from '../components/SwipeableAlertCard';
@@ -437,7 +438,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
     <div>
       {/* Header */}
       <div className="ios-nav-header">
-        <div>
+        <div className="ios-header-text">
           <h1 className="ios-large-title">Estado de Red</h1>
           <div className="ios-subtitle">
             <span className="ios-live-indicator">
@@ -448,17 +449,20 @@ export default function LineStatusView({ onNavigateToPlanner }) {
           </div>
         </div>
 
-        <button
-          className="fav-button"
-          onClick={() => {
-            triggerHaptic('light');
-            fetchStatus();
-          }}
-          title="Actualizar estado completo"
-          aria-label="Actualizar estado completo"
-        >
-          <RotateCw size={18} className={loading ? 'animate-spin' : ''} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <SofseLivePill />
+          <button
+            className="fav-button"
+            onClick={() => {
+              triggerHaptic('light');
+              fetchStatus();
+            }}
+            title="Actualizar estado completo"
+            aria-label="Actualizar estado completo"
+          >
+            <RotateCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
+        </div>
       </div>
 
       <div style={{ padding: '14px 16px 36px' }}>

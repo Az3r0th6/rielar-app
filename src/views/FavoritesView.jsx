@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Trash2, Info, Search, Plus, Check, X } from 'lucide-react';
 import LineBadge from '../components/LineBadge';
+import { SofseLivePill } from '../components/DynamicIsland';
 import { getStationArrivals } from '../api/sofseClient';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { triggerHaptic } from '../utils/notifications';
@@ -86,12 +87,13 @@ export default function FavoritesView({
     <div>
       {/* Header */}
       <div className="ios-nav-header">
-        <div>
+        <div className="ios-header-text">
           <h1 className="ios-large-title">Favoritos</h1>
           <div className="ios-subtitle">
             <span>Estaciones guardadas y próximos arribos</span>
           </div>
         </div>
+        <SofseLivePill />
       </div>
 
       <div style={{ padding: '0 16px 24px' }}>
@@ -150,12 +152,12 @@ export default function FavoritesView({
                 left: 0,
                 right: 0,
                 marginTop: '6px',
-                background: 'rgba(28, 28, 35, 0.98)',
+                background: 'var(--ios-card-solid)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 borderRadius: '14px',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                boxShadow: '0 12px 36px rgba(0,0,0,0.5)',
+                border: '1px solid var(--ios-card-border)',
+                boxShadow: '0 12px 36px rgba(0,0,0,0.28)',
                 zIndex: 50,
                 overflow: 'hidden',
               }}

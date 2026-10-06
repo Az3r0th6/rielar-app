@@ -659,16 +659,11 @@ export default function App() {
       trackingTrain={trackingTrain}
       onClearTracking={() => setTrackingTrain(null)}
       onOpenDetails={(train) => setSelectedTrain(train)}
-      onSimulateLocation={handleSimulateLocation}
-      currentLocationName={locationPreset}
       onContentScroll={handleContentScroll}
       isHeaderHidden={isHeaderHidden}
       showDownloadModal={showDownloadModal}
       onCloseDownloadModal={() => setShowDownloadModal(false)}
-      onOpenDownloadModal={() => setShowDownloadModal(true)}
       onInstallApp={handleInstallApp}
-      theme={theme}
-      onToggleTheme={handleToggleTheme}
       tabBar={
         <TabBar
           activeTab={activeTab}
@@ -742,6 +737,9 @@ export default function App() {
             onSetLocationPreset={handleSimulateLocation}
             selectedCustomStation={selectedCustomStation}
             onClearCustomStation={() => setSelectedCustomStation(null)}
+            theme={theme}
+            onToggleTheme={handleToggleTheme}
+            onOpenDownloadModal={() => setShowDownloadModal(true)}
           />
         )}
 
