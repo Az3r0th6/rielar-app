@@ -105,7 +105,7 @@ export default function App() {
   }, []);
 
   // Dual-Engine Update Detection System
-  const CURRENT_APP_BUILD = 28;
+  const CURRENT_APP_BUILD = 29;
   const [showUpdateToast, setShowUpdateToast] = useState(false);
   const waitingWorkerRef = useRef(null);
 
