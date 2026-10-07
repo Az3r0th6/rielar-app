@@ -574,35 +574,32 @@ export default function App() {
       try {
         let restoredData = null;
 
-        // 1. Check IndexedDB primary
-        const idbSaved = await idbGet('trenes_favorites');
-        if (idbSaved) {
+        // Fetch from all local durable sources concurrently to merge them
+        const [idbSaved, idbBackup, cacheSaved] = await Promise.all([
+          idbGet('trenes_favorites'),
+          idbGet('rielar_favorites_backup'),
+          cacheGet('trenes_favorites')
+        ]);
+        
+        let mergedList = [];
+        const tryParse = (str) => {
           try {
-            const parsed = JSON.parse(idbSaved);
-            if (Array.isArray(parsed) && parsed.length > 0) restoredData = parsed;
+            const p = JSON.parse(str);
+            if (Array.isArray(p)) mergedList.push(...p);
           } catch {}
-        }
+        };
 
-        // 2. Check IndexedDB backup
-        if (!restoredData) {
-          const idbBackup = await idbGet('rielar_favorites_backup');
-          if (idbBackup) {
-            try {
-              const parsed = JSON.parse(idbBackup);
-              if (Array.isArray(parsed) && parsed.length > 0) restoredData = parsed;
-            } catch {}
-          }
-        }
+        if (idbSaved) tryParse(idbSaved);
+        if (idbBackup) tryParse(idbBackup);
+        if (cacheSaved) tryParse(cacheSaved);
 
-        // 3. Check CacheStorage
-        if (!restoredData) {
-          const cacheSaved = await cacheGet('trenes_favorites');
-          if (cacheSaved) {
-            try {
-              const parsed = JSON.parse(cacheSaved);
-              if (Array.isArray(parsed) && parsed.length > 0) restoredData = parsed;
-            } catch {}
-          }
+        if (mergedList.length > 0) {
+          // Remove duplicates by ID, giving preference to the most recently added or keeping all unique
+          const uniqueLocalMap = new Map();
+          mergedList.forEach(st => {
+            if (st && st.id) uniqueLocalMap.set(Number(st.id), st);
+          });
+          restoredData = Array.from(uniqueLocalMap.values());
         }
 
         // 4. Check Server Fallback if local stores were evicted or unavailable
