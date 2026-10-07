@@ -256,11 +256,15 @@ function createStorageWrapper(storageType) {
         // 3. Service Worker durable cache sync (runs out-of-process to survive task kills)
         if (key === 'trenes_favorites' || key === 'rielar_favorites_backup') {
           try {
-            if (typeof navigator !== 'undefined' && navigator.serviceWorker && navigator.serviceWorker.controller) {
-              navigator.serviceWorker.controller.postMessage({
-                type: 'SYNC_FAVORITES',
-                favorites: JSON.parse(strVal)
-              });
+            if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+              navigator.serviceWorker.ready.then((reg) => {
+                if (reg.active) {
+                  reg.active.postMessage({
+                    type: 'SYNC_FAVORITES',
+                    favorites: JSON.parse(strVal)
+                  });
+                }
+              }).catch(() => {});
             }
           } catch {}
         }
