@@ -28,10 +28,10 @@ def twaManifest = [
     launcherName: 'RielAR', // The name shown on the Android Launcher.
     themeColor: '#009FE3', // The color used for the status bar.
     themeColorDark: '#0A0A0C', // The color used for the dark status bar.
-    navigationColor: '#0A0A0C', // The color used for the navigation bar.
-    navigationColorDark: '#0A0A0C', // The color used for the dark navbar.
-    navigationDividerColor: '#1E293B', // The navbar divider color.
-    navigationDividerColorDark: '#1E293B', // The dark navbar divider color.
+    navigationColor: '#00000000', // The color used for the navigation bar.
+    navigationColorDark: '#00000000', // The color used for the dark navbar.
+    navigationDividerColor: '#00000000', // The navbar divider color.
+    navigationDividerColorDark: '#00000000', // The dark navbar divider color.
     backgroundColor: '#0A0A0C', // The color used for the splash screen background.
     enableNotifications: true, // Set to true to enable notification delegation.
     // Every shortcut must include the following fields:
@@ -39,9 +39,12 @@ def twaManifest = [
     // - short_name: Shorter string used if |name| is too long.
     // - url: Absolute path of the URL to launch the app with (e.g '/create').
     // - icon: Name of the resource in the drawable folder to use as an icon.
-    shortcuts: [],
+    shortcuts: [
+        [name: 'Buscar Cercanos', short_name: 'Cercanos', url: '/?shortcut=cercanos', icon: 'splash'],
+        [name: 'Mapa de la Red', short_name: 'Mapa', url: '/?shortcut=mapa', icon: 'splash']
+    ],
     // The duration of fade out animation in milliseconds to be played when removing splash screen.
-    splashScreenFadeOutDuration: 300,
+    splashScreenFadeOutDuration: 800,
     generatorApp: 'bubblewrap', // Application that generated the Android Project
     // The fallback strategy for when Trusted Web Activity is not available. Possible values are
     // 'customtabs' and 'webview'.
@@ -57,8 +60,8 @@ android {
         applicationId "com.rielar.app"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 33
-        versionName "1.1.0"
+        versionCode 34
+        versionName "1.1.1"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name

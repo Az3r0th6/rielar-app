@@ -6,23 +6,36 @@
   "display": "standalone",
   "themeColor": "#009FE3",
   "themeColorDark": "#0A0A0C",
-  "navigationColor": "#0A0A0C",
-  "navigationColorDark": "#0A0A0C",
-  "navigationDividerColor": "#1E293B",
-  "navigationDividerColorDark": "#1E293B",
+  "navigationColor": "#00000000",
+  "navigationColorDark": "#00000000",
+  "navigationDividerColor": "#00000000",
+  "navigationDividerColorDark": "#00000000",
   "backgroundColor": "#0A0A0C",
   "enableNotifications": true,
   "startUrl": "/",
   "iconUrl": "https://rielar-app.onrender.com/icon-512.png",
   "maskableIconUrl": "https://rielar-app.onrender.com/icon-maskable-512.png",
-  "splashScreenFadeOutDuration": 300,
+  "splashScreenFadeOutDuration": 800,
   "signingKey": {
     "path": "C:\\Users\\tinch\\OneDrive\\Escritorio\\App movilidad urbana\\android-twa\\android.keystore",
     "alias": "rielar"
   },
-  "appVersionName": "1.1.0",
-  "appVersionCode": 33,
-  "shortcuts": [],
+  "appVersionName": "1.1.1",
+  "appVersionCode": 34,
+  "shortcuts": [
+    {
+      "name": "Buscar Cercanos",
+      "short_name": "Cercanos",
+      "url": "/?shortcut=cercanos",
+      "icon": "splash"
+    },
+    {
+      "name": "Mapa de la Red",
+      "short_name": "Mapa",
+      "url": "/?shortcut=mapa",
+      "icon": "splash"
+    }
+  ],
   "generatorApp": "bubblewrap",
   "webManifestUrl": "https://rielar-app.onrender.com/manifest.json",
   "fallbackType": "customtabs",
