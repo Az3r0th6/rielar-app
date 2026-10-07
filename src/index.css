@@ -817,7 +817,7 @@ html, body {
    ========================================================================== */
 
 .ios-tab-bar {
-  height: 76px;
+  height: calc(76px + env(safe-area-inset-bottom, 0px));
   position: absolute;
   bottom: 0;
   left: 0;
@@ -829,15 +829,16 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 6px 4px 16px;
+  padding: 6px 4px calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 30;
-  transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.28s ease;
   transform: translateY(0);
   opacity: 1;
+  will-change: transform, opacity;
 }
 
 .ios-tab-bar.tab-bar-hidden {
-  transform: translateY(105%);
+  transform: translateY(115%);
   opacity: 0;
   pointer-events: none;
 }

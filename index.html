@@ -39,7 +39,8 @@
         function setCookie(n, v) {
           try {
             var exp = new Date(Date.now() + 365*864e5).toUTCString();
-            document.cookie = encodeURIComponent(n) + '=' + encodeURIComponent(v) + '; expires=' + exp + '; path=/; SameSite=Lax';
+            var sec = (typeof location !== 'undefined' && location.protocol === 'https:') ? '; Secure' : '';
+            document.cookie = encodeURIComponent(n) + '=' + encodeURIComponent(v) + '; expires=' + exp + '; path=/; SameSite=Lax' + sec;
           } catch(e) {}
         }
         function createMemStorage(isLocal) {
@@ -61,7 +62,10 @@
             removeItem: function(k) {
               store.delete(k);
               if (isLocal) {
-                try { document.cookie = encodeURIComponent(k) + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax'; } catch(e) {}
+                try {
+                  var sec = (typeof location !== 'undefined' && location.protocol === 'https:') ? '; Secure' : '';
+                  document.cookie = encodeURIComponent(k) + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax' + sec;
+                } catch(e) {}
               }
             },
             clear: function() { store.clear(); },

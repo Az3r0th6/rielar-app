@@ -26,7 +26,15 @@ import {
   markAlertsAsRead,
   ALERTS_CHANGED_EVENT,
 } from './utils/alertManager';
-import { safeLocalStorage, safeSessionStorage, idbGet, idbSet } from './utils/safeStorage';
+import {
+  safeLocalStorage,
+  safeSessionStorage,
+  idbGet,
+  idbSet,
+  cacheGet,
+  cacheSet,
+  requestStoragePersistence,
+} from './utils/safeStorage';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => {
@@ -305,13 +313,33 @@ export default function App() {
 
   const handleContentScroll = (e) => {
     const currentScrollY = e.target.scrollTop;
-    if (currentScrollY <= 20) {
+    const scrollHeight = e.target.scrollHeight;
+    const clientHeight = e.target.clientHeight;
+    const diff = currentScrollY - lastScrollY.current;
+
+    // Ignore tiny jitter movements
+    if (Math.abs(diff) < 3) return;
+
+    // If near the top (<= 25px): keep both header and bottom panel visible
+    if (currentScrollY <= 25) {
       setIsHeaderHidden(false);
-    } else if (currentScrollY > lastScrollY.current + 8 && currentScrollY > 60) {
-      setIsHeaderHidden(true);
-    } else if (currentScrollY < lastScrollY.current - 6) {
-      setIsHeaderHidden(false);
+      setIsTabBarHidden(false);
     }
+    // Reached bottom of page: reveal bottom tab bar so user is never stuck
+    else if (scrollHeight - (currentScrollY + clientHeight) < 45) {
+      setIsTabBarHidden(false);
+    }
+    // Scrolling down: smoothly hide both header and bottom panel
+    else if (diff > 8 && currentScrollY > 50) {
+      setIsHeaderHidden(true);
+      setIsTabBarHidden(true);
+    }
+    // Scrolling up: smoothly reveal both header and bottom panel
+    else if (diff < -6) {
+      setIsHeaderHidden(false);
+      setIsTabBarHidden(false);
+    }
+
     lastScrollY.current = currentScrollY;
   };
 
@@ -319,6 +347,7 @@ export default function App() {
     setActiveTab(tabId);
     setIsTabBarHidden(false);
     setIsHeaderHidden(false);
+    lastScrollY.current = 0;
     if (tabId === 'lines') {
       // User reviewed the line status, mark all currently existing alerts as read
       // so badge counter stays in ZERO and doesn't nag the user again!
@@ -388,44 +417,68 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Favorites multi-layer persistence (localStorage + cookies + IndexedDB + backup keys)
+  // Favorites multi-layer persistence (localStorage + cookies + IndexedDB + CacheStorage + backup keys)
+  const isHydratedRef = useRef(false);
   const [favorites, setFavorites] = useState(() => {
     try {
-      const saved =
-        safeLocalStorage.getItem('trenes_favorites') ||
-        safeLocalStorage.getItem('rielar_favorites_backup') ||
-        safeLocalStorage.getItem('rielar_favorites') ||
-        safeLocalStorage.getItem('favorites');
+      let saved = null;
+      // 1. Check direct native localStorage
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          saved =
+            window.localStorage.getItem('trenes_favorites') ||
+            window.localStorage.getItem('rielar_favorites_backup') ||
+            window.localStorage.getItem('rielar_favorites') ||
+            window.localStorage.getItem('favorites');
+        } catch {}
+      }
+      // 2. Fallback to safeLocalStorage wrapper / cookies
+      if (!saved) {
+        saved =
+          safeLocalStorage.getItem('trenes_favorites') ||
+          safeLocalStorage.getItem('rielar_favorites_backup') ||
+          safeLocalStorage.getItem('rielar_favorites') ||
+          safeLocalStorage.getItem('favorites');
+      }
+
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const validStations = parsed
             .map((st) => ({
               id: Number(st.id),
               name: st.name || st.nombre || 'Estación',
-              lineId: Number(st.lineId) || 5,
+              lineId: st.lineId !== undefined ? Number(st.lineId) : 5,
               lineName: st.lineName || '',
               ramal: st.ramal || '',
               lat: Number(st.lat || st.latitud) || 0,
               lng: Number(st.lng || st.longitud) || 0,
             }))
             .filter((st) => st.id && !isNaN(st.id));
+
+          if (validStations.length > 0) {
+            isHydratedRef.current = true;
+            return validStations;
+          }
         }
       }
     } catch (e) {
-      console.warn('Error reading favorites:', e);
+      console.warn('Error reading synchronous favorites:', e);
     }
     return [];
   });
 
+  const favoritesRef = useRef(favorites);
+  favoritesRef.current = favorites;
+
   // Helper to safely write clean favorites to multiple storage targets synchronously & asynchronously
-  const saveFavoritesToStorage = (favList) => {
+  const saveFavoritesToStorage = (favList, isInternalSync = false) => {
     try {
       const cleanList = (favList || [])
         .map((st) => ({
           id: Number(st.id),
           name: st.name || st.nombre || 'Estación',
-          lineId: Number(st.lineId) || 5,
+          lineId: st.lineId !== undefined ? Number(st.lineId) : 5,
           lineName: st.lineName || '',
           ramal: st.ramal || '',
           lat: Number(st.lat || st.latitud) || 0,
@@ -433,14 +486,34 @@ export default function App() {
         }))
         .filter((st) => st.id && !isNaN(st.id));
 
+      // CRITICAL GUARD: Never write empty array to storage if async hydration has not completed!
+      if (cleanList.length === 0 && !isHydratedRef.current) {
+        console.warn('Skipping storage overwrite with empty list before hydration completes');
+        return;
+      }
+
       const serialized = JSON.stringify(cleanList);
+
+      // 1. Direct native Web Storage (synchronous disk write)
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem('trenes_favorites', serialized);
+          window.localStorage.setItem('rielar_favorites_backup', serialized);
+        }
+      } catch {}
+
+      // 2. SafeStorage wrapper (sync memory + cookies)
       safeLocalStorage.setItem('trenes_favorites', serialized);
       safeLocalStorage.setItem('rielar_favorites_backup', serialized);
-      // Asynchronously mirror to IndexedDB for smartphones where localStorage is wiped
+
+      // 3. Asynchronously mirror to IndexedDB (durable against task kill)
       idbSet('trenes_favorites', serialized).catch(() => {});
       idbSet('rielar_favorites_backup', serialized).catch(() => {});
 
-      if (typeof window !== 'undefined') {
+      // 4. Asynchronously mirror to CacheStorage (durable mobile HTTP storage)
+      cacheSet('trenes_favorites', serialized).catch(() => {});
+
+      if (typeof window !== 'undefined' && !isInternalSync) {
         window.dispatchEvent(new CustomEvent('rielar:favorites-changed', { detail: cleanList }));
       }
     } catch (e) {
@@ -448,56 +521,109 @@ export default function App() {
     }
   };
 
-  // Asynchronous recovery from IndexedDB on initial mount for mobile WebView/PWA/iOS Safari
+  // Asynchronous durable recovery from IndexedDB and CacheStorage on initial mount
   useEffect(() => {
+    requestStoragePersistence();
+
     (async () => {
       try {
-        const idbSaved =
-          (await idbGet('trenes_favorites')) || (await idbGet('rielar_favorites_backup'));
+        let restoredData = null;
+
+        // 1. Check IndexedDB primary
+        const idbSaved = await idbGet('trenes_favorites');
         if (idbSaved) {
-          const parsed = JSON.parse(idbSaved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setFavorites((prev) => {
-              const prevIds = new Set((prev || []).map((p) => Number(p.id)));
-              const restored = parsed
-                .map((st) => ({
-                  id: Number(st.id),
-                  name: st.name || st.nombre || 'Estación',
-                  lineId: Number(st.lineId) || 5,
-                  lineName: st.lineName || '',
-                  ramal: st.ramal || '',
-                  lat: Number(st.lat || st.latitud) || 0,
-                  lng: Number(st.lng || st.longitud) || 0,
-                }))
-                .filter((st) => st.id && !isNaN(st.id));
+          try {
+            const parsed = JSON.parse(idbSaved);
+            if (Array.isArray(parsed) && parsed.length > 0) restoredData = parsed;
+          } catch {}
+        }
 
-              // If current state is empty, restore completely from IndexedDB
-              if (!prev || prev.length === 0) {
-                saveFavoritesToStorage(restored);
-                return restored;
-              }
+        // 2. Check IndexedDB backup
+        if (!restoredData) {
+          const idbBackup = await idbGet('rielar_favorites_backup');
+          if (idbBackup) {
+            try {
+              const parsed = JSON.parse(idbBackup);
+              if (Array.isArray(parsed) && parsed.length > 0) restoredData = parsed;
+            } catch {}
+          }
+        }
 
-              // Otherwise merge any missing items
-              const missing = restored.filter((r) => !prevIds.has(r.id));
-              if (missing.length > 0) {
-                const merged = [...prev, ...missing];
-                saveFavoritesToStorage(merged);
-                return merged;
+        // 3. Check CacheStorage
+        if (!restoredData) {
+          const cacheSaved = await cacheGet('trenes_favorites');
+          if (cacheSaved) {
+            try {
+              const parsed = JSON.parse(cacheSaved);
+              if (Array.isArray(parsed) && parsed.length > 0) restoredData = parsed;
+            } catch {}
+          }
+        }
+
+        if (Array.isArray(restoredData) && restoredData.length > 0) {
+          const cleanRestored = restoredData
+            .map((st) => ({
+              id: Number(st.id),
+              name: st.name || st.nombre || 'Estación',
+              lineId: st.lineId !== undefined ? Number(st.lineId) : 5,
+              lineName: st.lineName || '',
+              ramal: st.ramal || '',
+              lat: Number(st.lat || st.latitud) || 0,
+              lng: Number(st.lng || st.longitud) || 0,
+            }))
+            .filter((st) => st.id && !isNaN(st.id));
+
+          if (cleanRestored.length > 0) {
+            setFavorites((currentFavs) => {
+              const currentIds = new Set((currentFavs || []).map((p) => Number(p.id)));
+              const merged = [...(currentFavs || [])];
+              for (const r of cleanRestored) {
+                if (!currentIds.has(r.id)) {
+                  merged.push(r);
+                  currentIds.add(r.id);
+                }
               }
-              return prev;
+              const finalFavs = merged.length > 0 ? merged : cleanRestored;
+              saveFavoritesToStorage(finalFavs, true);
+              return finalFavs;
             });
           }
         }
       } catch (err) {
-        console.warn('Error hydrating favorites from IndexedDB:', err);
+        console.warn('Error hydrating favorites from durable storage:', err);
+      } finally {
+        isHydratedRef.current = true;
       }
     })();
   }, []);
 
-  // Sync to storage on state changes
+  // Sync to storage on state changes (only once hydrated)
   useEffect(() => {
+    if (!isHydratedRef.current) return;
     saveFavoritesToStorage(favorites);
   }, [favorites]);
+
+  // Flush favorites when app is put into background, tab is closed or navigated away
+  useEffect(() => {
+    const handleFlush = () => {
+      if (isHydratedRef.current && favoritesRef.current && favoritesRef.current.length > 0) {
+        saveFavoritesToStorage(favoritesRef.current);
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleFlush();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handleFlush);
+    window.addEventListener('beforeunload', handleFlush);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handleFlush);
+      window.removeEventListener('beforeunload', handleFlush);
+    };
+  }, []);
 
   const [gpsState, setGpsState] = useState('idle'); // 'idle' | 'requesting' | 'active' | 'denied' | 'timeout'
   const [gpsErrorMsg, setGpsErrorMsg] = useState('');
@@ -670,11 +796,13 @@ export default function App() {
       ? favorites.filter((f) => Number(f.id) !== Number(station.id))
       : [...favorites, cleanStation];
 
+    isHydratedRef.current = true;
     setFavorites(nextFavorites);
     saveFavoritesToStorage(nextFavorites);
   };
 
   const handleRemoveFavorite = (stationId) => {
+    isHydratedRef.current = true;
     const nextFavorites = favorites.filter((f) => Number(f.id) !== Number(stationId));
     setFavorites(nextFavorites);
     saveFavoritesToStorage(nextFavorites);
@@ -733,7 +861,7 @@ export default function App() {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           alertsCount={networkAlertsCount}
-          isHidden={!!selectedStationForInfo || !!selectedTrain}
+          isHidden={isTabBarHidden || !!selectedStationForInfo || !!selectedTrain}
         />
       }
       overlayModals={
@@ -752,7 +880,7 @@ export default function App() {
                   sessionStorage.setItem('rielar_update_dismissed', String(APP_BUILD));
                 } catch {}
               }}
-              isTabBarHidden={!!selectedStationForInfo || !!selectedTrain}
+              isTabBarHidden={isTabBarHidden || !!selectedStationForInfo || !!selectedTrain}
             />
           )}
           <ChangelogModal

@@ -1,5 +1,5 @@
-// Bulletproof Multi-Tier Storage Utility with Cookie & IndexedDB Persistence
-// Prevents storage loss in Android WebViews, iOS Safari private browsing, PWAs, TWAs, and iframe sandboxes.
+// Bulletproof Multi-Tier Storage Utility with Cookie, IndexedDB & CacheStorage Persistence
+// Prevents storage loss in Android WebViews, iOS Safari private browsing, PWAs, TWAs, Brave Shields, and mobile task kills.
 
 const memoryStorage = new Map();
 const sessionMemoryStorage = new Map();
@@ -19,14 +19,18 @@ function setCookie(name, value, days = 365) {
   try {
     if (typeof document === 'undefined') return;
     const expires = new Date(Date.now() + days * 864e5).toUTCString();
-    document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+    const isHttps = typeof location !== 'undefined' && location.protocol === 'https:';
+    const secureFlag = isHttps ? '; Secure' : '';
+    document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax${secureFlag}`;
   } catch {}
 }
 
 function deleteCookie(name) {
   try {
     if (typeof document === 'undefined') return;
-    document.cookie = `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+    const isHttps = typeof location !== 'undefined' && location.protocol === 'https:';
+    const secureFlag = isHttps ? '; Secure' : '';
+    document.cookie = `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax${secureFlag}`;
   } catch {}
 }
 
@@ -72,9 +76,14 @@ export async function idbSet(key, value) {
     return new Promise((resolve) => {
       const tx = db.transaction(IDB_STORE, 'readwrite');
       const store = tx.objectStore(IDB_STORE);
-      const req = store.put(value, key);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => resolve(false);
+      store.put(value, key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+      tx.onabort = () => resolve(false);
+      // Force explicit flush to disk where supported
+      if (typeof tx.commit === 'function') {
+        try { tx.commit(); } catch {}
+      }
     });
   } catch {
     return false;
@@ -87,13 +96,71 @@ export async function idbDelete(key) {
     return new Promise((resolve) => {
       const tx = db.transaction(IDB_STORE, 'readwrite');
       const store = tx.objectStore(IDB_STORE);
-      const req = store.delete(key);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => resolve(false);
+      store.delete(key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+      tx.onabort = () => resolve(false);
+      if (typeof tx.commit === 'function') {
+        try { tx.commit(); } catch {}
+      }
     });
   } catch {
     return false;
   }
+}
+
+// --- CacheStorage Durable Storage (Survives Android WebView / Brave task kills) ---
+const CACHE_STORE_NAME = 'rielar_durable_cache_v1';
+
+export async function cacheSet(key, value) {
+  try {
+    if (typeof window === 'undefined' || !window.caches) return false;
+    const cache = await window.caches.open(CACHE_STORE_NAME);
+    const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+    const response = new Response(serialized, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    await cache.put(new Request(`/local-storage/${encodeURIComponent(key)}`), response);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function cacheGet(key) {
+  try {
+    if (typeof window === 'undefined' || !window.caches) return null;
+    const cache = await window.caches.open(CACHE_STORE_NAME);
+    const match = await cache.match(new Request(`/local-storage/${encodeURIComponent(key)}`));
+    if (match) {
+      return await match.text();
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function cacheDelete(key) {
+  try {
+    if (typeof window === 'undefined' || !window.caches) return false;
+    const cache = await window.caches.open(CACHE_STORE_NAME);
+    return await cache.delete(new Request(`/local-storage/${encodeURIComponent(key)}`));
+  } catch {
+    return false;
+  }
+}
+
+// --- Request Persistent Storage (Prevents Android Chrome / Brave background eviction) ---
+export async function requestStoragePersistence() {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.persist) {
+      const persisted = await navigator.storage.persisted();
+      if (!persisted) {
+        await navigator.storage.persist();
+      }
+    }
+  } catch {}
 }
 
 function createStorageWrapper(storageType) {
@@ -146,10 +213,11 @@ function createStorageWrapper(storageType) {
         // Access denied in restricted WebView/iframe
       }
 
-      // 2. Multi-tier persistence for localStorage: mirror to Cookies and IndexedDB
+      // 2. Multi-tier persistence for localStorage: mirror to Cookies, IndexedDB and CacheStorage
       if (storageType === 'localStorage') {
         setCookie(key, strVal);
         idbSet(key, strVal).catch(() => {});
+        cacheSet(key, strVal).catch(() => {});
       }
     },
 
@@ -166,6 +234,7 @@ function createStorageWrapper(storageType) {
       if (storageType === 'localStorage') {
         deleteCookie(key);
         idbDelete(key).catch(() => {});
+        cacheDelete(key).catch(() => {});
       }
     },
 
