@@ -13,6 +13,7 @@ import MoreView from './views/MoreView';
 import ChangelogModal from './components/ChangelogModal';
 import InAppNotificationToast from './components/InAppNotificationToast';
 import UpdateNotificationToast from './components/UpdateNotificationToast';
+import { APP_BUILD, APP_VERSION, CACHE_NAME } from './version';
 import { PRELOADED_STATIONS } from './data/linesData';
 import {
   triggerHaptic,
@@ -105,7 +106,7 @@ export default function App() {
   }, []);
 
   // Dual-Engine Update Detection System
-  const CURRENT_APP_BUILD = 29;
+  const CURRENT_APP_BUILD = APP_BUILD;
   const [showUpdateToast, setShowUpdateToast] = useState(false);
   const waitingWorkerRef = useRef(null);
 
@@ -120,7 +121,10 @@ export default function App() {
         if (res.ok) {
           const data = await res.json();
           if (data && data.build && data.build > CURRENT_APP_BUILD) {
-            setShowUpdateToast(true);
+            const isDismissed = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('rielar_update_dismissed') === String(data.build);
+            if (!isDismissed) {
+              setShowUpdateToast(true);
+            }
             return;
           }
         }
@@ -131,7 +135,10 @@ export default function App() {
           if (res2.ok) {
             const data2 = await res2.json();
             if (data2 && data2.build && data2.build > CURRENT_APP_BUILD) {
-              setShowUpdateToast(true);
+              const isDismissed2 = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('rielar_update_dismissed') === String(data2.build);
+              if (!isDismissed2) {
+                setShowUpdateToast(true);
+              }
               return;
             }
           }
@@ -150,9 +157,12 @@ export default function App() {
 
     const onUpdateFound = (registration) => {
       if (!registration) return;
-      if (registration.waiting) {
+      if (registration.waiting && navigator.serviceWorker.controller) {
         waitingWorkerRef.current = registration.waiting;
-        setShowUpdateToast(true);
+        const isDismissed = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('rielar_update_dismissed');
+        if (!isDismissed) {
+          setShowUpdateToast(true);
+        }
         return;
       }
 
@@ -160,9 +170,12 @@ export default function App() {
         const newWorker = registration.installing;
         if (!newWorker) return;
         newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' || newWorker.state === 'activating') {
+          if ((newWorker.state === 'installed' || newWorker.state === 'activating') && navigator.serviceWorker.controller) {
             waitingWorkerRef.current = newWorker;
-            setShowUpdateToast(true);
+            const isDismissed = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('rielar_update_dismissed');
+            if (!isDismissed) {
+              setShowUpdateToast(true);
+            }
           }
         });
       });
@@ -176,7 +189,10 @@ export default function App() {
       if (e.detail?.registration) {
         onUpdateFound(e.detail.registration);
       } else {
-        setShowUpdateToast(true);
+        const isDismissed = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('rielar_update_dismissed');
+        if (!isDismissed) {
+          setShowUpdateToast(true);
+        }
       }
     };
 
@@ -208,11 +224,7 @@ export default function App() {
         if (typeof window !== 'undefined' && 'caches' in window) {
           const keys = await caches.keys();
           await Promise.all(
-            keys.map((k) => {
-              if (k !== 'rielar-v26') {
-                return caches.delete(k);
-              }
-            })
+            keys.map((k) => caches.delete(k))
           );
         }
       }
@@ -294,13 +306,10 @@ export default function App() {
   const handleContentScroll = (e) => {
     const currentScrollY = e.target.scrollTop;
     if (currentScrollY <= 20) {
-      setIsTabBarHidden(false);
       setIsHeaderHidden(false);
     } else if (currentScrollY > lastScrollY.current + 8 && currentScrollY > 60) {
-      setIsTabBarHidden(true);
       setIsHeaderHidden(true);
     } else if (currentScrollY < lastScrollY.current - 6) {
-      setIsTabBarHidden(false);
       setIsHeaderHidden(false);
     }
     lastScrollY.current = currentScrollY;
@@ -724,7 +733,7 @@ export default function App() {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           alertsCount={networkAlertsCount}
-          isHidden={isTabBarHidden || !!selectedStationForInfo || !!selectedTrain}
+          isHidden={!!selectedStationForInfo || !!selectedTrain}
         />
       }
       overlayModals={
@@ -737,8 +746,13 @@ export default function App() {
           {showUpdateToast && (
             <UpdateNotificationToast
               onUpdate={handleApplyUpdate}
-              onDismiss={() => setShowUpdateToast(false)}
-              isTabBarHidden={isTabBarHidden || !!selectedStationForInfo || !!selectedTrain}
+              onDismiss={() => {
+                setShowUpdateToast(false);
+                try {
+                  sessionStorage.setItem('rielar_update_dismissed', String(APP_BUILD));
+                } catch {}
+              }}
+              isTabBarHidden={!!selectedStationForInfo || !!selectedTrain}
             />
           )}
           <ChangelogModal
