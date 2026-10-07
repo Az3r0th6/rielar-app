@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import groovy.xml.MarkupBuilder
-
 plugins {
     id 'com.android.application'
 }
+
 
 def twaManifest = [
     applicationId: 'com.rielar.app',
@@ -203,7 +202,7 @@ task generateShorcutsFile {
     def shortcutsFile = new File("$projectDir/src/main/res/xml", "shortcuts.xml")
 
     def xmlWriter = new StringWriter()
-    def xmlMarkup = new MarkupBuilder(new IndentPrinter(xmlWriter, "    ", true))
+    def xmlMarkup = new groovy.xml.MarkupBuilder(new groovy.util.IndentPrinter(xmlWriter, "    ", true))
 
     xmlMarkup
         .'shortcuts'('xmlns:android': 'http://schemas.android.com/apk/res/android') {
