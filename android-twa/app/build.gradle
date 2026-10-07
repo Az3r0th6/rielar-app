@@ -60,8 +60,8 @@ android {
         applicationId "com.rielar.app"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 34
-        versionName "1.1.1"
+        versionCode 35
+        versionName "1.1.2"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
@@ -215,10 +215,10 @@ task generateShorcutsFile {
                         'android:shortcutShortLabel': '@string/shortcut_short_name_' + i,
                         'android:shortcutLongLabel': '@string/shortcut_name_' + i) {
                     'intent'(
-                            'android:action': 'android.intent.action.MAIN',
+                            'android:action': 'android.intent.action.VIEW',
                             'android:targetPackage': twaManifest.applicationId,
                             'android:targetClass': twaManifest.applicationId + '.LauncherActivity',
-                            'android:data': s.url)
+                            'android:data': s.url.startsWith('http') ? s.url : 'https://' + twaManifest.hostName + s.url)
                     'categories'('android:name': 'android.intent.category.LAUNCHER')
                 }
             }
