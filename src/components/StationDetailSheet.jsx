@@ -103,10 +103,10 @@ export default function StationDetailSheet({
           width: '100%',
           maxHeight: '92vh',
           height: '90%',
-          background: 'linear-gradient(180deg, #1c1c24 0%, #121218 100%)',
+          background: 'var(--ios-card-solid)',
           borderTopLeftRadius: '24px',
           borderTopRightRadius: '24px',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: '1px solid var(--ios-card-border)',
           borderBottom: 'none',
           boxShadow: '0 -8px 32px rgba(0,0,0,0.6)',
           display: 'flex',
@@ -123,7 +123,7 @@ export default function StationDetailSheet({
               width: '40px',
               height: '4px',
               borderRadius: '2px',
-              background: 'rgba(255, 255, 255, 0.3)',
+              background: 'var(--ios-separator, rgba(120, 120, 128, 0.3))',
             }}
           />
         </div>
@@ -132,7 +132,7 @@ export default function StationDetailSheet({
         <div
           style={{
             padding: '8px 18px 14px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            borderBottom: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.15))',
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
@@ -146,7 +146,7 @@ export default function StationDetailSheet({
                 style={{
                   fontSize: '20px',
                   fontWeight: 900,
-                  color: '#ffffff',
+                  color: 'var(--ios-text-primary)',
                   margin: 0,
                   letterSpacing: '-0.3px',
                   wordBreak: 'break-word',
@@ -161,8 +161,8 @@ export default function StationDetailSheet({
                   fontWeight: 700,
                   padding: '2px 8px',
                   borderRadius: '12px',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  color: '#8e8e93',
+                  background: 'var(--ios-surface, rgba(120, 120, 128, 0.12))',
+                  color: 'var(--ios-text-secondary)',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -173,7 +173,7 @@ export default function StationDetailSheet({
             <div
               style={{
                 fontSize: '12px',
-                color: '#8e8e93',
+                color: 'var(--ios-text-secondary)',
                 marginTop: '4px',
                 display: 'flex',
                 alignItems: 'center',
@@ -199,9 +199,9 @@ export default function StationDetailSheet({
                   width: '36px',
                   height: '36px',
                   borderRadius: '50%',
-                  background: isFavorite ? 'rgba(255, 214, 10, 0.18)' : 'rgba(255, 255, 255, 0.08)',
-                  border: isFavorite ? '1px solid rgba(255, 214, 10, 0.4)' : '1px solid rgba(255, 255, 255, 0.12)',
-                  color: isFavorite ? '#ffd60a' : '#8e8e93',
+                  background: isFavorite ? 'rgba(255, 214, 10, 0.18)' : 'var(--ios-surface, rgba(120, 120, 128, 0.1))',
+                  border: isFavorite ? '1px solid rgba(255, 214, 10, 0.4)' : '1px solid var(--ios-separator, rgba(120, 120, 128, 0.2))',
+                  color: isFavorite ? '#ffd60a' : 'var(--ios-text-secondary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -220,9 +220,9 @@ export default function StationDetailSheet({
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: '#8e8e93',
+                background: 'var(--ios-surface, rgba(120, 120, 128, 0.1))',
+                border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.2))',
+                color: 'var(--ios-text-secondary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -239,10 +239,10 @@ export default function StationDetailSheet({
         <div
           style={{
             padding: '10px 16px',
-            background: 'rgba(255, 255, 255, 0.02)',
+            background: 'var(--ios-surface, rgba(120, 120, 128, 0.04))',
             display: 'flex',
             gap: '8px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            borderBottom: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.12))',
             overflowX: 'auto',
             flexShrink: 0,
           }}
@@ -284,9 +284,9 @@ export default function StationDetailSheet({
             style={{
               padding: '9px 14px',
               borderRadius: '12px',
-              background: activeTab === 'arrivals' ? 'rgba(48, 209, 88, 0.25)' : 'rgba(255, 255, 255, 0.06)',
-              border: activeTab === 'arrivals' ? '1px solid rgba(48, 209, 88, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)',
-              color: activeTab === 'arrivals' ? '#30d158' : '#f5f5f7',
+              background: activeTab === 'arrivals' ? 'rgba(48, 209, 88, 0.25)' : 'var(--ios-surface, rgba(120, 120, 128, 0.08))',
+              border: activeTab === 'arrivals' ? '1px solid rgba(48, 209, 88, 0.5)' : '1px solid var(--ios-separator, rgba(120, 120, 128, 0.2))',
+              color: activeTab === 'arrivals' ? '#30d158' : 'var(--ios-text-primary)',
               fontWeight: 700,
               fontSize: '12px',
               cursor: 'pointer',
@@ -335,7 +335,7 @@ export default function StationDetailSheet({
             className="ios-segmented-control"
             style={{
               display: 'flex',
-              background: 'rgba(255, 255, 255, 0.08)',
+              background: 'var(--ios-surface, rgba(120, 120, 128, 0.14))',
               borderRadius: '12px',
               padding: '3px',
               gap: '3px',
@@ -354,13 +354,14 @@ export default function StationDetailSheet({
                 padding: '8px 8px',
                 border: 'none',
                 borderRadius: '9px',
-                background: activeTab === 'services' ? '#ffffff' : 'transparent',
-                color: activeTab === 'services' ? '#000000' : '#8e8e93',
+                background: activeTab === 'services' ? 'var(--ios-card-solid)' : 'transparent',
+                color: activeTab === 'services' ? 'var(--ios-text-primary)' : 'var(--ios-text-secondary)',
                 fontWeight: activeTab === 'services' ? 800 : 600,
                 fontSize: '12px',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
+                boxShadow: activeTab === 'services' ? '0 1px 4px rgba(0,0,0,0.12)' : 'none',
               }}
             >
               🎟️ Servicios
@@ -377,13 +378,14 @@ export default function StationDetailSheet({
                 padding: '8px 8px',
                 border: 'none',
                 borderRadius: '9px',
-                background: activeTab === 'multimodal' ? '#ffffff' : 'transparent',
-                color: activeTab === 'multimodal' ? '#000000' : '#8e8e93',
+                background: activeTab === 'multimodal' ? 'var(--ios-card-solid)' : 'transparent',
+                color: activeTab === 'multimodal' ? 'var(--ios-text-primary)' : 'var(--ios-text-secondary)',
                 fontWeight: activeTab === 'multimodal' ? 800 : 600,
                 fontSize: '12px',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
+                boxShadow: activeTab === 'multimodal' ? '0 1px 4px rgba(0,0,0,0.12)' : 'none',
               }}
             >
               🚌 Colectivos
@@ -400,13 +402,14 @@ export default function StationDetailSheet({
                 padding: '8px 8px',
                 border: 'none',
                 borderRadius: '9px',
-                background: activeTab === 'arrivals' ? '#ffffff' : 'transparent',
-                color: activeTab === 'arrivals' ? '#000000' : '#8e8e93',
+                background: activeTab === 'arrivals' ? 'var(--ios-card-solid)' : 'transparent',
+                color: activeTab === 'arrivals' ? 'var(--ios-text-primary)' : 'var(--ios-text-secondary)',
                 fontWeight: activeTab === 'arrivals' ? 800 : 600,
                 fontSize: '12px',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
+                boxShadow: activeTab === 'arrivals' ? '0 1px 4px rgba(0,0,0,0.12)' : 'none',
               }}
             >
               ⚡ En Vivo
@@ -437,9 +440,9 @@ export default function StationDetailSheet({
                 className="ios-card station-sheet-card"
                 style={{
                   padding: '14px 16px',
-                  background: 'rgba(255, 255, 255, 0.04)',
+                  background: 'var(--ios-card-solid)',
                   borderRadius: '16px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  border: '1px solid var(--ios-card-border)',
                   margin: 0,
                   flexShrink: 0,
                   minHeight: 'min-content',
@@ -464,10 +467,10 @@ export default function StationDetailSheet({
                       <CreditCard size={18} />
                     </div>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#ffffff' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
                         Boletería y Carga SUBE
                       </div>
-                      <div style={{ fontSize: '11px', color: '#8e8e93' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)' }}>
                         {details.ticketing?.status || 'Atención habilitada'}
                       </div>
                     </div>
@@ -490,17 +493,17 @@ export default function StationDetailSheet({
 
                 {/* Horarios discriminados */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span style={{ color: '#8e8e93', flexShrink: 0 }}>Lunes a Viernes</span>
-                    <strong style={{ color: '#ffffff', textAlign: 'right', wordBreak: 'break-word' }}>{details.ticketing?.weekdays}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.12))' }}>
+                    <span style={{ color: 'var(--ios-text-secondary)', flexShrink: 0 }}>Lunes a Viernes</span>
+                    <strong style={{ color: 'var(--ios-text-primary)', textAlign: 'right', wordBreak: 'break-word' }}>{details.ticketing?.weekdays}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span style={{ color: '#8e8e93', flexShrink: 0 }}>Sábados</span>
-                    <strong style={{ color: '#ffffff', textAlign: 'right', wordBreak: 'break-word' }}>{details.ticketing?.saturdays}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.12))' }}>
+                    <span style={{ color: 'var(--ios-text-secondary)', flexShrink: 0 }}>Sábados</span>
+                    <strong style={{ color: 'var(--ios-text-primary)', textAlign: 'right', wordBreak: 'break-word' }}>{details.ticketing?.saturdays}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span style={{ color: '#8e8e93', flexShrink: 0 }}>Domingos y Feriados</span>
-                    <strong style={{ color: '#ffffff', textAlign: 'right', wordBreak: 'break-word' }}>{details.ticketing?.sundays}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.12))' }}>
+                    <span style={{ color: 'var(--ios-text-secondary)', flexShrink: 0 }}>Domingos y Feriados</span>
+                    <strong style={{ color: 'var(--ios-text-primary)', textAlign: 'right', wordBreak: 'break-word' }}>{details.ticketing?.sundays}</strong>
                   </div>
                 </div>
 
@@ -518,8 +521,8 @@ export default function StationDetailSheet({
                   }}
                 >
                   <CreditCard size={18} style={{ color: '#0a84ff', flexShrink: 0 }} />
-                  <div style={{ fontSize: '11.5px', color: '#c7c7cc', lineHeight: 1.35 }}>
-                    <strong style={{ color: '#ffffff' }}>Terminal Automática SUBE (TAS):</strong>{' '}
+                  <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)', lineHeight: 1.35 }}>
+                    <strong style={{ color: 'var(--ios-text-primary)' }}>Terminal Automática SUBE (TAS):</strong>{' '}
                     {details.ticketing?.subeTas
                       ? `Disponible (${details.ticketing.subeTasCount || 2} terminales) para acreditar recargas electrónicas y consultar saldo.`
                       : 'Consultar en ventanilla de boletería.'}
@@ -527,7 +530,7 @@ export default function StationDetailSheet({
                 </div>
 
                 {details.ticketing?.notes && (
-                  <div style={{ fontSize: '11px', color: '#8e8e93', marginTop: '8px', fontStyle: 'italic' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', marginTop: '8px', fontStyle: 'italic' }}>
                     ℹ️ {details.ticketing.notes}
                   </div>
                 )}
@@ -538,7 +541,7 @@ export default function StationDetailSheet({
                 className="ios-card station-sheet-card"
                 style={{
                   padding: '12px 14px',
-                  background: 'linear-gradient(135deg, rgba(48, 209, 88, 0.12) 0%, rgba(20, 20, 26, 0.95) 100%)',
+                  background: 'rgba(48, 209, 88, 0.1)',
                   borderRadius: '16px',
                   border: '1px solid rgba(48, 209, 88, 0.3)',
                   margin: 0,
@@ -551,7 +554,7 @@ export default function StationDetailSheet({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                   <span style={{ fontSize: '18px' }}>♿</span>
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
                       Pase Libre con CUD & Beneficios
                     </div>
                     <div style={{ fontSize: '11px', color: '#30d158', fontWeight: 600 }}>
@@ -560,11 +563,11 @@ export default function StationDetailSheet({
                   </div>
                 </div>
 
-                <div style={{ fontSize: '11.5px', color: '#c7c7cc', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)', lineHeight: 1.4 }}>
                   Las personas con <strong>CUD</strong> (formato papel o digital en <strong>Mi Argentina</strong>) y su acompañante (si lo indica) viajan <strong>gratis</strong> presentando DNI en molinetes. También podés tramitar el Pase Libre en tu tarjeta SUBE.
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', fontSize: '11px', color: '#ffd60a', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', fontSize: '11px', color: '#ff9f0a', fontWeight: 600 }}>
                   <span>👵 Jubilados: 55% de descuento en SUBE (Tarifa Social)</span>
                 </div>
               </div>
@@ -574,9 +577,9 @@ export default function StationDetailSheet({
                 className="ios-card station-sheet-card"
                 style={{
                   padding: '14px 16px',
-                  background: 'rgba(255, 255, 255, 0.04)',
+                  background: 'var(--ios-card-solid)',
                   borderRadius: '16px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  border: '1px solid var(--ios-card-border)',
                   margin: 0,
                   flexShrink: 0,
                   minHeight: 'min-content',
@@ -600,10 +603,10 @@ export default function StationDetailSheet({
                     <span style={{ fontSize: '16px' }}>♿</span>
                   </div>
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#ffffff' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
                       Accesibilidad para Movilidad Reducida
                     </div>
-                    <div style={{ fontSize: '11px', color: '#8e8e93' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)' }}>
                       Ingresos adaptados, andenes y señalética
                     </div>
                   </div>
@@ -621,13 +624,13 @@ export default function StationDetailSheet({
                     style={{
                       padding: '8px 10px',
                       borderRadius: '10px',
-                      background: details.accessibility?.ramps ? 'rgba(48, 209, 88, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                      border: details.accessibility?.ramps ? '1px solid rgba(48, 209, 88, 0.25)' : '1px solid rgba(255, 255, 255, 0.06)',
+                      background: details.accessibility?.ramps ? 'rgba(48, 209, 88, 0.12)' : 'var(--ios-surface, rgba(120, 120, 128, 0.06))',
+                      border: details.accessibility?.ramps ? '1px solid rgba(48, 209, 88, 0.25)' : '1px solid var(--ios-separator, rgba(120, 120, 128, 0.15))',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       fontSize: '11.5px',
-                      color: details.accessibility?.ramps ? '#30d158' : '#8e8e93',
+                      color: details.accessibility?.ramps ? '#30d158' : 'var(--ios-text-secondary)',
                       fontWeight: 600,
                     }}
                   >
@@ -639,13 +642,13 @@ export default function StationDetailSheet({
                     style={{
                       padding: '8px 10px',
                       borderRadius: '10px',
-                      background: details.accessibility?.elevatedPlatforms ? 'rgba(48, 209, 88, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                      border: details.accessibility?.elevatedPlatforms ? '1px solid rgba(48, 209, 88, 0.25)' : '1px solid rgba(255, 255, 255, 0.06)',
+                      background: details.accessibility?.elevatedPlatforms ? 'rgba(48, 209, 88, 0.12)' : 'var(--ios-surface, rgba(120, 120, 128, 0.06))',
+                      border: details.accessibility?.elevatedPlatforms ? '1px solid rgba(48, 209, 88, 0.25)' : '1px solid var(--ios-separator, rgba(120, 120, 128, 0.15))',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       fontSize: '11.5px',
-                      color: details.accessibility?.elevatedPlatforms ? '#30d158' : '#8e8e93',
+                      color: details.accessibility?.elevatedPlatforms ? '#30d158' : 'var(--ios-text-secondary)',
                       fontWeight: 600,
                     }}
                   >
@@ -657,13 +660,13 @@ export default function StationDetailSheet({
                     style={{
                       padding: '8px 10px',
                       borderRadius: '10px',
-                      background: details.accessibility?.accessibleTurnstiles ? 'rgba(48, 209, 88, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                      border: details.accessibility?.accessibleTurnstiles ? '1px solid rgba(48, 209, 88, 0.25)' : '1px solid rgba(255, 255, 255, 0.06)',
+                      background: details.accessibility?.accessibleTurnstiles ? 'rgba(48, 209, 88, 0.12)' : 'var(--ios-surface, rgba(120, 120, 128, 0.06))',
+                      border: details.accessibility?.accessibleTurnstiles ? '1px solid rgba(48, 209, 88, 0.25)' : '1px solid var(--ios-separator, rgba(120, 120, 128, 0.15))',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       fontSize: '11.5px',
-                      color: details.accessibility?.accessibleTurnstiles ? '#30d158' : '#8e8e93',
+                      color: details.accessibility?.accessibleTurnstiles ? '#30d158' : 'var(--ios-text-secondary)',
                       fontWeight: 600,
                     }}
                   >
@@ -675,13 +678,13 @@ export default function StationDetailSheet({
                     style={{
                       padding: '8px 10px',
                       borderRadius: '10px',
-                      background: details.accessibility?.elevators ? 'rgba(48, 209, 88, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                      border: details.accessibility?.elevators ? '1px solid rgba(48, 209, 88, 0.25)' : '1px solid rgba(255, 255, 255, 0.06)',
+                      background: details.accessibility?.elevators ? 'rgba(48, 209, 88, 0.12)' : 'var(--ios-surface, rgba(120, 120, 128, 0.06))',
+                      border: details.accessibility?.elevators ? '1px solid rgba(48, 209, 88, 0.25)' : '1px solid var(--ios-separator, rgba(120, 120, 128, 0.15))',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       fontSize: '11.5px',
-                      color: details.accessibility?.elevators ? '#30d158' : '#8e8e93',
+                      color: details.accessibility?.elevators ? '#30d158' : 'var(--ios-text-secondary)',
                       fontWeight: 600,
                     }}
                   >
@@ -691,7 +694,7 @@ export default function StationDetailSheet({
                 </div>
 
                 {details.accessibility?.notes && (
-                  <div style={{ fontSize: '11px', color: '#8e8e93', lineHeight: 1.4 }}>
+                  <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', lineHeight: 1.4 }}>
                     {details.accessibility.notes}
                   </div>
                 )}
@@ -702,9 +705,9 @@ export default function StationDetailSheet({
                 className="ios-card station-sheet-card"
                 style={{
                   padding: '14px 16px',
-                  background: 'rgba(255, 255, 255, 0.04)',
+                  background: 'var(--ios-card-solid)',
                   borderRadius: '16px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  border: '1px solid var(--ios-card-border)',
                   margin: 0,
                   flexShrink: 0,
                   minHeight: 'min-content',
@@ -728,10 +731,10 @@ export default function StationDetailSheet({
                     <Building2 size={18} />
                   </div>
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#ffffff' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
                       Servicios y Equipamiento
                     </div>
-                    <div style={{ fontSize: '11px', color: '#8e8e93' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)' }}>
                       Comodidades en estación
                     </div>
                   </div>
@@ -749,12 +752,13 @@ export default function StationDetailSheet({
                     style={{
                       padding: '8px 10px',
                       borderRadius: '10px',
-                      background: details.services?.bathrooms ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.02)',
+                      background: 'var(--ios-surface, rgba(120, 120, 128, 0.06))',
+                      border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.12))',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       fontSize: '11.5px',
-                      color: '#ffffff',
+                      color: 'var(--ios-text-primary)',
                     }}
                   >
                     <span style={{ fontSize: '14px' }}>🚻</span>
@@ -765,12 +769,13 @@ export default function StationDetailSheet({
                     style={{
                       padding: '8px 10px',
                       borderRadius: '10px',
-                      background: details.services?.wifi ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.02)',
+                      background: 'var(--ios-surface, rgba(120, 120, 128, 0.06))',
+                      border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.12))',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       fontSize: '11.5px',
-                      color: '#ffffff',
+                      color: 'var(--ios-text-primary)',
                     }}
                   >
                     <Wifi size={14} style={{ color: '#0a84ff' }} />
@@ -781,12 +786,13 @@ export default function StationDetailSheet({
                     style={{
                       padding: '8px 10px',
                       borderRadius: '10px',
-                      background: details.services?.bikeParking ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.02)',
+                      background: 'var(--ios-surface, rgba(120, 120, 128, 0.06))',
+                      border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.12))',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       fontSize: '11.5px',
-                      color: '#ffffff',
+                      color: 'var(--ios-text-primary)',
                     }}
                   >
                     <Bike size={14} style={{ color: '#30d158' }} />
@@ -797,12 +803,13 @@ export default function StationDetailSheet({
                     style={{
                       padding: '8px 10px',
                       borderRadius: '10px',
-                      background: details.services?.security ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.02)',
+                      background: 'var(--ios-surface, rgba(120, 120, 128, 0.06))',
+                      border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.12))',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       fontSize: '11.5px',
-                      color: '#ffffff',
+                      color: 'var(--ios-text-primary)',
                     }}
                   >
                     <Shield size={14} style={{ color: '#ffd60a' }} />
@@ -811,7 +818,7 @@ export default function StationDetailSheet({
                 </div>
 
                 {details.services?.notes && (
-                  <div style={{ fontSize: '11px', color: '#8e8e93', lineHeight: 1.4 }}>
+                  <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', lineHeight: 1.4 }}>
                     {details.services.notes}
                   </div>
                 )}
@@ -828,9 +835,9 @@ export default function StationDetailSheet({
                   className="ios-card station-sheet-card"
                   style={{
                     padding: '14px 16px',
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: 'var(--ios-card-solid)',
                     borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    border: '1px solid var(--ios-card-border)',
                     margin: 0,
                     flexShrink: 0,
                     minHeight: 'min-content',
@@ -838,7 +845,7 @@ export default function StationDetailSheet({
                     overflow: 'visible',
                   }}
                 >
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ios-text-primary)', marginBottom: '8px' }}>
                     🚇 Combinación con Subte y Premetro
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -854,8 +861,8 @@ export default function StationDetailSheet({
                             justifyContent: 'space-between',
                             padding: '8px 12px',
                             borderRadius: '12px',
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            background: 'var(--ios-surface, rgba(120, 120, 128, 0.08))',
+                            border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.14))',
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -877,10 +884,10 @@ export default function StationDetailSheet({
                               {badgeLabel}
                             </div>
                             <div>
-                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ios-text-primary)' }}>
                                 {sub.line}
                               </div>
-                              <div style={{ fontSize: '11px', color: '#8e8e93' }}>
+                              <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)' }}>
                                 Hacia {sub.destination}
                               </div>
                             </div>
@@ -901,9 +908,9 @@ export default function StationDetailSheet({
                   className="ios-card station-sheet-card"
                   style={{
                     padding: '14px 16px',
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: 'var(--ios-card-solid)',
                     borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    border: '1px solid var(--ios-card-border)',
                     margin: 0,
                     flexShrink: 0,
                     minHeight: 'min-content',
@@ -911,7 +918,7 @@ export default function StationDetailSheet({
                     overflow: 'visible',
                   }}
                 >
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ios-text-primary)', marginBottom: '8px' }}>
                     🚏 Metrobus y Centro de Transbordo
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -941,9 +948,9 @@ export default function StationDetailSheet({
                   className="ios-card station-sheet-card"
                   style={{
                     padding: '14px 16px',
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: 'var(--ios-card-solid)',
                     borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    border: '1px solid var(--ios-card-border)',
                     margin: 0,
                     flexShrink: 0,
                     minHeight: 'min-content',
@@ -955,7 +962,7 @@ export default function StationDetailSheet({
                     style={{
                       fontSize: '13px',
                       fontWeight: 800,
-                      color: '#ffffff',
+                      color: 'var(--ios-text-primary)',
                       marginBottom: '10px',
                       display: 'flex',
                       alignItems: 'center',
@@ -982,7 +989,7 @@ export default function StationDetailSheet({
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span style={{ fontSize: '14px' }}>🚆</span>
-                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#f5f5f7', lineHeight: 1.3 }}>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ios-text-primary)', lineHeight: 1.3 }}>
                             {transfer}
                           </span>
                         </div>
@@ -1012,9 +1019,9 @@ export default function StationDetailSheet({
                 className="ios-card station-sheet-card"
                 style={{
                   padding: '14px 16px',
-                  background: 'rgba(255, 255, 255, 0.04)',
+                  background: 'var(--ios-card-solid)',
                   borderRadius: '16px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  border: '1px solid var(--ios-card-border)',
                   margin: 0,
                   flexShrink: 0,
                   minHeight: 'min-content',
@@ -1025,11 +1032,11 @@ export default function StationDetailSheet({
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Bus size={18} style={{ color: '#0a84ff' }} />
-                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#ffffff' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
                       Líneas de Colectivos
                     </span>
                   </div>
-                  <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 600 }}>
+                  <span style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', fontWeight: 600 }}>
                     {details.multimodal?.busLines?.length || 0} líneas cercanas
                   </span>
                 </div>
@@ -1048,16 +1055,16 @@ export default function StationDetailSheet({
                       style={{
                         padding: '6px 12px',
                         borderRadius: '10px',
-                        background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.18)',
-                        color: '#ffffff',
+                        background: 'var(--ios-surface, rgba(120, 120, 128, 0.12))',
+                        border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.2))',
+                        color: 'var(--ios-text-primary)',
                         fontWeight: 900,
                         fontSize: '13px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         minWidth: '40px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                       }}
                     >
                       {lineNum}
@@ -1065,7 +1072,7 @@ export default function StationDetailSheet({
                   ))}
                 </div>
 
-                <div style={{ fontSize: '11px', color: '#8e8e93', marginTop: '6px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', marginTop: '6px' }}>
                   Paradas ubicadas en el perímetro de la estación y calles adyacentes.
                 </div>
               </div>
@@ -1083,7 +1090,7 @@ export default function StationDetailSheet({
                   padding: '2px 4px',
                 }}
               >
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#8e8e93' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ios-text-secondary)' }}>
                   Trenes en tiempo real hacia andén:
                 </span>
                 {loadingArrivals && (
@@ -1098,10 +1105,10 @@ export default function StationDetailSheet({
                   style={{
                     padding: '30px 16px',
                     textAlign: 'center',
-                    color: '#8e8e93',
-                    background: 'rgba(255, 255, 255, 0.03)',
+                    color: 'var(--ios-text-secondary)',
+                    background: 'var(--ios-card-solid)',
                     borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    border: '1px solid var(--ios-card-border)',
                   }}
                 >
                   <Train size={28} style={{ opacity: 0.4, margin: '0 auto 8px' }} />
@@ -1150,9 +1157,9 @@ export default function StationDetailSheet({
                       }}
                       style={{
                         padding: '12px 14px',
-                        background: 'rgba(255, 255, 255, 0.05)',
+                        background: 'var(--ios-card-solid)',
                         borderRadius: '14px',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        border: '1px solid var(--ios-card-border)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -1163,7 +1170,7 @@ export default function StationDetailSheet({
                       <div style={{ flex: 1, minWidth: 0, paddingRight: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '13px' }}>{isTowardsCABA ? '🏙️' : '🌲'}</span>
-                          <span style={{ fontWeight: 800, fontSize: '15px', color: '#ffffff', wordBreak: 'break-word' }}>
+                          <span style={{ fontWeight: 800, fontSize: '15px', color: 'var(--ios-text-primary)', wordBreak: 'break-word' }}>
                             Desde {origin} ➔ {dest}
                           </span>
                           <span
@@ -1181,7 +1188,7 @@ export default function StationDetailSheet({
                           </span>
                         </div>
 
-                        <div style={{ fontSize: '12px', color: '#8e8e93', marginTop: '4px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)', marginTop: '4px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                           <span>Andén {platform}</span>
                           {train.servicio?.numero && <span>• Tren #{train.servicio.numero}</span>}
                           <span>• Cabecera final: {dest}</span>

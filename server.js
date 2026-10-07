@@ -238,20 +238,53 @@ app.get('/api/network-status', async (req, res) => {
                 const text = (al.contenido || '').trim();
                 if (!text) return;
                 const lower = text.toLowerCase();
+                const hasObra =
+                  lower.includes('obra') ||
+                  lower.includes('trabajo') ||
+                  lower.includes('mantenimiento') ||
+                  lower.includes('renovaci');
+                const hasInterruption =
+                  lower.includes('interrump') ||
+                  lower.includes('cancel') ||
+                  lower.includes('suspend') ||
+                  lower.includes('corte') ||
+                  lower.includes('sin servicio');
+                const hasReduced =
+                  lower.includes('reducid') ||
+                  lower.includes('limitad') ||
+                  lower.includes('descalce') ||
+                  lower.includes('no se detien');
+                const hasDelay = lower.includes('demor');
+
+                // Detect advance/future scheduled works (e.g. "Del 10/10 al 13/10 estarán...")
+                const isFutureScheduled =
+                  lower.includes('estarán') ||
+                  lower.includes('estaran') ||
+                  lower.includes('a partir del') ||
+                  lower.includes('próximo') ||
+                  lower.includes('proximo') ||
+                  /del\s+\d{1,2}\/\d{1,2}\s+al\s+\d{1,2}\/\d{1,2}/.test(lower);
+
                 let type = 'AVISO';
                 let severity = 'info';
 
-                if (lower.includes('cancelado') || lower.includes('interrumpido')) {
-                  type = 'CANCELACIÓN';
+                if (hasInterruption && hasObra) {
+                  type = isFutureScheduled ? 'OBRAS PROGRAMADAS' : 'CORTE POR OBRAS';
+                  severity = isFutureScheduled ? 'warning' : 'critical';
+                } else if (hasReduced && hasObra) {
+                  type = 'RECORRIDO REDUCIDO POR OBRAS';
+                  severity = 'warning';
+                } else if (hasInterruption) {
+                  type = 'CORTE DE SERVICIO';
                   severity = 'critical';
-                } else if (lower.includes('reducido') || lower.includes('descalce') || lower.includes('limitado')) {
+                } else if (hasReduced) {
                   type = 'RECORRIDO REDUCIDO';
                   severity = 'warning';
-                } else if (lower.includes('demora') || lower.includes('demorado')) {
+                } else if (hasDelay) {
                   type = 'DEMORA';
                   severity = 'warning';
-                } else if (lower.includes('obra')) {
-                  type = 'OBRAS EN VÍA';
+                } else if (hasObra) {
+                  type = isFutureScheduled ? 'OBRAS PROGRAMADAS' : 'OBRAS EN VÍA';
                   severity = 'warning';
                 }
 
@@ -793,9 +826,9 @@ app.get('/api/version', (req, res) => {
     'Expires': '0',
   });
   res.json({
-    version: '1.0.6',
-    build: 29,
-    cacheName: 'rielar-v29',
+    version: '1.0.7',
+    build: 30,
+    cacheName: 'rielar-v30',
     timestamp: Date.now(),
   });
 });

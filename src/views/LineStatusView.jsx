@@ -225,14 +225,21 @@ export default function LineStatusView({ onNavigateToPlanner }) {
 
   const getAlertBadge = (type) => {
     switch (type) {
+      case 'CORTE POR OBRAS':
+        return { bg: 'rgba(255, 69, 58, 0.15)', border: '#ff453a', color: '#ff453a', icon: Construction, label: 'Corte por Obras' };
+      case 'OBRAS PROGRAMADAS':
+        return { bg: 'rgba(255, 159, 10, 0.15)', border: '#ff9f0a', color: '#ff9f0a', icon: Calendar, label: 'Obras Programadas' };
+      case 'CORTE DE SERVICIO':
       case 'CANCELACIÓN':
-        return { bg: 'rgba(255, 69, 58, 0.15)', border: '#ff453a', color: '#ff453a', icon: XCircle, label: 'Cancelación' };
+        return { bg: 'rgba(255, 69, 58, 0.15)', border: '#ff453a', color: '#ff453a', icon: XCircle, label: 'Corte de Servicio' };
+      case 'RECORRIDO REDUCIDO POR OBRAS':
+        return { bg: 'rgba(255, 159, 10, 0.15)', border: '#ff9f0a', color: '#ff9f0a', icon: Construction, label: 'Recorrido Limitado (Obras)' };
       case 'RECORRIDO REDUCIDO':
         return { bg: 'rgba(255, 159, 10, 0.15)', border: '#ff9f0a', color: '#ff9f0a', icon: AlertTriangle, label: 'Recorrido Reducido' };
       case 'DEMORA':
         return { bg: 'rgba(255, 214, 10, 0.15)', border: '#ffd60a', color: '#ffd60a', icon: Clock, label: 'Demora' };
       case 'OBRAS EN VÍA':
-        return { bg: 'rgba(10, 132, 255, 0.15)', border: '#0a84ff', color: '#0a84ff', icon: Construction, label: 'Obras' };
+        return { bg: 'rgba(10, 132, 255, 0.15)', border: '#0a84ff', color: '#0a84ff', icon: Construction, label: 'Obras en Vía' };
       default:
         return { bg: 'rgba(142, 142, 147, 0.15)', border: '#8e8e93', color: '#8e8e93', icon: Info, label: 'Aviso' };
     }
@@ -257,27 +264,64 @@ export default function LineStatusView({ onNavigateToPlanner }) {
         };
 
         if (activeBranchAlerts.length > 0) {
-          const hasCancel = activeBranchAlerts.some((a) =>
-            (a.contenido || '').toLowerCase().includes('cancel') || (a.contenido || '').toLowerCase().includes('interrump')
-          );
-          const hasReduced = activeBranchAlerts.some((a) =>
-            (a.contenido || '').toLowerCase().includes('reducido') || (a.contenido || '').toLowerCase().includes('limitado')
-          );
-          const hasDelay = activeBranchAlerts.some((a) =>
-            (a.contenido || '').toLowerCase().includes('demor')
-          );
-          const hasWorks = activeBranchAlerts.some((a) =>
-            (a.contenido || '').toLowerCase().includes('obra')
-          );
+          const contents = activeBranchAlerts.map((a) => (a.contenido || '').toLowerCase());
 
-          if (hasCancel) {
+          const hasWorks = contents.some((c) =>
+            c.includes('obra') || c.includes('trabajo') || c.includes('mantenimiento') || c.includes('renovaci')
+          );
+          const hasCancelOrInterruption = contents.some((c) =>
+            c.includes('interrump') || c.includes('cancel') || c.includes('suspend') || c.includes('corte') || c.includes('sin servicio')
+          );
+          const isFutureScheduled = contents.some((c) =>
+            c.includes('estarán') ||
+            c.includes('estaran') ||
+            c.includes('a partir del') ||
+            c.includes('próximo') ||
+            c.includes('proximo') ||
+            /del\s+\d{1,2}\/\d{1,2}\s+al\s+\d{1,2}\/\d{1,2}/.test(c)
+          );
+          const hasReduced = contents.some((c) =>
+            c.includes('reducid') || c.includes('limitad') || c.includes('descalce') || c.includes('no se detien')
+          );
+          const hasDelay = contents.some((c) => c.includes('demor'));
+
+          if (hasCancelOrInterruption && hasWorks) {
+            if (isFutureScheduled) {
+              status = {
+                code: 'PLANNED_WORKS',
+                text: 'Obras Programadas',
+                color: '#ff9f0a',
+                bg: 'rgba(255, 159, 10, 0.15)',
+                border: '#ff9f0a',
+                icon: Calendar,
+              };
+            } else {
+              status = {
+                code: 'WORKS_CUT',
+                text: 'Corte por Obras',
+                color: '#ff453a',
+                bg: 'rgba(255, 69, 58, 0.15)',
+                border: '#ff453a',
+                icon: Construction,
+              };
+            }
+          } else if (hasCancelOrInterruption) {
             status = {
               code: 'CANCEL',
-              text: 'Interrumpido / Cancelado',
+              text: 'Servicio Interrumpido',
               color: '#ff453a',
               bg: 'rgba(255, 69, 58, 0.15)',
               border: '#ff453a',
               icon: XCircle,
+            };
+          } else if (hasReduced && hasWorks) {
+            status = {
+              code: 'REDUCED_WORKS',
+              text: 'Recorrido Limitado (Obras)',
+              color: '#ff9f0a',
+              bg: 'rgba(255, 159, 10, 0.15)',
+              border: '#ff9f0a',
+              icon: Construction,
             };
           } else if (hasReduced) {
             status = {
@@ -300,11 +344,11 @@ export default function LineStatusView({ onNavigateToPlanner }) {
           } else if (hasWorks) {
             status = {
               code: 'WORKS',
-              text: 'Obras en Vía',
-              color: '#0a84ff',
-              bg: 'rgba(10, 132, 255, 0.15)',
-              border: '#0a84ff',
-              icon: Construction,
+              text: isFutureScheduled ? 'Obras Programadas' : 'Obras en Vía',
+              color: isFutureScheduled ? '#ff9f0a' : '#0a84ff',
+              bg: isFutureScheduled ? 'rgba(255, 159, 10, 0.15)' : 'rgba(10, 132, 255, 0.15)',
+              border: isFutureScheduled ? '#ff9f0a' : '#0a84ff',
+              icon: isFutureScheduled ? Calendar : Construction,
             };
           } else {
             status = {
@@ -356,6 +400,22 @@ export default function LineStatusView({ onNavigateToPlanner }) {
       if (statusFilter === 'NORMAL' && ramal.status.code !== 'NORMAL') {
         return false;
       }
+      if (statusFilter === 'OBRAS') {
+        const isWork =
+          ramal.status.code.includes('WORK') ||
+          ramal.status.code === 'CANCEL' ||
+          ramal.activeAlerts.some((a) => {
+            const c = (a.contenido || '').toLowerCase();
+            return (
+              c.includes('obra') ||
+              c.includes('trabajo') ||
+              c.includes('corte') ||
+              c.includes('interrump') ||
+              c.includes('renovaci')
+            );
+          });
+        if (!isWork) return false;
+      }
 
       // 3. Filtro por Búsqueda
       if (searchFilter) {
@@ -377,6 +437,24 @@ export default function LineStatusView({ onNavigateToPlanner }) {
   // Contadores para resumen
   const alertRamalesCount = useMemo(() => {
     return allRamales.filter((r) => r.status.code !== 'NORMAL').length;
+  }, [allRamales]);
+
+  const worksRamalesCount = useMemo(() => {
+    return allRamales.filter(
+      (r) =>
+        r.status.code.includes('WORK') ||
+        r.status.code === 'CANCEL' ||
+        r.activeAlerts.some((a) => {
+          const c = (a.contenido || '').toLowerCase();
+          return (
+            c.includes('obra') ||
+            c.includes('trabajo') ||
+            c.includes('corte') ||
+            c.includes('interrump') ||
+            c.includes('renovaci')
+          );
+        })
+    ).length;
   }, [allRamales]);
 
   const normalRamalesCount = allRamales.length - alertRamalesCount;
@@ -522,6 +600,34 @@ export default function LineStatusView({ onNavigateToPlanner }) {
               <CheckCircle size={14} />
               <span>Red operando normalmente</span>
             </div>
+          )}
+
+          {worksRamalesCount > 0 && (
+            <button
+              onClick={() => {
+                triggerHaptic('light');
+                setStatusFilter(statusFilter === 'OBRAS' ? 'ALL' : 'OBRAS');
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '16px',
+                background: statusFilter === 'OBRAS' ? 'rgba(255, 159, 10, 0.25)' : 'rgba(255, 159, 10, 0.15)',
+                border: statusFilter === 'OBRAS' ? '1.5px solid #ff9f0a' : '1px solid rgba(255, 159, 10, 0.4)',
+                color: '#ff9f0a',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s ease',
+              }}
+              title="Filtrar ramales con obras o cortes de vía"
+            >
+              <Construction size={14} />
+              <span>{worksRamalesCount} con Obras o Cortes</span>
+            </button>
           )}
 
           <div
@@ -893,7 +999,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                                 fontSize: '10.5px',
                                 fontWeight: 700,
                                 color: 'var(--ios-text-secondary)',
-                                background: 'rgba(255,255,255,0.06)',
+                                background: 'rgba(120, 120, 128, 0.12)',
                                 padding: '2px 6px',
                                 borderRadius: '6px',
                               }}
@@ -1005,7 +1111,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                           marginTop: '12px',
                           padding: '8px 10px',
                           borderRadius: '10px',
-                          background: isExpanded ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                          background: isExpanded ? 'rgba(120, 120, 128, 0.14)' : 'rgba(120, 120, 128, 0.08)',
                           border: '1px solid var(--ios-separator)',
                           color: isExpanded ? 'var(--ios-text-primary)' : 'var(--ios-text-secondary)',
                           fontSize: '12px',
@@ -1111,7 +1217,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                                     style={{
                                       padding: '6px 10px',
                                       borderRadius: '8px',
-                                      background: sIdx === 0 || sIdx === stations.length - 1 ? 'rgba(10, 132, 255, 0.15)' : 'rgba(255,255,255,0.06)',
+                                      background: sIdx === 0 || sIdx === stations.length - 1 ? 'rgba(10, 132, 255, 0.15)' : 'rgba(120, 120, 128, 0.1)',
                                       border: sIdx === 0 || sIdx === stations.length - 1 ? '1px solid rgba(10, 132, 255, 0.35)' : '1px solid var(--ios-separator)',
                                       color: 'var(--ios-text-primary)',
                                       fontSize: '11.5px',
@@ -1164,7 +1270,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                                 padding: '10px 14px',
                                 borderRadius: '12px',
                                 border: '1px solid var(--ios-separator)',
-                                background: 'rgba(255,255,255,0.08)',
+                                background: 'rgba(120, 120, 128, 0.12)',
                                 color: 'var(--ios-text-primary)',
                                 fontSize: '13px',
                                 fontWeight: 700,

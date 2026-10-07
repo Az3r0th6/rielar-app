@@ -111,7 +111,7 @@ export default function SupportProjectSection() {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <div style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff' }}>
+              <div style={{ fontWeight: 800, fontSize: '18px', color: 'var(--ios-text-primary)' }}>
                 Apoyá el proyecto RielAR
               </div>
               <span
@@ -129,7 +129,7 @@ export default function SupportProjectSection() {
                 MERCADO PAGO
               </span>
             </div>
-            <div style={{ fontSize: '13px', color: '#a1a1aa', marginTop: '4px', lineHeight: 1.45 }}>
+            <div style={{ fontSize: '13px', color: 'var(--ios-text-secondary)', marginTop: '4px', lineHeight: 1.45 }}>
               RielAR es un desarrollo independiente creado para la comunidad de pasajeros, sin publicidad molesta.
               Tu aporte voluntario mantiene los servidores activos y el soporte continuo de datos en vivo.
             </div>
@@ -139,8 +139,8 @@ export default function SupportProjectSection() {
         {/* Benefits list */}
         <div
           style={{
-            background: 'rgba(0, 0, 0, 0.35)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: 'var(--ios-surface)',
+            border: '1px solid var(--ios-card-border)',
             borderRadius: '14px',
             padding: '12px 14px',
             marginBottom: '16px',
@@ -150,7 +150,7 @@ export default function SupportProjectSection() {
           }}
         >
           {benefitsText.map((benefit, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#d1d1d6' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'var(--ios-text-secondary)' }}>
               <Check size={14} style={{ color: '#30d158', flexShrink: 0 }} />
               <span>{benefit}</span>
             </div>
@@ -179,7 +179,7 @@ export default function SupportProjectSection() {
           {/* Alias Box */}
           <div
             style={{
-              background: 'rgba(0, 0, 0, 0.45)',
+              background: 'rgba(0, 159, 227, 0.08)',
               border: '1px dashed rgba(0, 159, 227, 0.45)',
               borderRadius: '12px',
               padding: '10px 12px',
@@ -228,9 +228,9 @@ export default function SupportProjectSection() {
             <span>{copiedAlias ? '¡Alias copiado en el portapapeles!' : 'Copiar Alias para transferir'}</span>
           </button>
 
-          <div style={{ fontSize: '11.5px', color: '#a1a1aa', marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
-            <span>Titular: <strong style={{ color: '#ffffff' }}>{mercadoPago.holder}</strong></span>
-            <span style={{ color: '#8e8e93' }}>{mercadoPago.entity}</span>
+          <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)', marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
+            <span>Titular: <strong style={{ color: 'var(--ios-text-primary)' }}>{mercadoPago.holder}</strong></span>
+            <span style={{ color: 'var(--ios-text-secondary)' }}>{mercadoPago.entity}</span>
           </div>
         </div>
 
@@ -241,8 +241,8 @@ export default function SupportProjectSection() {
               key={idx}
               onClick={handleCopyAlias}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: 'var(--ios-surface, rgba(120, 120, 128, 0.08))',
+                border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.16))',
                 borderRadius: '12px',
                 padding: '10px 6px',
                 textAlign: 'center',
@@ -251,7 +251,7 @@ export default function SupportProjectSection() {
               }}
             >
               <div style={{ fontSize: '18px', marginBottom: '2px' }}>{t.icon}</div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#f5f5f7' }}>{t.label}</div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ios-text-primary)' }}>{t.label}</div>
               <div style={{ fontSize: '12px', fontWeight: 800, color: '#009fe3', marginTop: '2px' }}>
                 ${t.amount.toLocaleString('es-AR')}
               </div>
@@ -265,8 +265,8 @@ export default function SupportProjectSection() {
         className="ios-card"
         style={{
           padding: '16px',
-          background: 'rgba(255, 255, 255, 0.04)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'var(--ios-card-solid)',
+          border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.15))',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -290,10 +290,10 @@ export default function SupportProjectSection() {
             <Share2 size={18} />
           </div>
           <div>
-            <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#ffffff' }}>
+            <div style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--ios-text-primary)' }}>
               ¿No podés aportar dinero?
             </div>
-            <div style={{ fontSize: '11.5px', color: '#8e8e93' }}>
+            <div style={{ fontSize: '11.5px', color: 'var(--ios-text-secondary)' }}>
               Compartí RielAR con amigos o en grupos de trenes
             </div>
           </div>
@@ -302,9 +302,9 @@ export default function SupportProjectSection() {
         <button
           onClick={handleShareApp}
           style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            color: '#f5f5f7',
+            background: 'var(--ios-surface, rgba(120, 120, 128, 0.12))',
+            border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.2))',
+            color: 'var(--ios-text-primary)',
             padding: '8px 12px',
             borderRadius: '10px',
             fontSize: '12px',

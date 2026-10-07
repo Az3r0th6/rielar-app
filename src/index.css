@@ -220,6 +220,41 @@ select option {
   border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
+[data-theme='light'] .station-sheet-card {
+  background: #ffffff !important;
+  border-color: rgba(60, 60, 67, 0.15) !important;
+}
+
+[data-theme='light'] .station-sheet-content {
+  color: #1c1c1e !important;
+}
+
+[data-theme='light'] .ios-bottom-sheet {
+  background: #ffffff !important;
+}
+
+[data-theme='light'] span[style*="#8e8e93"],
+[data-theme='light'] span[style*="#8E8E93"],
+[data-theme='light'] div[style*="#8e8e93"],
+[data-theme='light'] div[style*="#8E8E93"],
+[data-theme='light'] p[style*="#8e8e93"],
+[data-theme='light'] p[style*="#8E8E93"],
+[data-theme='light'] span[style*="#a1a1aa"],
+[data-theme='light'] div[style*="#a1a1aa"],
+[data-theme='light'] span[style*="#c7c7cc"],
+[data-theme='light'] div[style*="#c7c7cc"],
+[data-theme='light'] span[style*="#e2e8f0"],
+[data-theme='light'] div[style*="#e2e8f0"],
+[data-theme='light'] p[style*="#e2e8f0"],
+[data-theme='light'] p[style*="#f8fafc"] {
+  color: #3a3a3c !important;
+}
+
+[data-theme='light'] strong[style*="#ffffff"],
+[data-theme='light'] strong[style*="#FFFFFF"] {
+  color: #000000 !important;
+}
+
 /* Base Reset */
 *, *::before, *::after {
   box-sizing: border-box;

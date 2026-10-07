@@ -124,9 +124,9 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
           width: '100%',
           maxWidth: '520px',
           maxHeight: '90vh',
-          background: 'var(--ios-card-bg, #1c1c1e)',
-          color: 'var(--ios-text-primary, #ffffff)',
-          border: '1px solid var(--ios-card-border, rgba(255, 255, 255, 0.14))',
+          background: 'var(--ios-card-solid)',
+          color: 'var(--ios-text-primary)',
+          border: '1px solid var(--ios-card-border)',
           borderRadius: '28px',
           boxShadow: '0 24px 60px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.2)',
           display: 'flex',
@@ -140,7 +140,7 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
         <div
           style={{
             padding: '20px 20px 14px',
-            borderBottom: '1px solid var(--ios-card-border, rgba(255, 255, 255, 0.08))',
+            borderBottom: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.15))',
             position: 'relative',
           }}
         >
@@ -171,9 +171,9 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
                 width: '32px',
                 height: '32px',
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.14)',
+                background: 'var(--ios-surface, rgba(120, 120, 128, 0.14))',
                 border: 'none',
-                color: '#ffffff',
+                color: 'var(--ios-text-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -192,7 +192,7 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
               fontSize: '22px',
               fontWeight: 800,
               letterSpacing: '-0.02em',
-              color: '#ffffff',
+              color: 'var(--ios-text-primary)',
             }}
           >
             🎉 ¡Nuevas funciones en RielAR!
@@ -201,7 +201,7 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
             style={{
               margin: 0,
               fontSize: '13.5px',
-              color: '#e2e8f0',
+              color: 'var(--ios-text-secondary)',
               lineHeight: 1.45,
             }}
           >
@@ -227,8 +227,8 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
                 gap: '14px',
                 padding: '14px 16px',
                 borderRadius: '16px',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
+                background: 'var(--ios-surface, rgba(120, 120, 128, 0.08))',
+                border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.16))',
                 alignItems: 'flex-start',
               }}
             >
@@ -253,7 +253,7 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
                     style={{
                       fontSize: '14.5px',
                       fontWeight: 800,
-                      color: '#ffffff',
+                      color: 'var(--ios-text-primary)',
                     }}
                   >
                     {item.title}
@@ -276,7 +276,7 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
                   style={{
                     margin: 0,
                     fontSize: '13px',
-                    color: '#f8fafc',
+                    color: 'var(--ios-text-secondary)',
                     lineHeight: 1.5,
                     fontWeight: 400,
                   }}
@@ -292,11 +292,11 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
         <div
           style={{
             padding: '14px 20px 20px',
-            borderTop: '1px solid var(--ios-card-border, rgba(255, 255, 255, 0.08))',
+            borderTop: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.15))',
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
-            background: 'var(--ios-card-bg, #1c1c1e)',
+            background: 'var(--ios-card-solid)',
           }}
         >
           <button
@@ -329,9 +329,9 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
               width: '100%',
               padding: '12px 18px',
               borderRadius: '14px',
-              border: '1px solid rgba(255, 255, 255, 0.28)',
-              background: 'rgba(255, 255, 255, 0.08)',
-              color: '#ffffff',
+              border: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.28))',
+              background: 'var(--ios-surface, rgba(120, 120, 128, 0.08))',
+              color: 'var(--ios-text-primary)',
               fontSize: '14px',
               fontWeight: 700,
               cursor: 'pointer',
@@ -355,7 +355,7 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
               cursor: 'pointer',
               userSelect: 'none',
               fontSize: '12px',
-              color: '#cbd5e1',
+              color: 'var(--ios-text-secondary)',
               fontWeight: 500,
               paddingTop: '2px',
             }}

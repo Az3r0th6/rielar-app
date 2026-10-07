@@ -25,7 +25,7 @@ import {
   markAlertsAsRead,
   ALERTS_CHANGED_EVENT,
 } from './utils/alertManager';
-import { safeLocalStorage, safeSessionStorage } from './utils/safeStorage';
+import { safeLocalStorage, safeSessionStorage, idbGet, idbSet } from './utils/safeStorage';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => {
@@ -379,19 +379,21 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Favorites multi-layer persistence (localStorage + backup key)
+  // Favorites multi-layer persistence (localStorage + cookies + IndexedDB + backup keys)
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved =
         safeLocalStorage.getItem('trenes_favorites') ||
-        safeLocalStorage.getItem('rielar_favorites_backup');
+        safeLocalStorage.getItem('rielar_favorites_backup') ||
+        safeLocalStorage.getItem('rielar_favorites') ||
+        safeLocalStorage.getItem('favorites');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
           return parsed
             .map((st) => ({
               id: Number(st.id),
-              name: st.name || '',
+              name: st.name || st.nombre || 'Estación',
               lineId: Number(st.lineId) || 5,
               lineName: st.lineName || '',
               ramal: st.ramal || '',
@@ -407,13 +409,13 @@ export default function App() {
     return [];
   });
 
-  // Helper to safely write clean favorites to multiple storage targets synchronously
+  // Helper to safely write clean favorites to multiple storage targets synchronously & asynchronously
   const saveFavoritesToStorage = (favList) => {
     try {
-      const cleanList = favList
+      const cleanList = (favList || [])
         .map((st) => ({
           id: Number(st.id),
-          name: st.name || '',
+          name: st.name || st.nombre || 'Estación',
           lineId: Number(st.lineId) || 5,
           lineName: st.lineName || '',
           ramal: st.ramal || '',
@@ -425,10 +427,63 @@ export default function App() {
       const serialized = JSON.stringify(cleanList);
       safeLocalStorage.setItem('trenes_favorites', serialized);
       safeLocalStorage.setItem('rielar_favorites_backup', serialized);
+      // Asynchronously mirror to IndexedDB for smartphones where localStorage is wiped
+      idbSet('trenes_favorites', serialized).catch(() => {});
+      idbSet('rielar_favorites_backup', serialized).catch(() => {});
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('rielar:favorites-changed', { detail: cleanList }));
+      }
     } catch (e) {
       console.warn('Error saving favorites:', e);
     }
   };
+
+  // Asynchronous recovery from IndexedDB on initial mount for mobile WebView/PWA/iOS Safari
+  useEffect(() => {
+    (async () => {
+      try {
+        const idbSaved =
+          (await idbGet('trenes_favorites')) || (await idbGet('rielar_favorites_backup'));
+        if (idbSaved) {
+          const parsed = JSON.parse(idbSaved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setFavorites((prev) => {
+              const prevIds = new Set((prev || []).map((p) => Number(p.id)));
+              const restored = parsed
+                .map((st) => ({
+                  id: Number(st.id),
+                  name: st.name || st.nombre || 'Estación',
+                  lineId: Number(st.lineId) || 5,
+                  lineName: st.lineName || '',
+                  ramal: st.ramal || '',
+                  lat: Number(st.lat || st.latitud) || 0,
+                  lng: Number(st.lng || st.longitud) || 0,
+                }))
+                .filter((st) => st.id && !isNaN(st.id));
+
+              // If current state is empty, restore completely from IndexedDB
+              if (!prev || prev.length === 0) {
+                saveFavoritesToStorage(restored);
+                return restored;
+              }
+
+              // Otherwise merge any missing items
+              const missing = restored.filter((r) => !prevIds.has(r.id));
+              if (missing.length > 0) {
+                const merged = [...prev, ...missing];
+                saveFavoritesToStorage(merged);
+                return merged;
+              }
+              return prev;
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Error hydrating favorites from IndexedDB:', err);
+      }
+    })();
+  }, []);
 
   // Sync to storage on state changes
   useEffect(() => {
@@ -594,7 +649,7 @@ export default function App() {
     if (!station || !station.id) return;
     const cleanStation = {
       id: Number(station.id),
-      name: station.name || 'Estación',
+      name: station.name || station.nombre || 'Estación',
       lineId: station.lineId !== undefined ? Number(station.lineId) : 5,
       lineName: station.lineName || '',
       ramal: station.ramal || '',

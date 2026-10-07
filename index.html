@@ -30,12 +30,40 @@
     <!-- Bulletproof Storage Polyfill for Android WebViews & Restricted Storage -->
     <script>
       (function() {
-        function createMemStorage() {
+        function getCookie(n) {
+          try {
+            var m = document.cookie.match(new RegExp('(^|;\\s*)' + encodeURIComponent(n) + '=([^;]*)'));
+            return m ? decodeURIComponent(m[2]) : null;
+          } catch(e) { return null; }
+        }
+        function setCookie(n, v) {
+          try {
+            var exp = new Date(Date.now() + 365*864e5).toUTCString();
+            document.cookie = encodeURIComponent(n) + '=' + encodeURIComponent(v) + '; expires=' + exp + '; path=/; SameSite=Lax';
+          } catch(e) {}
+        }
+        function createMemStorage(isLocal) {
           var store = new Map();
           return {
-            getItem: function(k) { return store.has(k) ? store.get(k) : null; },
-            setItem: function(k, v) { store.set(k, String(v)); },
-            removeItem: function(k) { store.delete(k); },
+            getItem: function(k) {
+              if (store.has(k)) return store.get(k);
+              if (isLocal) {
+                var c = getCookie(k);
+                if (c !== null) { store.set(k, c); return c; }
+              }
+              return null;
+            },
+            setItem: function(k, v) {
+              var s = String(v);
+              store.set(k, s);
+              if (isLocal) setCookie(k, s);
+            },
+            removeItem: function(k) {
+              store.delete(k);
+              if (isLocal) {
+                try { document.cookie = encodeURIComponent(k) + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax'; } catch(e) {}
+              }
+            },
             clear: function() { store.clear(); },
             get length() { return store.size; },
             key: function(i) { return Array.from(store.keys())[i] || null; }
@@ -46,7 +74,7 @@
           test.getItem('__test__');
         } catch (e) {
           try {
-            var mem = createMemStorage();
+            var mem = createMemStorage(true);
             Object.defineProperty(window, 'localStorage', {
               value: mem,
               configurable: true,
@@ -60,7 +88,7 @@
           testSession.getItem('__test__');
         } catch (e) {
           try {
-            var memS = createMemStorage();
+            var memS = createMemStorage(false);
             Object.defineProperty(window, 'sessionStorage', {
               value: memS,
               configurable: true,

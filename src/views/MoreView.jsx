@@ -50,7 +50,7 @@ export default function MoreView({
         });
         if (res.ok) {
           const data = await res.json();
-          if (data && data.build && data.build > 29) {
+          if (data && data.build && data.build > 30) {
             serverHasNewer = true;
           }
         }
@@ -300,7 +300,7 @@ export default function MoreView({
             </div>
             <div>
               <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
-                Versión v1.0.6{' '}
+                Versión v1.0.7{' '}
                 <span
                   style={{
                     fontSize: '11px',
@@ -311,7 +311,7 @@ export default function MoreView({
                     borderRadius: '6px',
                   }}
                 >
-                  Build 29
+                  Build 30
                 </span>
               </div>
               <div style={{ fontSize: '12px', color: 'var(--ios-text-secondary)', marginTop: '2px' }}>

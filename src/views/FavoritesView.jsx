@@ -172,18 +172,18 @@ export default function FavoritesView({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                      borderBottom: '1px solid var(--ios-separator, rgba(120, 120, 128, 0.15))',
                       gap: '8px',
                     }}
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontWeight: 700, fontSize: '14px', color: '#ffffff' }}>
+                        <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--ios-text-primary)' }}>
                           {st.name}
                         </span>
                         <LineBadge lineId={st.lineId} size="small" />
                       </div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', marginTop: '2px' }}>
                         {st.lineName} • {st.ramal || 'Ramal urbano'}
                       </div>
                     </div>
