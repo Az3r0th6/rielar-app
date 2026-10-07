@@ -43,6 +43,13 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
+      const shortcut = params.get('shortcut');
+      
+      // 1. Android Native TWA App Shortcuts Override
+      if (shortcut === 'cercanos') return 'nearby';
+      if (shortcut === 'mapa') return 'map';
+      
+      // 2. Standard URL Tab Parameters
       if (tab && ['nearby', 'favorites', 'lines', 'planner', 'map', 'more'].includes(tab)) {
         return tab;
       }
