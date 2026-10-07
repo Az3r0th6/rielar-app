@@ -424,7 +424,7 @@ html, body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding-bottom: 76px; /* Above iOS tab bar */
+  padding-bottom: calc(82px + max(env(safe-area-inset-bottom, 0px), 22px)); /* Clears tab bar & Android system keys */
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
@@ -816,29 +816,35 @@ html, body {
    iOS Native Bottom Tab Bar
    ========================================================================== */
 
+:root {
+  --tab-bar-safe-bottom: max(env(safe-area-inset-bottom, 0px), 22px);
+  --tab-bar-height: calc(72px + var(--tab-bar-safe-bottom));
+}
+
 .ios-tab-bar {
-  height: calc(76px + env(safe-area-inset-bottom, 0px));
+  height: var(--tab-bar-height);
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(18, 18, 24, 0.88);
+  background: rgba(18, 18, 24, 0.94);
   backdrop-filter: blur(35px);
   -webkit-backdrop-filter: blur(35px);
   border-top: 1px solid var(--ios-separator);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-around;
-  padding: 6px 4px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding: 8px 6px var(--tab-bar-safe-bottom);
   z-index: 30;
   transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.28s ease;
   transform: translateY(0);
   opacity: 1;
   will-change: transform, opacity;
+  box-sizing: border-box;
 }
 
 .ios-tab-bar.tab-bar-hidden {
-  transform: translateY(115%);
+  transform: translateY(calc(100% + 120px));
   opacity: 0;
   pointer-events: none;
 }

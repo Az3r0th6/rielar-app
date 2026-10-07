@@ -34,6 +34,8 @@ import {
   cacheGet,
   cacheSet,
   requestStoragePersistence,
+  syncFavoritesToServer,
+  fetchFavoritesFromServer,
 } from './utils/safeStorage';
 
 export default function App() {
@@ -44,6 +46,12 @@ export default function App() {
       if (tab && ['nearby', 'favorites', 'lines', 'planner', 'map', 'more'].includes(tab)) {
         return tab;
       }
+      try {
+        const savedTab = safeLocalStorage.getItem('rielar_active_tab');
+        if (savedTab && ['nearby', 'favorites', 'lines', 'planner', 'map', 'more'].includes(savedTab)) {
+          return savedTab;
+        }
+      } catch {}
     }
     return 'nearby';
   });
@@ -62,6 +70,15 @@ export default function App() {
     );
   });
   const lastScrollY = useRef(0);
+  const scrollLockRef = useRef(true);
+
+  // Prevent scroll restoration / page load jitter from hiding TabBar on refresh
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollLockRef.current = false;
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleBeforeInstall = (e) => {
@@ -228,11 +245,15 @@ export default function App() {
           waitingWorkerRef.current.postMessage({ type: 'SKIP_WAITING' });
         }
 
-        // 2. Clear old caches directly from window
+        // 2. Clear old caches directly from window (preserving durable user cache)
         if (typeof window !== 'undefined' && 'caches' in window) {
           const keys = await caches.keys();
           await Promise.all(
-            keys.map((k) => caches.delete(k))
+            keys.map((k) => {
+              if (k.startsWith('rielar-v') && k !== CACHE_NAME) {
+                return caches.delete(k);
+              }
+            })
           );
         }
       }
@@ -317,25 +338,33 @@ export default function App() {
     const clientHeight = e.target.clientHeight;
     const diff = currentScrollY - lastScrollY.current;
 
-    // Ignore tiny jitter movements
-    if (Math.abs(diff) < 3) return;
+    // Never hide during page load / refresh lock or on initial scroll restoration
+    if (scrollLockRef.current || lastScrollY.current === 0) {
+      lastScrollY.current = currentScrollY;
+      setIsTabBarHidden(false);
+      setIsHeaderHidden(false);
+      return;
+    }
 
-    // If near the top (<= 25px): keep both header and bottom panel visible
-    if (currentScrollY <= 25) {
+    // Ignore tiny jitter movements
+    if (Math.abs(diff) < 5) return;
+
+    // If near the top (<= 60px): keep both header and bottom panel visible
+    if (currentScrollY <= 60) {
       setIsHeaderHidden(false);
       setIsTabBarHidden(false);
     }
     // Reached bottom of page: reveal bottom tab bar so user is never stuck
-    else if (scrollHeight - (currentScrollY + clientHeight) < 45) {
+    else if (scrollHeight - (currentScrollY + clientHeight) < 60) {
       setIsTabBarHidden(false);
     }
-    // Scrolling down: smoothly hide both header and bottom panel
-    else if (diff > 8 && currentScrollY > 50) {
+    // Scrolling down deliberately: smoothly hide both header and bottom panel
+    else if (diff > 14 && currentScrollY > 120) {
       setIsHeaderHidden(true);
       setIsTabBarHidden(true);
     }
     // Scrolling up: smoothly reveal both header and bottom panel
-    else if (diff < -6) {
+    else if (diff < -5) {
       setIsHeaderHidden(false);
       setIsTabBarHidden(false);
     }
@@ -345,6 +374,9 @@ export default function App() {
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
+    try {
+      safeLocalStorage.setItem('rielar_active_tab', tabId);
+    } catch {}
     setIsTabBarHidden(false);
     setIsHeaderHidden(false);
     lastScrollY.current = 0;
@@ -513,6 +545,9 @@ export default function App() {
       // 4. Asynchronously mirror to CacheStorage (durable mobile HTTP storage)
       cacheSet('trenes_favorites', serialized).catch(() => {});
 
+      // 5. Asynchronously mirror to Server fallback (bulletproof against WebView task kill)
+      syncFavoritesToServer(cleanList).catch(() => {});
+
       if (typeof window !== 'undefined' && !isInternalSync) {
         window.dispatchEvent(new CustomEvent('rielar:favorites-changed', { detail: cleanList }));
       }
@@ -521,7 +556,7 @@ export default function App() {
     }
   };
 
-  // Asynchronous durable recovery from IndexedDB and CacheStorage on initial mount
+  // Asynchronous durable recovery from IndexedDB, CacheStorage and Server on initial mount
   useEffect(() => {
     requestStoragePersistence();
 
@@ -557,6 +592,14 @@ export default function App() {
               const parsed = JSON.parse(cacheSaved);
               if (Array.isArray(parsed) && parsed.length > 0) restoredData = parsed;
             } catch {}
+          }
+        }
+
+        // 4. Check Server Fallback if local stores were evicted or unavailable
+        if (!restoredData) {
+          const serverFavs = await fetchFavoritesFromServer();
+          if (Array.isArray(serverFavs) && serverFavs.length > 0) {
+            restoredData = serverFavs;
           }
         }
 
@@ -844,7 +887,24 @@ export default function App() {
     return () => clearInterval(interval);
   }, [trackingTrain]);
 
-  const [selectedCustomStation, setSelectedCustomStation] = useState(null);
+  const [selectedCustomStation, setSelectedCustomStation] = useState(() => {
+    try {
+      const saved = safeLocalStorage.getItem('rielar_custom_station');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  });
+
+  const handleSetCustomStation = (st) => {
+    setSelectedCustomStation(st);
+    try {
+      if (st) {
+        safeLocalStorage.setItem('rielar_custom_station', JSON.stringify(st));
+      } else {
+        safeLocalStorage.removeItem('rielar_custom_station');
+      }
+    } catch {}
+  };
 
   return (
     <IPhoneFrame
@@ -910,7 +970,7 @@ export default function App() {
             isFavorite={Boolean(selectedStationForInfo && favorites.some((f) => Number(f.id) === Number(selectedStationForInfo.id)))}
             onToggleFavorite={handleToggleFavorite}
             onSelectStation={(st) => {
-              setSelectedCustomStation(st);
+              handleSetCustomStation(st);
               setActiveTab('nearby');
               setSelectedStationForInfo(null);
             }}
@@ -933,7 +993,7 @@ export default function App() {
             onRequestGps={() => requestGpsLocation(true)}
             onSetLocationPreset={handleSimulateLocation}
             selectedCustomStation={selectedCustomStation}
-            onClearCustomStation={() => setSelectedCustomStation(null)}
+            onClearCustomStation={() => handleSetCustomStation(null)}
             theme={theme}
             onToggleTheme={handleToggleTheme}
             onOpenDownloadModal={() => setShowDownloadModal(true)}
@@ -946,7 +1006,7 @@ export default function App() {
             onRemoveFavorite={handleRemoveFavorite}
             onToggleFavorite={handleToggleFavorite}
             onSelectStation={(st) => {
-              setSelectedCustomStation(st);
+              handleSetCustomStation(st);
               setActiveTab('nearby');
             }}
             onOpenStationInfo={(st) => setSelectedStationForInfo(st)}
@@ -972,7 +1032,7 @@ export default function App() {
           <MapView
             userCoords={userCoords}
             onSelectStation={(st) => {
-              setSelectedCustomStation(st);
+              handleSetCustomStation(st);
               setActiveTab('nearby');
             }}
             onSelectTrain={(train) => setSelectedTrain(train)}

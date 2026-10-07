@@ -1,4 +1,4 @@
 // Single Source of Truth for RielAR Versioning
-export const APP_VERSION = '1.0.9';
-export const APP_BUILD = 32;
-export const CACHE_NAME = 'rielar-v32';
+export const APP_VERSION = '1.1.0';
+export const APP_BUILD = 33;
+export const CACHE_NAME = 'rielar-v33';

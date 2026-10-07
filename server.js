@@ -818,6 +818,46 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// In-memory + persistent server sync for client favorites fallback
+const serverFavoritesStore = new Map();
+
+app.post('/api/favorites/sync', (req, res) => {
+  try {
+    const { uid, favorites } = req.body || {};
+    if (!uid || typeof uid !== 'string' || uid.length > 128) {
+      return res.status(400).json({ error: 'Invalid client uid' });
+    }
+    if (Array.isArray(favorites)) {
+      const sanitized = favorites.slice(0, 50).map((st) => ({
+        id: Number(st.id),
+        name: String(st.name || st.nombre || 'Estación').slice(0, 60),
+        lineId: Number(st.lineId) || 5,
+        lineName: String(st.lineName || '').slice(0, 40),
+        ramal: String(st.ramal || '').slice(0, 60),
+        lat: Number(st.lat) || 0,
+        lng: Number(st.lng) || 0,
+      })).filter((st) => st.id && !isNaN(st.id));
+      serverFavoritesStore.set(uid, sanitized);
+      return res.json({ ok: true, count: sanitized.length });
+    }
+    return res.json({ ok: true, count: 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/favorites/sync', (req, res) => {
+  try {
+    const { uid } = req.query;
+    if (!uid || !serverFavoritesStore.has(String(uid))) {
+      return res.json({ favorites: [] });
+    }
+    return res.json({ favorites: serverFavoritesStore.get(String(uid)) || [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // App Version endpoint for instant update detection across all devices
 app.get('/api/version', (req, res) => {
   res.set({
@@ -826,9 +866,9 @@ app.get('/api/version', (req, res) => {
     'Expires': '0',
   });
   res.json({
-    version: '1.0.9',
-    build: 32,
-    cacheName: 'rielar-v32',
+    version: '1.1.0',
+    build: 33,
+    cacheName: 'rielar-v33',
     timestamp: Date.now(),
   });
 });

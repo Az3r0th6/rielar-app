@@ -1,5 +1,5 @@
 // Service Worker for RielAR Web App (iOS & Android Zero-Install)
-const CACHE_NAME = 'rielar-v32';
+const CACHE_NAME = 'rielar-v33';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -21,7 +21,8 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) {
+          // Only purge outdated app shell version caches; NEVER purge durable user data caches
+          if (key.startsWith('rielar-v') && key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })
@@ -93,6 +94,11 @@ self.addEventListener('notificationclick', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+
+  // Bypass internal durable local cache storage requests
+  if (url.origin.includes('rielar-local-cache')) {
+    return;
+  }
 
   // 1. Live API requests & version info: always network-first
   if (url.pathname.startsWith('/api/') || url.pathname.endsWith('/version.json')) {

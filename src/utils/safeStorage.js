@@ -35,7 +35,7 @@ function deleteCookie(name) {
 }
 
 // --- IndexedDB Durable Storage (Asynchronous permanent backup) ---
-const IDB_NAME = 'rielar_storage_db';
+const IDB_NAME = 'rielar_storage_v3';
 const IDB_STORE = 'app_keyval';
 
 function openIDB() {
@@ -80,10 +80,6 @@ export async function idbSet(key, value) {
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
       tx.onabort = () => resolve(false);
-      // Force explicit flush to disk where supported
-      if (typeof tx.commit === 'function') {
-        try { tx.commit(); } catch {}
-      }
     });
   } catch {
     return false;
@@ -100,9 +96,6 @@ export async function idbDelete(key) {
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
       tx.onabort = () => resolve(false);
-      if (typeof tx.commit === 'function') {
-        try { tx.commit(); } catch {}
-      }
     });
   } catch {
     return false;
@@ -110,7 +103,8 @@ export async function idbDelete(key) {
 }
 
 // --- CacheStorage Durable Storage (Survives Android WebView / Brave task kills) ---
-const CACHE_STORE_NAME = 'rielar_durable_cache_v1';
+const CACHE_STORE_NAME = 'rielar_durable_cache_v3';
+const CACHE_BASE_URL = 'https://rielar-local-cache';
 
 export async function cacheSet(key, value) {
   try {
@@ -120,7 +114,7 @@ export async function cacheSet(key, value) {
     const response = new Response(serialized, {
       headers: { 'Content-Type': 'application/json' },
     });
-    await cache.put(new Request(`/local-storage/${encodeURIComponent(key)}`), response);
+    await cache.put(new Request(`${CACHE_BASE_URL}/${encodeURIComponent(key)}`), response);
     return true;
   } catch {
     return false;
@@ -131,7 +125,7 @@ export async function cacheGet(key) {
   try {
     if (typeof window === 'undefined' || !window.caches) return null;
     const cache = await window.caches.open(CACHE_STORE_NAME);
-    const match = await cache.match(new Request(`/local-storage/${encodeURIComponent(key)}`));
+    const match = await cache.match(new Request(`${CACHE_BASE_URL}/${encodeURIComponent(key)}`));
     if (match) {
       return await match.text();
     }
@@ -145,10 +139,50 @@ export async function cacheDelete(key) {
   try {
     if (typeof window === 'undefined' || !window.caches) return false;
     const cache = await window.caches.open(CACHE_STORE_NAME);
-    return await cache.delete(new Request(`/local-storage/${encodeURIComponent(key)}`));
+    return await cache.delete(new Request(`${CACHE_BASE_URL}/${encodeURIComponent(key)}`));
   } catch {
     return false;
   }
+}
+
+// --- Client UID Helper for Server-Assisted Sync ---
+export function getClientUid() {
+  try {
+    let uid = safeLocalStorage.getItem('rielar_device_uid');
+    if (!uid) {
+      uid = 'c_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now().toString(36);
+      safeLocalStorage.setItem('rielar_device_uid', uid);
+      setCookie('rielar_device_uid', uid, 3650);
+    }
+    return uid;
+  } catch {
+    return 'default_client';
+  }
+}
+
+export async function syncFavoritesToServer(favorites) {
+  try {
+    const uid = getClientUid();
+    await fetch('/api/favorites/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, favorites }),
+    });
+  } catch {}
+}
+
+export async function fetchFavoritesFromServer() {
+  try {
+    const uid = getClientUid();
+    const res = await fetch(`/api/favorites/sync?uid=${encodeURIComponent(uid)}&_t=${Date.now()}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data?.favorites)) {
+        return data.favorites;
+      }
+    }
+  } catch {}
+  return null;
 }
 
 // --- Request Persistent Storage (Prevents Android Chrome / Brave background eviction) ---
