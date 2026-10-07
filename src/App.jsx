@@ -45,6 +45,11 @@ export default function App() {
       const tab = params.get('tab');
       const shortcut = params.get('shortcut');
       
+      // Clear URL params so pull-to-refresh doesn't get stuck on the shortcut tab forever
+      if (tab || shortcut) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      
       // 1. Android Native TWA App Shortcuts Override
       if (shortcut === 'cercanos') return 'nearby';
       if (shortcut === 'mapa') return 'map';
@@ -53,6 +58,7 @@ export default function App() {
       if (tab && ['nearby', 'favorites', 'lines', 'planner', 'map', 'more'].includes(tab)) {
         return tab;
       }
+      
       try {
         const savedTab = safeLocalStorage.getItem('rielar_active_tab');
         if (savedTab && ['nearby', 'favorites', 'lines', 'planner', 'map', 'more'].includes(savedTab)) {
