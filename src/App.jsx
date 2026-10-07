@@ -360,8 +360,11 @@ export default function App() {
     }
     // Scrolling down deliberately: smoothly hide both header and bottom panel
     else if (diff > 14 && currentScrollY > 120) {
-      setIsHeaderHidden(true);
-      setIsTabBarHidden(true);
+      // Only hide if the content is long enough to easily scroll back up
+      if (e.target.scrollHeight > e.target.clientHeight + 250) {
+        setIsHeaderHidden(true);
+        setIsTabBarHidden(true);
+      }
     }
     // Scrolling up: smoothly reveal both header and bottom panel
     else if (diff < -5) {

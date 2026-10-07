@@ -1,5 +1,5 @@
 // Service Worker for RielAR Web App (iOS & Android Zero-Install)
-const CACHE_NAME = 'rielar-v33';
+const CACHE_NAME = 'rielar-v34';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -34,6 +34,17 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  } else if (event.data && event.data.type === 'SYNC_FAVORITES') {
+    // Durable background sync: prevents data loss when app is killed from recents
+    const favorites = event.data.favorites;
+    event.waitUntil(
+      caches.open('rielar_durable_cache_v3').then(cache => {
+        return cache.put(
+          new Request('https://rielar-local-cache/trenes_favorites'),
+          new Response(JSON.stringify(favorites), { headers: { 'Content-Type': 'application/json' }})
+        );
+      }).catch(err => console.warn('SW Cache Put failed:', err))
+    );
   }
 });
 
