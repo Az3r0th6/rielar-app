@@ -263,7 +263,8 @@ app.get('/api/network-status', async (req, res) => {
                   lower.includes('a partir del') ||
                   lower.includes('próximo') ||
                   lower.includes('proximo') ||
-                  /del\s+\d{1,2}\/\d{1,2}\s+al\s+\d{1,2}\/\d{1,2}/.test(lower);
+                  /del\s+\d{1,2}\/\d{1,2}\s+al\s+\d{1,2}\/\d{1,2}/.test(lower) ||
+                  /el\s+\d{1,2}\/\d{1,2}/.test(lower);
 
                 let type = 'AVISO';
                 let severity = 'info';

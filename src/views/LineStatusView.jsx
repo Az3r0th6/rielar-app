@@ -96,7 +96,6 @@ function formatRamalLabel(raw) {
 export default function LineStatusView({ onNavigateToPlanner }) {
   const [networkData, setNetworkData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('lines'); // 'lines' | 'incidents' | 'last_trains'
 
   // Filtros de organización por Ramales y Línea
   const [selectedLineFilter, setSelectedLineFilter] = useState('ALL'); // 'ALL' | 'Mitre' | 'Sarmiento' | 'Roca' | 'San Martín' | 'Belgrano Sur' | 'Tren de la Costa'
@@ -278,7 +277,8 @@ export default function LineStatusView({ onNavigateToPlanner }) {
             c.includes('a partir del') ||
             c.includes('próximo') ||
             c.includes('proximo') ||
-            /del\s+\d{1,2}\/\d{1,2}\s+al\s+\d{1,2}\/\d{1,2}/.test(c)
+            /del\s+\d{1,2}\/\d{1,2}\s+al\s+\d{1,2}\/\d{1,2}/.test(c) ||
+            /el\s+\d{1,2}\/\d{1,2}/.test(c)
           );
           const hasReduced = contents.some((c) =>
             c.includes('reducid') || c.includes('limitad') || c.includes('descalce') || c.includes('no se detien')
@@ -649,40 +649,131 @@ export default function LineStatusView({ onNavigateToPlanner }) {
           </div>
         </div>
 
-        {/* View Segmented Tabs */}
-        <div className="ios-segmented-control" style={{ margin: '0 0 14px' }}>
-          <button
-            className={`segmented-option ${activeTab === 'lines' ? 'active' : ''}`}
-            onClick={() => {
-              triggerHaptic('light');
-              setActiveTab('lines');
-            }}
-          >
-            🚆 Ramales ({allRamales.length})
-          </button>
-          <button
-            className={`segmented-option ${activeTab === 'incidents' ? 'active' : ''}`}
-            onClick={() => {
-              triggerHaptic('light');
-              setActiveTab('incidents');
-            }}
-          >
-            🚨 Alertas Activas ({activeIncidents.length})
-          </button>
-          <button
-            className={`segmented-option ${activeTab === 'last_trains' ? 'active' : ''}`}
-            onClick={() => {
-              triggerHaptic('light');
-              setActiveTab('last_trains');
-            }}
-          >
-            🌙 Primer / Último Tren
-          </button>
-        </div>
+        {/* Redesigned Unified View: Critical Alerts first, then Lines */}
+        
+        {/* 1. CRITICAL INCIDENTS SECTION (Only visible if there are incidents) */}
+        {activeIncidents.length > 0 && (
+          <div style={{ marginBottom: '24px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '12px',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--ios-text-primary)' }}>
+                🚨 Alertas Activas ({activeIncidents.length})
+              </h2>
 
-        {/* TAB 1: SERVICIOS Y ESTADO ORGANIZADOS POR RAMAL EN TARJETAS */}
-        {activeTab === 'lines' && (
-          <div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={handleDismissAll}
+                  style={{
+                    background: 'rgba(255, 69, 58, 0.12)',
+                    border: '1px solid rgba(255, 69, 58, 0.3)',
+                    color: '#ff453a',
+                    padding: '5px 10px',
+                    borderRadius: '10px',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                  title="Descartar y limpiar todos los avisos"
+                >
+                  <Trash2 size={13} />
+                  <span>Limpiar</span>
+                </button>
+
+                {dismissedKeys.size > 0 && (
+                  <button
+                    onClick={handleRestoreDismissed}
+                    style={{
+                      background: 'rgba(118, 118, 128, 0.12)',
+                      border: '1px solid var(--ios-separator)',
+                      color: 'var(--ios-text-secondary)',
+                      padding: '5px 10px',
+                      borderRadius: '10px',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                    title="Restablecer los avisos descartados previamente"
+                  >
+                    <RotateCcw size={13} />
+                    <span>Restaurar</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <RideAffiliateCard reason="Servicios con demoras o cancelaciones en la red" />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
+              {activeIncidents
+                .filter((inc) => {
+                  if (!searchFilter) return true;
+                  const q = searchFilter.toLowerCase();
+                  return (
+                    inc.lineName?.toLowerCase().includes(q) ||
+                    inc.ramalName?.toLowerCase().includes(q) ||
+                    inc.content?.toLowerCase().includes(q)
+                  );
+                })
+                .map((incident, idx) => {
+                  const badge = getAlertBadge(incident.type);
+                  return (
+                    <SwipeableAlertCard
+                      key={`${getAlertKey(incident)}_${idx}`}
+                      incident={incident}
+                      badge={badge}
+                      onDismiss={handleDismissIncident}
+                      onNavigateToPlanner={onNavigateToPlanner}
+                    />
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
+        {/* Restore dismissed alerts button if no active incidents but some are dismissed */}
+        {activeIncidents.length === 0 && dismissedKeys.size > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            <button
+              onClick={handleRestoreDismissed}
+              style={{
+                background: 'rgba(118, 118, 128, 0.12)',
+                border: '1px solid var(--ios-separator)',
+                color: 'var(--ios-text-secondary)',
+                padding: '5px 10px',
+                borderRadius: '10px',
+                fontSize: '11.5px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <RotateCcw size={13} />
+              <span>Restaurar avisos descartados ({dismissedKeys.size})</span>
+            </button>
+          </div>
+        )}
+
+        {/* 2. RAMALES SECTION */}
+        <div>
+          <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px', color: 'var(--ios-text-primary)' }}>
+            🚆 Estado de los Ramales
+          </h2>
             {/* 1. Selector Superior de Líneas (Pills horizontales) */}
             <div style={{ marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -1293,171 +1384,13 @@ export default function LineStatusView({ onNavigateToPlanner }) {
               </div>
             )}
           </div>
-        )}
-
-        {/* TAB 2: FLOATING CRITICAL ALERTS */}
-        {activeTab === 'incidents' && (
-          <div>
-            {/* Top Toolbar for Incidents: Clear all and restore options */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '12px',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}
-            >
-              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ios-text-secondary)' }}>
-                {activeIncidents.length > 0
-                  ? `${activeIncidents.length} aviso(s) operativo(s)`
-                  : 'Sin avisos pendientes'}
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {activeIncidents.length > 0 && (
-                  <button
-                    onClick={handleDismissAll}
-                    style={{
-                      background: 'rgba(255, 69, 58, 0.12)',
-                      border: '1px solid rgba(255, 69, 58, 0.3)',
-                      color: '#ff453a',
-                      padding: '5px 10px',
-                      borderRadius: '10px',
-                      fontSize: '11.5px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                    title="Descartar y limpiar todos los avisos"
-                  >
-                    <Trash2 size={13} />
-                    <span>Limpiar avisos</span>
-                  </button>
-                )}
-
-                {dismissedKeys.size > 0 && (
-                  <button
-                    onClick={handleRestoreDismissed}
-                    style={{
-                      background: 'rgba(118, 118, 128, 0.12)',
-                      border: '1px solid var(--ios-separator)',
-                      color: 'var(--ios-text-secondary)',
-                      padding: '5px 10px',
-                      borderRadius: '10px',
-                      fontSize: '11.5px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                    title="Restablecer los avisos que fueron descartados previamente"
-                  >
-                    <RotateCcw size={13} />
-                    <span>Restablecer ({dismissedKeys.size})</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {activeIncidents.length > 0 && (
-              <RideAffiliateCard reason="Servicios con demoras o cancelaciones en la red" />
-            )}
-
-            {activeIncidents.length === 0 ? (
-              allCriticalIncidents.length > 0 ? (
-                <div
-                  style={{
-                    textAlign: 'center',
-                    padding: '36px 20px',
-                    background: 'var(--ios-card)',
-                    borderRadius: '20px',
-                    border: '1px solid rgba(48, 209, 88, 0.35)',
-                    boxShadow: 'var(--shadow-sm)',
-                  }}
-                >
-                  <CheckCircle size={44} style={{ color: '#30d158', margin: '0 auto 12px' }} />
-                  <div style={{ fontWeight: 800, fontSize: '18px', color: '#30d158' }}>
-                    ✨ ¡Sistema de alertas limpio!
-                  </div>
-                  <div style={{ fontSize: '13px', color: 'var(--ios-text-secondary)', marginTop: '6px', maxWidth: '340px', margin: '6px auto 14px', lineHeight: 1.45 }}>
-                    Has descartado todos los avisos operativos. El contador permanecerá en cero y solo te avisaremos cuando surja una nueva novedad o demora en los servicios.
-                  </div>
-                  <button
-                    onClick={handleRestoreDismissed}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 14px',
-                      borderRadius: '12px',
-                      background: 'rgba(118, 118, 128, 0.12)',
-                      border: '1px solid var(--ios-separator)',
-                      color: 'var(--ios-text-primary)',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <RotateCcw size={14} />
-                    <span>Restablecer avisos descartados ({dismissedKeys.size})</span>
-                  </button>
-                </div>
-              ) : (
-                <div
-                  style={{
-                    textAlign: 'center',
-                    padding: '36px 20px',
-                    background: 'var(--ios-card)',
-                    borderRadius: '20px',
-                    border: '1px solid rgba(48, 209, 88, 0.3)',
-                    boxShadow: 'var(--shadow-sm)',
-                  }}
-                >
-                  <CheckCircle size={40} style={{ color: '#30d158', margin: '0 auto 10px' }} />
-                  <div style={{ fontWeight: 800, fontSize: '17px', color: '#30d158' }}>
-                    ¡Toda la red operando con normalidad!
-                  </div>
-                  <div style={{ fontSize: '13px', color: 'var(--ios-text-secondary)', marginTop: '4px' }}>
-                    No se registran interrupciones, demoras graves ni cancelaciones activas.
-                  </div>
-                </div>
-              )
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {activeIncidents
-                  .filter((inc) => {
-                    if (!searchFilter) return true;
-                    const q = searchFilter.toLowerCase();
-                    return (
-                      inc.lineName?.toLowerCase().includes(q) ||
-                      inc.ramalName?.toLowerCase().includes(q) ||
-                      inc.content?.toLowerCase().includes(q)
-                    );
-                  })
-                  .map((incident, idx) => {
-                    const badge = getAlertBadge(incident.type);
-                    return (
-                      <SwipeableAlertCard
-                        key={`${getAlertKey(incident)}_${idx}`}
-                        incident={incident}
-                        badge={badge}
-                        onDismiss={handleDismissIncident}
-                        onNavigateToPlanner={onNavigateToPlanner}
-                      />
-                    );
-                  })}
-              </div>
-            )}
           </div>
-        )}
 
-        {/* TAB 3: PRIMER Y ÚLTIMO TREN POR CABECERA */}
-        {activeTab === 'last_trains' && (
+        {/* 3. LAST TRAINS SECTION (Always visible at the bottom) */}
+        <div style={{ marginTop: '32px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px', color: 'var(--ios-text-primary)' }}>
+            🌙 Primer y Último Tren
+          </h2>
           <LastTrainsSection
             onSelectRoute={(origId, destId) => {
               if (onNavigateToPlanner) {
@@ -1465,7 +1398,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
               }
             }}
           />
-        )}
+        </div>
       </div>
     </div>
   );
