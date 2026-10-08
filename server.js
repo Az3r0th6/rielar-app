@@ -867,9 +867,9 @@ app.get('/api/version', (req, res) => {
     'Expires': '0',
   });
   res.json({
-    version: '1.1.3',
-    build: 36,
-    cacheName: 'rielar-v36',
+    version: '1.1.4',
+    build: 37,
+    cacheName: 'rielar-v37',
     timestamp: Date.now(),
   });
 });

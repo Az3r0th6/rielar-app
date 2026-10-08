@@ -385,15 +385,10 @@ export default function LineStatusView({ onNavigateToPlanner }) {
     return list;
   }, [lines, dismissedKeys]);
 
-  // Filtrado de ramales por Línea, Estado y Búsqueda
-  const filteredRamales = useMemo(() => {
+  // Primero filtramos por estado y búsqueda (sin importar la línea)
+  const ramalesMatchingStatusAndSearch = useMemo(() => {
     return allRamales.filter((ramal) => {
-      // 1. Filtro por Línea
-      if (selectedLineFilter !== 'ALL' && !ramal.lineName?.toLowerCase().includes(selectedLineFilter.toLowerCase())) {
-        return false;
-      }
-
-      // 2. Filtro por Estado
+      // 1. Filtro por Estado
       if (statusFilter === 'ALERTS' && !['CANCEL', 'REDUCED', 'DELAY'].includes(ramal.status.code)) {
         return false;
       }
@@ -404,7 +399,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
         return false;
       }
 
-      // 3. Filtro por Búsqueda
+      // 2. Filtro por Búsqueda
       if (searchFilter) {
         const q = searchFilter.toLowerCase().trim();
         const matchName = ramal.nombre?.toLowerCase().includes(q);
@@ -419,7 +414,17 @@ export default function LineStatusView({ onNavigateToPlanner }) {
 
       return true;
     });
-  }, [allRamales, selectedLineFilter, statusFilter, searchFilter]);
+  }, [allRamales, statusFilter, searchFilter]);
+
+  // Luego aplicamos el filtro de Línea
+  const filteredRamales = useMemo(() => {
+    return ramalesMatchingStatusAndSearch.filter((ramal) => {
+      if (selectedLineFilter !== 'ALL' && !ramal.lineName?.toLowerCase().includes(selectedLineFilter.toLowerCase())) {
+        return false;
+      }
+      return true;
+    });
+  }, [ramalesMatchingStatusAndSearch, selectedLineFilter]);
 
   // Contadores para resumen
   const alertRamalesCount = useMemo(() => {
@@ -691,13 +696,17 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  🌐 Todas ({allRamales.length})
+                  🌐 Todas ({ramalesMatchingStatusAndSearch.length})
                 </button>
 
                 {LINES_DATA.filter((l) => l.id !== 501).map((line) => {
                   const isSel = selectedLineFilter.toLowerCase().includes(line.name.toLowerCase());
-                  const lineRamales = allRamales.filter((r) => r.lineName?.toLowerCase().includes(line.name.toLowerCase()));
+                  const lineRamales = ramalesMatchingStatusAndSearch.filter((r) => r.lineName?.toLowerCase().includes(line.name.toLowerCase()));
                   const lineHasAlert = lineRamales.some((r) => r.status.code !== 'NORMAL');
+
+                  if (lineRamales.length === 0 && statusFilter !== 'ALL') {
+                    return null; // Ocultar líneas que no tienen ramales que coincidan con el estado actual
+                  }
 
                   return (
                     <button
