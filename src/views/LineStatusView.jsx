@@ -394,27 +394,14 @@ export default function LineStatusView({ onNavigateToPlanner }) {
       }
 
       // 2. Filtro por Estado
-      if (statusFilter === 'ALERTS' && ramal.status.code === 'NORMAL') {
+      if (statusFilter === 'ALERTS' && !['CANCEL', 'REDUCED', 'DELAY'].includes(ramal.status.code)) {
         return false;
       }
       if (statusFilter === 'NORMAL' && ramal.status.code !== 'NORMAL') {
         return false;
       }
-      if (statusFilter === 'OBRAS') {
-        const isWork =
-          ramal.status.code.includes('WORK') ||
-          ramal.status.code === 'CANCEL' ||
-          ramal.activeAlerts.some((a) => {
-            const c = (a.contenido || '').toLowerCase();
-            return (
-              c.includes('obra') ||
-              c.includes('trabajo') ||
-              c.includes('corte') ||
-              c.includes('interrump') ||
-              c.includes('renovaci')
-            );
-          });
-        if (!isWork) return false;
+      if (statusFilter === 'OBRAS' && !ramal.status.code.includes('WORK')) {
+        return false;
       }
 
       // 3. Filtro por Búsqueda
@@ -436,28 +423,16 @@ export default function LineStatusView({ onNavigateToPlanner }) {
 
   // Contadores para resumen
   const alertRamalesCount = useMemo(() => {
-    return allRamales.filter((r) => r.status.code !== 'NORMAL').length;
+    return allRamales.filter((r) => ['CANCEL', 'REDUCED', 'DELAY'].includes(r.status.code)).length;
   }, [allRamales]);
 
   const worksRamalesCount = useMemo(() => {
-    return allRamales.filter(
-      (r) =>
-        r.status.code.includes('WORK') ||
-        r.status.code === 'CANCEL' ||
-        r.activeAlerts.some((a) => {
-          const c = (a.contenido || '').toLowerCase();
-          return (
-            c.includes('obra') ||
-            c.includes('trabajo') ||
-            c.includes('corte') ||
-            c.includes('interrump') ||
-            c.includes('renovaci')
-          );
-        })
-    ).length;
+    return allRamales.filter((r) => r.status.code.includes('WORK')).length;
   }, [allRamales]);
 
-  const normalRamalesCount = allRamales.length - alertRamalesCount;
+  const normalRamalesCount = useMemo(() => {
+    return allRamales.filter((r) => r.status.code === 'NORMAL').length;
+  }, [allRamales]);
 
   // Obtener estaciones que pertenecen a un ramal
   const getStationsListForRamal = (ramalName, lineName) => {
@@ -629,6 +604,30 @@ export default function LineStatusView({ onNavigateToPlanner }) {
             <Construction size={15} />
             <span>Con Obras ({worksRamalesCount})</span>
           </button>
+          <button
+            onClick={() => {
+              triggerHaptic('light');
+              setStatusFilter('NORMAL');
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '16px',
+              background: statusFilter === 'NORMAL' ? '#30d158' : 'rgba(48, 209, 88, 0.12)',
+              border: 'none',
+              color: statusFilter === 'NORMAL' ? '#ffffff' : '#30d158',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <CheckCircle size={15} />
+            <span>Normales ({normalRamalesCount})</span>
+          </button>
         </div>
 
 
@@ -745,76 +744,6 @@ export default function LineStatusView({ onNavigateToPlanner }) {
               </div>
             </div>
 
-            {/* 2. Filtro por Estado Operativo (Píldoras secundarias) */}
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-              <button
-                onClick={() => {
-                  triggerHaptic('light');
-                  setStatusFilter('ALL');
-                }}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '10px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                  border: statusFilter === 'ALL' ? '1px solid var(--ios-card-border-active)' : '1px solid var(--ios-separator)',
-                  background: statusFilter === 'ALL' ? 'rgba(255,255,255,0.12)' : 'transparent',
-                  color: statusFilter === 'ALL' ? 'var(--ios-text-primary)' : 'var(--ios-text-secondary)',
-                  cursor: 'pointer',
-                }}
-              >
-                Todos los estados ({allRamales.length})
-              </button>
-
-              <button
-                onClick={() => {
-                  triggerHaptic('light');
-                  setStatusFilter('ALERTS');
-                }}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '10px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                  border: statusFilter === 'ALERTS' ? '1px solid #ff9f0a' : '1px solid var(--ios-separator)',
-                  background: statusFilter === 'ALERTS' ? 'rgba(255, 159, 10, 0.18)' : 'transparent',
-                  color: statusFilter === 'ALERTS' ? '#ff9f0a' : 'var(--ios-text-secondary)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <AlertTriangle size={12} />
-                <span>Con demoras o alertas ({alertRamalesCount})</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  triggerHaptic('light');
-                  setStatusFilter('NORMAL');
-                }}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '10px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                  border: statusFilter === 'NORMAL' ? '1px solid #30d158' : '1px solid var(--ios-separator)',
-                  background: statusFilter === 'NORMAL' ? 'rgba(48, 209, 88, 0.18)' : 'transparent',
-                  color: statusFilter === 'NORMAL' ? '#30d158' : 'var(--ios-text-secondary)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <CheckCircle size={12} />
-                <span>Normales ({normalRamalesCount})</span>
-              </button>
-            </div>
 
             {/* 3. Buscador y Acción de Desglosar Todos */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
