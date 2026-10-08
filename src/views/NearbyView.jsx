@@ -899,7 +899,7 @@ export default function NearbyView({
             transition: 'all 0.2s ease',
           }}
         >
-          ➔ Hacia Retiro / CABA
+          ➔ Hacia CABA
         </button>
 
         <button
