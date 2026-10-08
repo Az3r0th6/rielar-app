@@ -1384,8 +1384,6 @@ export default function LineStatusView({ onNavigateToPlanner }) {
               </div>
             )}
           </div>
-          </div>
-
         {/* 3. LAST TRAINS SECTION (Always visible at the bottom) */}
         <div style={{ marginTop: '32px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px', color: 'var(--ios-text-primary)' }}>
