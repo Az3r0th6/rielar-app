@@ -29,7 +29,7 @@ import {
 import { getNetworkStatus } from '../api/sofseClient';
 import LineBadge from '../components/LineBadge';
 import { SofseLivePill } from '../components/DynamicIsland';
-import LastTrainsSection from '../components/LastTrainsSection';
+
 import RideAffiliateCard from '../components/RideAffiliateCard';
 import SwipeableAlertCard from '../components/SwipeableAlertCard';
 import { triggerHaptic, playChimeSound, sendAppNotification, requestNotificationPermission } from '../utils/notifications';
@@ -544,109 +544,91 @@ export default function LineStatusView({ onNavigateToPlanner }) {
       </div>
 
       <div style={{ padding: '14px 16px 36px' }}>
-        {/* Floating Status Summary Chips with direct access */}
+        {/* Filtros de Estado Interactivos (Pills) */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
             overflowX: 'auto',
-            paddingBottom: '10px',
+            paddingBottom: '14px',
             marginBottom: '6px',
             scrollbarWidth: 'none',
           }}
         >
-          {alertRamalesCount > 0 ? (
-            <button
-              onClick={() => {
-                triggerHaptic('light');
-                setStatusFilter('ALERTS');
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '16px',
-                background: 'rgba(255, 69, 58, 0.15)',
-                border: '1px solid #ff453a',
-                color: '#ff453a',
-                fontSize: '12px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <AlertCircle size={14} />
-              <span>{alertRamalesCount} {alertRamalesCount === 1 ? 'ramal con aviso' : 'ramales con aviso'}</span>
-            </button>
-          ) : (
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '16px',
-                background: 'rgba(48, 209, 88, 0.14)',
-                border: '1px solid rgba(48, 209, 88, 0.35)',
-                color: '#30d158',
-                fontSize: '12px',
-                fontWeight: 800,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <CheckCircle size={14} />
-              <span>Red operando normalmente</span>
-            </div>
-          )}
-
-          {worksRamalesCount > 0 && (
-            <button
-              onClick={() => {
-                triggerHaptic('light');
-                setStatusFilter(statusFilter === 'OBRAS' ? 'ALL' : 'OBRAS');
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '16px',
-                background: statusFilter === 'OBRAS' ? 'rgba(255, 159, 10, 0.25)' : 'rgba(255, 159, 10, 0.15)',
-                border: statusFilter === 'OBRAS' ? '1.5px solid #ff9f0a' : '1px solid rgba(255, 159, 10, 0.4)',
-                color: '#ff9f0a',
-                fontSize: '12px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.2s ease',
-              }}
-              title="Filtrar ramales con obras o cortes de vía"
-            >
-              <Construction size={14} />
-              <span>{worksRamalesCount} con Obras o Cortes</span>
-            </button>
-          )}
-
-          <div
+          <button
+            onClick={() => {
+              triggerHaptic('light');
+              setStatusFilter('ALL');
+            }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 12px',
+              padding: '6px 14px',
               borderRadius: '16px',
-              background: 'rgba(10, 132, 255, 0.12)',
-              border: '1px solid rgba(10, 132, 255, 0.3)',
-              color: '#0a84ff',
-              fontSize: '12px',
-              fontWeight: 800,
+              background: statusFilter === 'ALL' ? 'var(--ios-blue)' : 'rgba(120, 120, 128, 0.12)',
+              border: 'none',
+              color: statusFilter === 'ALL' ? '#ffffff' : 'var(--ios-text-primary)',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
               whiteSpace: 'nowrap',
+              transition: 'all 0.2s ease',
             }}
           >
-            <span>🚆 {allRamales.length} Ramales activos</span>
-          </div>
+            <span>Todos ({allRamales.length})</span>
+          </button>
+
+          <button
+            onClick={() => {
+              triggerHaptic('light');
+              setStatusFilter('ALERTS');
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '16px',
+              background: statusFilter === 'ALERTS' ? '#ff453a' : 'rgba(255, 69, 58, 0.12)',
+              border: 'none',
+              color: statusFilter === 'ALERTS' ? '#ffffff' : '#ff453a',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <AlertCircle size={15} />
+            <span>Con Avisos ({alertRamalesCount})</span>
+          </button>
+
+          <button
+            onClick={() => {
+              triggerHaptic('light');
+              setStatusFilter('OBRAS');
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '16px',
+              background: statusFilter === 'OBRAS' ? '#ff9f0a' : 'rgba(255, 159, 10, 0.12)',
+              border: 'none',
+              color: statusFilter === 'OBRAS' ? '#ffffff' : '#ff9f0a',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <Construction size={15} />
+            <span>Con Obras ({worksRamalesCount})</span>
+          </button>
         </div>
 
         {/* Redesigned Unified View: Critical Alerts first, then Lines */}
@@ -771,9 +753,6 @@ export default function LineStatusView({ onNavigateToPlanner }) {
 
         {/* 2. RAMALES SECTION */}
         <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px', color: 'var(--ios-text-primary)' }}>
-            🚆 Estado de los Ramales
-          </h2>
             {/* 1. Selector Superior de Líneas (Pills horizontales) */}
             <div style={{ marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -1384,19 +1363,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
               </div>
             )}
           </div>
-        {/* 3. LAST TRAINS SECTION (Always visible at the bottom) */}
-        <div style={{ marginTop: '32px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px', color: 'var(--ios-text-primary)' }}>
-            🌙 Primer y Último Tren
-          </h2>
-          <LastTrainsSection
-            onSelectRoute={(origId, destId) => {
-              if (onNavigateToPlanner) {
-                onNavigateToPlanner(origId, destId);
-              }
-            }}
-          />
-        </div>
+
       </div>
     </div>
   );
