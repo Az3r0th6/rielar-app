@@ -17,7 +17,6 @@ import {
   Info,
   Sun,
   Moon,
-  Download,
 } from 'lucide-react';
 import LineBadge from '../components/LineBadge';
 import { SofseLivePill } from '../components/DynamicIsland';
@@ -43,7 +42,6 @@ export default function NearbyView({
   onClearCustomStation,
   theme,
   onToggleTheme,
-  onOpenDownloadModal,
 }) {
   const [selectedLine, setSelectedLine] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -432,17 +430,6 @@ export default function NearbyView({
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <SofseLivePill />
-          {onOpenDownloadModal && (
-            <button
-              className="fav-button"
-              onClick={onOpenDownloadModal}
-              title="Descargar o Abrir en tu teléfono celular (iOS o Android)"
-              aria-label="Descargar app"
-              style={{ color: '#30d158' }}
-            >
-              <Download size={17} />
-            </button>
-          )}
 
           {onToggleTheme && (
             <button

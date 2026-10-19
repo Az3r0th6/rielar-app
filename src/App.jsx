@@ -1009,7 +1009,6 @@ export default function App() {
             onClearCustomStation={() => handleSetCustomStation(null)}
             theme={theme}
             onToggleTheme={handleToggleTheme}
-            onOpenDownloadModal={() => setShowDownloadModal(true)}
           />
         )}
 
