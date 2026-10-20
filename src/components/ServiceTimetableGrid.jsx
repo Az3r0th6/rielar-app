@@ -11,15 +11,22 @@ import {
   FileText,
   Navigation,
   Compass,
+  Star,
 } from 'lucide-react';
 import {
   SCHEDULES_BRANCHES,
   getCurrentDayType,
   findNextScheduledService,
 } from '../data/schedulesData';
-import { LINES_DATA } from '../data/linesData';
+import { LINES_DATA, PRELOADED_STATIONS } from '../data/linesData';
 import LineBadge from './LineBadge';
-import { triggerHaptic } from '../utils/notifications';
+import { triggerHaptic, playChimeSound } from '../utils/notifications';
+import {
+  getFavoriteCommutes,
+  addFavoriteCommute,
+  removeFavoriteCommute,
+  COMMUTES_CHANGED_EVENT,
+} from '../utils/commuteStorage';
 
 export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = null, onNavigateToMap }) {
   const [selectedLineId, setSelectedLineId] = useState(initialLineId || 5); // Default Mitre
@@ -28,6 +35,13 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
   const [dayType, setDayType] = useState(getCurrentDayType()); // 'weekdays' | 'saturdays' | 'sundays_holidays'
   const [timeFilter, setTimeFilter] = useState('all'); // 'all' | 'morning' | 'afternoon' | 'night'
   const [searchQuery, setSearchQuery] = useState('');
+  const [savedCommutes, setSavedCommutes] = useState(() => getFavoriteCommutes());
+
+  useEffect(() => {
+    const handleUpdate = (e) => setSavedCommutes(e.detail || getFavoriteCommutes());
+    window.addEventListener(COMMUTES_CHANGED_EVENT, handleUpdate);
+    return () => window.removeEventListener(COMMUTES_CHANGED_EVENT, handleUpdate);
+  }, []);
 
   // Available lines with schedule data
   const availableLines = useMemo(() => {
@@ -435,7 +449,7 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '70px 75px 85px 1fr',
+            gridTemplateColumns: '70px 75px 85px 1fr 34px',
             padding: '10px 14px',
             background: 'var(--ios-card-solid)',
             borderBottom: '1px solid var(--ios-separator)',
@@ -444,12 +458,14 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
             color: 'var(--ios-text-secondary)',
             textTransform: 'uppercase',
             letterSpacing: '0.4px',
+            alignItems: 'center',
           }}
         >
           <div>Partida</div>
           <div>Llegada</div>
           <div>Servicio</div>
           <div style={{ textAlign: 'right' }}>Paradas / Estado</div>
+          <div style={{ textAlign: 'center' }}>★</div>
         </div>
 
         {/* Rows */}
@@ -465,12 +481,56 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
               const now = new Date();
               const hasDeparted = isTodayDayType && h * 60 + m < now.getHours() * 60 + now.getMinutes();
 
+              const originName = activeDirection?.origin || currentBranch.name.split('⇄')[0]?.trim() || 'Cabecera';
+              const destName = activeDirection?.destination || currentBranch.name.split('⇄')[1]?.trim() || 'Destino';
+              const isFav = savedCommutes.some(
+                (c) =>
+                  c.scheduledTime === service.departure &&
+                  c.destination?.toLowerCase() === destName.toLowerCase() &&
+                  Number(c.lineId) === Number(currentBranch.lineId)
+              );
+
+              const handleToggleFavoriteService = (e) => {
+                e.stopPropagation();
+                if (isFav) {
+                  const existing = savedCommutes.find(
+                    (c) =>
+                      c.scheduledTime === service.departure &&
+                      c.destination?.toLowerCase() === destName.toLowerCase() &&
+                      Number(c.lineId) === Number(currentBranch.lineId)
+                  );
+                  if (existing) {
+                    removeFavoriteCommute(existing.id);
+                  }
+                } else {
+                  const stationMatch = PRELOADED_STATIONS.find(
+                    (st) =>
+                      st.name.toLowerCase() === originName.toLowerCase() &&
+                      Number(st.lineId) === Number(currentBranch.lineId)
+                  );
+                  addFavoriteCommute({
+                    stationId: stationMatch ? stationMatch.id : 0,
+                    stationName: originName,
+                    lineId: currentBranch.lineId,
+                    lineName: currentBranch.lineName,
+                    ramal: currentBranch.name,
+                    destination: destName,
+                    scheduledTime: service.departure,
+                    days: dayType,
+                    label: 'Mi Tren Habitual',
+                    serviceNumber: service.number,
+                    reminderMinutes: 10,
+                    reminderEnabled: true,
+                  });
+                }
+              };
+
               return (
                 <div
                   key={`${service.number}-${index}`}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '70px 75px 85px 1fr',
+                    gridTemplateColumns: '70px 75px 85px 1fr 34px',
                     alignItems: 'center',
                     padding: '11px 14px',
                     borderBottom: '1px solid var(--ios-separator)',
@@ -553,6 +613,35 @@ export default function ServiceTimetableGrid({ onSelectTrain, initialLineId = nu
                     ) : (
                       <span style={{ fontSize: '11px', color: 'var(--ios-text-secondary)' }}>Programado</span>
                     )}
+                  </div>
+
+                  {/* Bookmark Star Button */}
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={handleToggleFavoriteService}
+                      style={{
+                        background: isFav ? 'rgba(255, 214, 10, 0.16)' : 'transparent',
+                        border: isFav ? '1px solid rgba(255, 214, 10, 0.4)' : 'none',
+                        borderRadius: '8px',
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: isFav ? '#ffd60a' : 'var(--ios-text-tertiary)',
+                        padding: 0,
+                        transition: 'all 0.15s ease',
+                      }}
+                      title={
+                        isFav
+                          ? 'Quitar de mis trenes habituales'
+                          : 'Guardar en Favoritos (mi tren habitual)'
+                      }
+                    >
+                      <Star size={14} fill={isFav ? '#ffd60a' : 'none'} />
+                    </button>
                   </div>
                 </div>
               );

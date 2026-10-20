@@ -11,6 +11,7 @@ import {
   Info,
   Layers,
   GitBranch,
+  Star,
 } from 'lucide-react';
 import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
 import { getStationArrivals } from '../api/sofseClient';
@@ -21,6 +22,12 @@ import ServiceTimetableGrid from '../components/ServiceTimetableGrid';
 import RideAffiliateCard from '../components/RideAffiliateCard';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { triggerHaptic, playChimeSound } from '../utils/notifications';
+import {
+  getFavoriteCommutes,
+  addFavoriteCommute,
+  removeFavoriteCommute,
+  COMMUTES_CHANGED_EVENT,
+} from '../utils/commuteStorage';
 
 // Cabeceras predeterminadas por línea para selección inmediata
 const LINE_DEFAULTS = {
@@ -80,6 +87,13 @@ export default function TripPlannerView({
   // Filtros activos de organización por Línea y Ramal
   const [selectedLine, setSelectedLine] = useState('ALL'); // 'ALL' | 'Mitre' | 'Sarmiento' | 'Roca' | 'San Martín' | 'Belgrano Sur' | 'Tren de la Costa'
   const [selectedRamal, setSelectedRamal] = useState('ALL');
+  const [savedCommutes, setSavedCommutes] = useState(() => getFavoriteCommutes());
+
+  useEffect(() => {
+    const handleUpdate = (e) => setSavedCommutes(e.detail || getFavoriteCommutes());
+    window.addEventListener(COMMUTES_CHANGED_EVENT, handleUpdate);
+    return () => window.removeEventListener(COMMUTES_CHANGED_EVENT, handleUpdate);
+  }, []);
 
   useEffect(() => {
     if (initialOriginId) {
@@ -785,6 +799,39 @@ export default function TripPlannerView({
                   const departureTime = formatLocalTime(train.arribo?.salida?.programada);
                   const trainNum = train.servicio?.numero;
 
+                  const isFav = savedCommutes.some(
+                    (c) =>
+                      c.scheduledTime === departureTime &&
+                      Number(c.stationId) === Number(originId)
+                  );
+
+                  const handleToggleCardFavorite = (e) => {
+                    e.stopPropagation();
+                    if (isFav) {
+                      const found = savedCommutes.find(
+                        (c) =>
+                          c.scheduledTime === departureTime &&
+                          Number(c.stationId) === Number(originId)
+                      );
+                      if (found) removeFavoriteCommute(found.id);
+                    } else {
+                      addFavoriteCommute({
+                        stationId: Number(originId),
+                        stationName: originStation?.name || 'Origen',
+                        lineId: originStation?.lineId || 5,
+                        lineName: originStation?.lineName || 'Tren',
+                        ramal: originStation?.ramal || '',
+                        destination: destStation?.name || 'Destino',
+                        scheduledTime: departureTime,
+                        days: 'weekdays',
+                        label: 'Viaje Habitual',
+                        serviceNumber: trainNum ? String(trainNum) : null,
+                        reminderMinutes: 10,
+                        reminderEnabled: true,
+                      });
+                    }
+                  };
+
                   return (
                     <div
                       key={idx}
@@ -808,6 +855,26 @@ export default function TripPlannerView({
                               Salida {departureTime}
                             </span>
                             <span className="platform-badge">Andén {platform}</span>
+                            <button
+                              type="button"
+                              onClick={handleToggleCardFavorite}
+                              style={{
+                                background: isFav ? 'rgba(255, 214, 10, 0.16)' : 'rgba(118, 118, 128, 0.12)',
+                                border: isFav ? '1px solid rgba(255, 214, 10, 0.4)' : '1px solid var(--ios-separator)',
+                                borderRadius: '50%',
+                                width: '28px',
+                                height: '28px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                color: isFav ? '#ffd60a' : 'var(--ios-text-tertiary)',
+                                padding: 0,
+                              }}
+                              title={isFav ? 'Quitar de favoritos' : 'Guardar horario de este tren en Favoritos'}
+                            >
+                              <Star size={13} fill={isFav ? '#ffd60a' : 'none'} />
+                            </button>
                           </div>
                           <div style={{ fontSize: '12.5px', color: 'var(--ios-text-secondary)', marginTop: '3px' }}>
                             <span style={{ color: '#0a84ff', fontWeight: 700 }}>

@@ -10,6 +10,7 @@ import {
   Bus,
   ArrowRight,
   CheckCircle2,
+  Clock,
 } from 'lucide-react';
 import { triggerHaptic, playChimeSound } from '../utils/notifications';
 import { safeLocalStorage, safeSessionStorage } from '../utils/safeStorage';
@@ -46,6 +47,15 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
   };
 
   const updates = [
+    {
+      icon: <Clock size={20} color="#ffd60a" />,
+      badge: 'NUEVO',
+      badgeColor: '#ffd60a',
+      badgeBg: 'rgba(255, 214, 10, 0.15)',
+      title: 'Trenes y Horarios Habituales en Favoritos',
+      description:
+        'Ahora podés guardar en Favoritos el tren con el horario específico que te tomás siempre (con su estación, sentido y etiqueta como Trabajo o Estudio). Incluye cuenta regresiva, estado en vivo del servicio y recordatorios sonoros.',
+    },
     {
       icon: <GitBranch size={20} color="#30d158" />,
       badge: 'NUEVO',

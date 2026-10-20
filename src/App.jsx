@@ -37,6 +37,10 @@ import {
   syncFavoritesToServer,
   fetchFavoritesFromServer,
 } from './utils/safeStorage';
+import {
+  hydrateCommutesFromIDB,
+  checkCommuteReminders,
+} from './utils/commuteStorage';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => {
@@ -141,6 +145,16 @@ export default function App() {
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       subscribeToPushNotifications().catch(() => {});
     }
+  }, []);
+
+  // Hydrate favorite routine commutes from IndexedDB & check reminders periodically
+  useEffect(() => {
+    hydrateCommutesFromIDB().catch(() => {});
+    checkCommuteReminders(new Date()).catch(() => {});
+    const interval = setInterval(() => {
+      checkCommuteReminders(new Date()).catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Dual-Engine Update Detection System
