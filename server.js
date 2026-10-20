@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import webpush from 'web-push';
+import { APP_VERSION, APP_BUILD, CACHE_NAME } from './src/version.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -867,9 +868,9 @@ app.get('/api/version', (req, res) => {
     'Expires': '0',
   });
   res.json({
-    version: '1.1.6',
-    build: 39,
-    cacheName: 'rielar-v39',
+    version: APP_VERSION,
+    build: APP_BUILD,
+    cacheName: CACHE_NAME,
     timestamp: Date.now(),
   });
 });
