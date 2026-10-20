@@ -59,8 +59,8 @@ android {
         applicationId "com.rielar.app"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 39
-        versionName "1.1.6"
+        versionCode 40
+        versionName "1.1.7"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
