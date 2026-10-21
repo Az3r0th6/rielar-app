@@ -24,6 +24,7 @@ import SupportProjectSection from '../components/SupportProjectSection';
 import PassengerGuideSection from '../components/PassengerGuideSection';
 import { safeLocalStorage } from '../utils/safeStorage';
 import { APP_VERSION, APP_BUILD } from '../version';
+import { getApiUrl } from '../api/apiConfig';
 
 export default function MoreView({
   onInstallApp,
@@ -45,7 +46,7 @@ export default function MoreView({
       // 1. Check server version API
       let serverHasNewer = false;
       try {
-        const res = await fetch(`/api/version?_t=${Date.now()}`, {
+        const res = await fetch(getApiUrl(`/api/version?_t=${Date.now()}`), {
           cache: 'no-store',
           headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
         });

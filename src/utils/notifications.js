@@ -2,6 +2,7 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+import { getApiUrl } from '../api/apiConfig';
 
 let audioCtx = null;
 
@@ -169,7 +170,7 @@ export async function subscribeToPushNotifications() {
     const reg = await navigator.serviceWorker.ready;
     if (!reg) return { success: false, reason: 'no-sw' };
 
-    const res = await fetch('/api/push-public-key');
+    const res = await fetch(getApiUrl('/api/push-public-key'));
     if (!res.ok) return { success: false, reason: 'no-key' };
     const { publicKey } = await res.json();
     if (!publicKey) return { success: false, reason: 'no-public-key' };
@@ -187,7 +188,7 @@ export async function subscribeToPushNotifications() {
     if (sub) {
       const subJson =
         typeof sub.toJSON === 'function' ? sub.toJSON() : JSON.parse(JSON.stringify(sub));
-      const postRes = await fetch('/api/push-subscribe', {
+      const postRes = await fetch(getApiUrl('/api/push-subscribe'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscription: subJson }),

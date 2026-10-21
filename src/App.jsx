@@ -17,6 +17,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
+import { getApiUrl } from './api/apiConfig';
 import { APP_BUILD, APP_VERSION, CACHE_NAME } from './version';
 import { PRELOADED_STATIONS } from './data/linesData';
 import {
@@ -173,7 +174,7 @@ export default function App() {
   useEffect(() => {
     const checkServerVersion = async () => {
       try {
-        const res = await fetch(`/api/version?_t=${Date.now()}`, {
+        const res = await fetch(getApiUrl(`/api/version?_t=${Date.now()}`), {
           cache: 'no-store',
           headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
         });
@@ -190,7 +191,7 @@ export default function App() {
       } catch (err) {
         // Fallback to static version.json
         try {
-          const res2 = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' });
+          const res2 = await fetch(getApiUrl(`/version.json?_t=${Date.now()}`), { cache: 'no-store' });
           if (res2.ok) {
             const data2 = await res2.json();
             if (data2 && data2.build && data2.build > CURRENT_APP_BUILD) {
@@ -305,7 +306,7 @@ export default function App() {
   // Alert Monitoring Loop: periodically checks network status and alerts user for subscribed lines
   const checkSubscribedAlerts = async () => {
     try {
-      const res = await fetch('/api/network-status');
+      const res = await fetch(getApiUrl('/api/network-status'));
       if (!res.ok) return;
       const data = await res.json();
       const incidents = data.summary?.criticalIncidents || [];
@@ -486,7 +487,7 @@ export default function App() {
     if (tabId === 'lines') {
       // User reviewed the line status, mark all currently existing alerts as read
       // so badge counter stays in ZERO and doesn't nag the user again!
-      fetch('/api/network-status')
+      fetch(getApiUrl('/api/network-status'))
         .then((r) => r.json())
         .then((d) => {
           const incidents = d.summary?.criticalIncidents || [];

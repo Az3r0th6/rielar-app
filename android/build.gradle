@@ -18,6 +18,7 @@ buildscript {
 apply from: "variables.gradle"
 
 allprojects {
+    layout.buildDirectory.set(file("${System.getProperty('java.io.tmpdir')}/rielar-build/${project.name}"))
     repositories {
         google()
         mavenCentral()

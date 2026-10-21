@@ -108,48 +108,70 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      if (window.isSecureContext && 'serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').then(reg => {
-            const notifyUpdate = () => {
-              window.dispatchEvent(new CustomEvent('rielar:sw-update', { detail: { registration: reg } }));
-            };
+      (function() {
+        var isCapacitor = !!(
+          (window.Capacitor &&
+            (window.Capacitor.isNative ||
+              (window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ||
+              (window.Capacitor.getPlatform && window.Capacitor.getPlatform() !== 'web'))) ||
+          window.androidBridge ||
+          (window.location.protocol === 'capacitor:') ||
+          (window.location.hostname === 'localhost' && (!window.location.port || window.location.port === '80' || window.location.port === '443'))
+        );
 
-            const checkUpdate = (worker) => {
-              if (worker && (worker.state === 'installed' || worker.state === 'activating')) {
+        if (isCapacitor) {
+          // Native Capacitor apps load assets directly from the APK assets; purge any conflicting ServiceWorkers
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              for (var i = 0; i < regs.length; i++) {
+                regs[i].unregister();
+              }
+            }).catch(function() {});
+          }
+          return;
+        }
+
+        if (window.isSecureContext && 'serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+              const notifyUpdate = () => {
+                window.dispatchEvent(new CustomEvent('rielar:sw-update', { detail: { registration: reg } }));
+              };
+
+              const checkUpdate = (worker) => {
+                if (worker && (worker.state === 'installed' || worker.state === 'activating')) {
+                  notifyUpdate();
+                }
+              };
+
+              if (reg.waiting) {
                 notifyUpdate();
               }
-            };
 
-            if (reg.waiting) {
-              notifyUpdate();
-            }
+              reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                if (newWorker) {
+                  newWorker.addEventListener('statechange', () => checkUpdate(newWorker));
+                }
+              });
 
-            reg.addEventListener('updatefound', () => {
-              const newWorker = reg.installing;
-              if (newWorker) {
-                newWorker.addEventListener('statechange', () => checkUpdate(newWorker));
-              }
-            });
-
-            // Immediately check server for new version on launch
-            try { reg.update(); } catch(e) {}
-
-            // Periodically check for updates every 10 minutes while app is in foreground
-            setInterval(() => {
               try { reg.update(); } catch(e) {}
-            }, 10 * 60 * 1000);
 
-            document.addEventListener('visibilitychange', () => {
-              if (document.visibilityState === 'visible') {
+              setInterval(() => {
                 try { reg.update(); } catch(e) {}
-              }
+              }, 10 * 60 * 1000);
+
+              document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                  try { reg.update(); } catch(e) {}
+                }
+              });
+            }).catch(err => {
+              console.log('SW registration note:', err.message);
             });
-          }).catch(err => {
-            console.log('SW registration note:', err.message);
           });
-        });
-      }
+        }
+      })();
     </script>
   </body>
 </html>

@@ -11,9 +11,9 @@
     "start": "node server.js",
     "cap:sync": "vite build && npx cap sync android",
     "cap:open": "npx cap open android",
-    "cap:build": "vite build && npx cap sync android && cd android && .\\gradlew.bat assembleDebug && copy .\\app\\build\\outputs\\apk\\debug\\app-debug.apk ..\\RielAR-v1.1.9-debug.apk",
-    "cap:bundle": "vite build && npx cap sync android && cd android && .\\gradlew.bat bundleRelease && copy .\\app\\build\\outputs\\bundle\\release\\app-release.aab ..\\RielAR-v1.1.9.aab",
-    "cap:release": "vite build && npx cap sync android && cd android && .\\gradlew.bat assembleRelease && copy .\\app\\build\\outputs\\apk\\release\\app-release.apk ..\\RielAR-v1.1.9-release.apk",
+    "cap:build": "vite build && npx cap sync android && cd android && .\\gradlew.bat assembleDebug --no-daemon && cd .. && node scripts/copy-cap-artifacts.js debug",
+    "cap:bundle": "vite build && npx cap sync android && cd android && .\\gradlew.bat bundleRelease --no-daemon && cd .. && node scripts/copy-cap-artifacts.js bundle",
+    "cap:release": "vite build && npx cap sync android && cd android && .\\gradlew.bat assembleRelease --no-daemon && cd .. && node scripts/copy-cap-artifacts.js release",
     "android:generate": "node scripts/generate-twa.js",
     "android:build": "cd android-twa && .\\gradlew.bat assembleRelease && copy .\\app\\build\\outputs\\apk\\release\\app-release.apk ..\\RielAR-v1.0.0.apk",
     "android:bundle": "cd android-twa && .\\gradlew.bat bundleRelease && copy .\\app\\build\\outputs\\bundle\\release\\app-release.aab ..\\RielAR-v1.0.0.aab"

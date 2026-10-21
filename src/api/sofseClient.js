@@ -1,7 +1,8 @@
 // SOFSE API Client for Frontend with Cold-Start Resilience
 import { safeSessionStorage } from '../utils/safeStorage';
+import { getApiBase, PROD_API_ORIGIN } from './apiConfig';
 
-const API_BASE = '/api';
+const getBase = () => getApiBase();
 
 function combineSignals(s1, s2) {
   if (!s1) return s2;
@@ -46,14 +47,14 @@ async function fetchWithRetry(url, options = {}, retries = 1, delay = 600) {
 }
 
 export async function getLines() {
-  const res = await fetchWithRetry(`${API_BASE}/lines`);
+  const res = await fetchWithRetry(`${getBase()}/lines`);
   if (!res.ok) throw new Error(`Error fetching lines: ${res.status}`);
   return await res.json();
 }
 
 export async function getNetworkStatus() {
   try {
-    const res = await fetchWithRetry(`${API_BASE}/network-status`);
+    const res = await fetchWithRetry(`${getBase()}/network-status`);
     if (!res.ok) throw new Error(`Error fetching network status: ${res.status}`);
     const data = await res.json();
     try {
@@ -70,25 +71,25 @@ export async function getNetworkStatus() {
 }
 
 export async function getBranches(idGerencia) {
-  const res = await fetchWithRetry(`${API_BASE}/branches?idGerencia=${idGerencia}`);
+  const res = await fetchWithRetry(`${getBase()}/branches?idGerencia=${idGerencia}`);
   if (!res.ok) throw new Error(`Error fetching branches: ${res.status}`);
   return await res.json();
 }
 
 export async function getStationsByRamal(idRamal) {
-  const res = await fetchWithRetry(`${API_BASE}/stations?idRamal=${idRamal}`);
+  const res = await fetchWithRetry(`${getBase()}/stations?idRamal=${idRamal}`);
   if (!res.ok) throw new Error(`Error fetching stations: ${res.status}`);
   return await res.json();
 }
 
 export async function searchStations(query) {
-  const res = await fetchWithRetry(`${API_BASE}/stations?nombre=${encodeURIComponent(query)}`);
+  const res = await fetchWithRetry(`${getBase()}/stations?nombre=${encodeURIComponent(query)}`);
   if (!res.ok) throw new Error(`Error searching stations: ${res.status}`);
   return await res.json();
 }
 
 export async function getStationArrivals(stationId, params = {}, forceRefresh = false, externalSignal = null) {
-  const url = new URL(`${API_BASE}/arrivals/${stationId}`, window.location.origin);
+  const url = new URL(`${getBase()}/arrivals/${stationId}`, window.location.origin);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== '') {
       url.searchParams.append(k, String(v));
@@ -135,13 +136,19 @@ export async function getStationArrivals(stationId, params = {}, forceRefresh = 
 }
 
 export async function getAllStationsCatalog() {
-  const res = await fetchWithRetry(`${API_BASE}/all-stations`);
+  const res = await fetchWithRetry(`${getBase()}/all-stations`);
   if (!res.ok) throw new Error(`Error fetching all stations: ${res.status}`);
   return await res.json();
 }
 
+export async function getBugReports() {
+  const res = await fetchWithRetry(`${getBase()}/reports`);
+  if (!res.ok) throw new Error(`Error fetching reports: ${res.status}`);
+  return await res.json();
+}
+
 export async function sendBugReport(reportData) {
-  const res = await fetchWithRetry(`${API_BASE}/reports`, {
+  const res = await fetchWithRetry(`${getBase()}/reports`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(reportData),
@@ -151,7 +158,7 @@ export async function sendBugReport(reportData) {
 }
 
 export async function updateBugReport(reportId, updateData) {
-  const res = await fetchWithRetry(`${API_BASE}/reports/${encodeURIComponent(reportId)}`, {
+  const res = await fetchWithRetry(`${getBase()}/reports/${encodeURIComponent(reportId)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updateData),
@@ -161,7 +168,7 @@ export async function updateBugReport(reportId, updateData) {
 }
 
 export async function deleteBugReport(reportId, adminKey = 'rielar2026') {
-  const url = `${API_BASE}/reports/${encodeURIComponent(reportId)}?adminKey=${encodeURIComponent(adminKey)}`;
+  const url = `${getBase()}/reports/${encodeURIComponent(reportId)}?adminKey=${encodeURIComponent(adminKey)}`;
   const res = await fetchWithRetry(url, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
@@ -174,7 +181,7 @@ export async function deleteBugReport(reportId, adminKey = 'rielar2026') {
 }
 
 export async function getNetworkTrains() {
-  const res = await fetchWithRetry(`${API_BASE}/network-trains?_t=${Date.now()}`, {
+  const res = await fetchWithRetry(`${getBase()}/network-trains?_t=${Date.now()}`, {
     cache: 'no-store',
   });
   if (!res.ok) throw new Error(`Error fetching network trains: ${res.status}`);
@@ -182,13 +189,13 @@ export async function getNetworkTrains() {
 }
 
 export async function getPushSubscribersCount() {
-  const res = await fetchWithRetry(`${API_BASE}/push-subscribers-count`);
+  const res = await fetchWithRetry(`${getBase()}/push-subscribers-count`);
   if (!res.ok) return { count: 0 };
   return await res.json();
 }
 
 export async function broadcastPushNotification(broadcastData) {
-  const res = await fetchWithRetry(`${API_BASE}/broadcast-push`, {
+  const res = await fetchWithRetry(`${getBase()}/broadcast-push`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(broadcastData),

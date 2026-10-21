@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { LINES_DATA, PRELOADED_STATIONS } from '../data/linesData';
 import {
+  getBugReports,
   sendBugReport,
   updateBugReport,
   deleteBugReport,
@@ -200,9 +201,8 @@ export default function BugReportSection() {
       const deletedArr = deletedRaw ? JSON.parse(deletedRaw) : [];
       const deletedIds = new Set(Array.isArray(deletedArr) ? deletedArr.map(String) : []);
 
-      const res = await fetch('/api/reports');
-      if (res.ok) {
-        const data = await res.json();
+      const data = await getBugReports().catch(() => null);
+      if (data) {
         const rawList = Array.isArray(data)
           ? data
           : Array.isArray(data?.reports)

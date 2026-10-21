@@ -1,5 +1,6 @@
 // Bulletproof Multi-Tier Storage Utility with Cookie, IndexedDB & CacheStorage Persistence
 // Prevents storage loss in Android WebViews, iOS Safari private browsing, PWAs, TWAs, Brave Shields, and mobile task kills.
+import { getApiUrl } from '../api/apiConfig';
 
 const memoryStorage = new Map();
 const sessionMemoryStorage = new Map();
@@ -163,7 +164,7 @@ export function getClientUid() {
 export async function syncFavoritesToServer(favorites) {
   try {
     const uid = getClientUid();
-    await fetch('/api/favorites/sync', {
+    await fetch(getApiUrl('/api/favorites/sync'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid, favorites }),
@@ -174,7 +175,7 @@ export async function syncFavoritesToServer(favorites) {
 export async function fetchFavoritesFromServer() {
   try {
     const uid = getClientUid();
-    const res = await fetch(`/api/favorites/sync?uid=${encodeURIComponent(uid)}&_t=${Date.now()}`);
+    const res = await fetch(getApiUrl(`/api/favorites/sync?uid=${encodeURIComponent(uid)}&_t=${Date.now()}`));
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data?.favorites)) {
