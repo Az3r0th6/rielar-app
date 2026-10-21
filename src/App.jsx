@@ -403,8 +403,8 @@ export default function App() {
     let backSub = null;
     CapApp.addListener('backButton', ({ canGoBack }) => {
       // 1. If station sheet is open, close it
-      if (selectedStation) {
-        setSelectedStation(null);
+      if (selectedStationForInfo) {
+        setSelectedStationForInfo(null);
         return;
       }
       // 2. If train sheet is open, close it
@@ -412,9 +412,9 @@ export default function App() {
         setSelectedTrain(null);
         return;
       }
-      // 3. If changelog or modals are open, close them
-      if (showChangelogModal) {
-        setShowChangelogModal(false);
+      // 3. If download modal is open, close it
+      if (showDownloadModal) {
+        setShowDownloadModal(false);
         return;
       }
       // 4. If on any tab other than nearby, go back to nearby
@@ -426,12 +426,12 @@ export default function App() {
       CapApp.exitApp();
     }).then((sub) => {
       backSub = sub;
-    });
+    }).catch(() => {});
 
     return () => {
-      if (backSub) backSub.remove();
+      if (backSub && backSub.remove) backSub.remove();
     };
-  }, [selectedStation, selectedTrain, showChangelogModal, activeTab]);
+  }, [selectedStationForInfo, selectedTrain, showDownloadModal, activeTab]);
 
   const handleContentScroll = (e) => {
     const currentScrollY = e.target.scrollTop;
