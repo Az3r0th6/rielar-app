@@ -1,5 +1,5 @@
 // Service Worker for RielAR Web App (iOS & Android Zero-Install)
-const CACHE_NAME = 'rielar-v43';
+const CACHE_NAME = 'rielar-v44';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
