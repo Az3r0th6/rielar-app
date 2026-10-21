@@ -13,6 +13,10 @@ import MoreView from './views/MoreView';
 import ChangelogModal from './components/ChangelogModal';
 import InAppNotificationToast from './components/InAppNotificationToast';
 import UpdateNotificationToast from './components/UpdateNotificationToast';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { APP_BUILD, APP_VERSION, CACHE_NAME } from './version';
 import { PRELOADED_STATIONS } from './data/linesData';
 import {
@@ -380,6 +384,53 @@ export default function App() {
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
+
+  // Native Android Capacitor Lifecycle & Hardware Back Button
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    // Hide splash screen smoothly after app is ready
+    SplashScreen.hide().catch(() => {});
+
+    // Set status bar to dark
+    try {
+      StatusBar.setStyle({ style: Style.Dark });
+      StatusBar.setBackgroundColor({ color: '#0A0A0C' });
+    } catch {}
+
+    // Android hardware Back Button handler
+    let backSub = null;
+    CapApp.addListener('backButton', ({ canGoBack }) => {
+      // 1. If station sheet is open, close it
+      if (selectedStation) {
+        setSelectedStation(null);
+        return;
+      }
+      // 2. If train sheet is open, close it
+      if (selectedTrain) {
+        setSelectedTrain(null);
+        return;
+      }
+      // 3. If changelog or modals are open, close them
+      if (showChangelogModal) {
+        setShowChangelogModal(false);
+        return;
+      }
+      // 4. If on any tab other than nearby, go back to nearby
+      if (activeTab !== 'nearby') {
+        handleTabChange('nearby');
+        return;
+      }
+      // 5. If on nearby and no sheets open, exit app
+      CapApp.exitApp();
+    }).then((sub) => {
+      backSub = sub;
+    });
+
+    return () => {
+      if (backSub) backSub.remove();
+    };
+  }, [selectedStation, selectedTrain, showChangelogModal, activeTab]);
 
   const handleContentScroll = (e) => {
     const currentScrollY = e.target.scrollTop;

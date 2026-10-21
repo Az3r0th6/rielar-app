@@ -1,4 +1,7 @@
 // Notifications, Haptics, and Audio Feedback System
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 let audioCtx = null;
 
@@ -103,7 +106,27 @@ export function playChimeSound(type = 'arrival') {
 /**
  * Triggers modern haptic feedback patterns (calibrated for mobile hardware)
  */
-export function triggerHaptic(style = 'light') {
+export async function triggerHaptic(style = 'light') {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      if (style === 'light') {
+        await Haptics.impact({ style: ImpactStyle.Light });
+      } else if (style === 'medium' || style === 'click') {
+        await Haptics.impact({ style: ImpactStyle.Medium });
+      } else if (style === 'refresh') {
+        await Haptics.impact({ style: ImpactStyle.Light });
+        setTimeout(() => Haptics.impact({ style: ImpactStyle.Medium }), 60);
+      } else if (style === 'success' || style === 'updated' || style === 'arrival') {
+        await Haptics.notification({ type: NotificationType.Success });
+      } else if (style === 'warning' || style === 'error' || style === 'alert') {
+        await Haptics.notification({ type: NotificationType.Warning });
+      } else {
+        await Haptics.impact({ style: ImpactStyle.Light });
+      }
+      return;
+    } catch {}
+  }
+
   if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
     try {
       if (style === 'light') navigator.vibrate(25);
@@ -117,6 +140,7 @@ export function triggerHaptic(style = 'light') {
     }
   }
 }
+
 
 export function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -179,10 +203,44 @@ export async function subscribeToPushNotifications() {
   return { success: false, reason: 'failed' };
 }
 
+let nativeChannelCreated = false;
+export async function setupNativeNotificationChannel() {
+  if (nativeChannelCreated || !Capacitor.isNativePlatform()) return;
+  try {
+    await LocalNotifications.createChannel({
+      id: 'rielar_channel_alerts',
+      name: 'Alertas de Trenes RielAR',
+      description: 'Avisos de demoras, cancelaciones y estado de servicios en vivo',
+      importance: 5,
+      visibility: 1,
+      vibration: true,
+      lights: true,
+      lightColor: '#009FE3',
+    });
+    nativeChannelCreated = true;
+  } catch (e) {
+    console.debug('Error creating native notification channel:', e);
+  }
+}
+
 /**
  * Requests Notification permission safely across mobile browsers & PWAs
  */
 export async function requestNotificationPermission() {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const perm = await LocalNotifications.requestPermissions();
+      if (perm.display === 'granted') {
+        await setupNativeNotificationChannel();
+        return 'granted';
+      }
+      return 'denied';
+    } catch (err) {
+      console.warn('Native notification permission request error:', err);
+      return 'denied';
+    }
+  }
+
   if (typeof window === 'undefined' || !('Notification' in window)) {
     return 'unsupported';
   }
@@ -227,7 +285,32 @@ export async function sendAppNotification(title, body, options = {}) {
     } catch {}
   }
 
-  // 2. Mobile OS & Desktop System Notification
+  // 2. Native Android Notification via Capacitor LocalNotifications
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await setupNativeNotificationChannel();
+      const notifId = Math.floor(Math.random() * 2000000000) + 1;
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: notifId,
+            title,
+            body,
+            channelId: 'rielar_channel_alerts',
+            smallIcon: 'ic_notification_icon',
+            iconColor: '#009FE3',
+            schedule: { at: new Date(Date.now() + 100) },
+            extra: options.data || { url: '/' },
+          },
+        ],
+      });
+      return true;
+    } catch (e) {
+      console.warn('Native LocalNotifications schedule error:', e);
+    }
+  }
+
+  // 3. Mobile Web OS & Desktop System Notification
   if (typeof window !== 'undefined' && 'Notification' in window) {
     if (Notification.permission === 'granted') {
       // NOTE: Android OS / Chrome requires raster PNG icons (SVG is unsupported by Android NotificationManager)
@@ -272,3 +355,4 @@ export async function sendAppNotification(title, body, options = {}) {
   }
   return false;
 }
+

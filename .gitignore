@@ -30,6 +30,7 @@ android-twa/.gradle/
 android-twa/build/
 android-twa/app/build/
 android-twa/local.properties
+android/local.properties
 *.apk
 *.aab
 *.keystore
