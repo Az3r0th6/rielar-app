@@ -55,6 +55,14 @@ export function dismissAlert(alert) {
   const dismissed = getDismissedAlertKeys();
   dismissed.add(key);
 
+  // If alert is an object, also store fallback key based on content alone
+  if (typeof alert === 'object' && alert) {
+    const content = (alert.content || alert.contenido || '').trim().toLowerCase();
+    if (content) {
+      dismissed.add(`__${content}`.replace(/\s+/g, '_'));
+    }
+  }
+
   try {
     safeLocalStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify(Array.from(dismissed)));
   } catch (e) {
@@ -72,6 +80,12 @@ export function dismissAllAlerts(alertsList = []) {
   alertsList.forEach((a) => {
     const key = typeof a === 'string' ? a : getAlertKey(a);
     if (key) dismissed.add(key);
+    if (typeof a === 'object' && a) {
+      const content = (a.content || a.contenido || '').trim().toLowerCase();
+      if (content) {
+        dismissed.add(`__${content}`.replace(/\s+/g, '_'));
+      }
+    }
   });
 
   try {
@@ -128,7 +142,11 @@ export function getUnreadAlertsCount(alertsList = []) {
   let unreadCount = 0;
   alertsList.forEach((a) => {
     const key = typeof a === 'string' ? a : getAlertKey(a);
-    if (key && !dismissed.has(key) && !read.has(key)) {
+    const content = (a?.content || a?.contenido || '').trim().toLowerCase();
+    const fallbackKey = content ? `__${content}`.replace(/\s+/g, '_') : '';
+    const isDismissed = dismissed.has(key) || (fallbackKey && dismissed.has(fallbackKey));
+
+    if (key && !isDismissed && !read.has(key)) {
       unreadCount++;
     }
   });
@@ -143,7 +161,9 @@ export function filterNonDismissedAlerts(alertsList = []) {
   const dismissed = getDismissedAlertKeys();
   return alertsList.filter((a) => {
     const key = typeof a === 'string' ? a : getAlertKey(a);
-    return !dismissed.has(key);
+    const content = (a?.content || a?.contenido || '').trim().toLowerCase();
+    const fallbackKey = content ? `__${content}`.replace(/\s+/g, '_') : '';
+    return !dismissed.has(key) && (!fallbackKey || !dismissed.has(fallbackKey));
   });
 }
 

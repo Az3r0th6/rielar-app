@@ -147,6 +147,11 @@ export default function LineStatusView({ onNavigateToPlanner }) {
     let updated;
     if (isSubscribed) {
       updated = subscribedLines.filter((id) => id !== lineId);
+      sendAppNotification(
+        `Avisos desactivados • Línea ${lineName}`,
+        `Se eliminaron las notificaciones automáticas para la línea ${lineName}.`,
+        { type: 'info' }
+      );
     } else {
       updated = [...subscribedLines, lineId];
       // Explicitly request notification permission during this user tap
@@ -197,7 +202,16 @@ export default function LineStatusView({ onNavigateToPlanner }) {
   // Líneas operativas de AMBA
   const lines = (networkData?.lines || []).filter((l) => l.id !== 501);
   const allCriticalIncidents = summary.criticalIncidents || [];
-  const activeIncidents = allCriticalIncidents.filter((inc) => !dismissedKeys.has(getAlertKey(inc)));
+
+  const isAlertDismissed = (a) => {
+    if (!a) return false;
+    const key = getAlertKey(a);
+    const content = (a.content || a.contenido || '').trim().toLowerCase();
+    const fallbackKey = content ? `__${content}`.replace(/\s+/g, '_') : '';
+    return dismissedKeys.has(key) || (fallbackKey && dismissedKeys.has(fallbackKey));
+  };
+
+  const activeIncidents = allCriticalIncidents.filter((inc) => !isAlertDismissed(inc));
 
   // Marcar alertas como leídas al verlas
   useEffect(() => {
@@ -207,13 +221,20 @@ export default function LineStatusView({ onNavigateToPlanner }) {
   }, [networkData]);
 
   const handleDismissIncident = (incident) => {
+    triggerHaptic('medium');
+    playChimeSound('click');
     dismissAlert(incident);
   };
 
   const handleDismissAll = () => {
     triggerHaptic('success');
     playChimeSound('success');
-    dismissAllAlerts(activeIncidents);
+    const allActive = [];
+    activeIncidents.forEach((inc) => allActive.push(inc));
+    allRamales.forEach((r) => {
+      (r.activeAlerts || []).forEach((a) => allActive.push(a));
+    });
+    dismissAllAlerts(allActive);
   };
 
   const handleRestoreDismissed = () => {
@@ -250,8 +271,14 @@ export default function LineStatusView({ onNavigateToPlanner }) {
     lines.forEach((line) => {
       const branches = line.branches || [];
       branches.forEach((b, bIdx) => {
-        const rawAlerts = b.alerta || [];
-        const activeBranchAlerts = rawAlerts.filter((a) => !dismissedKeys.has(getAlertKey(a)));
+        const rawAlerts = (b.alerta || []).map((a) => ({
+          ...a,
+          lineId: line.id,
+          lineName: line.nombre,
+          ramalId: b.id,
+          ramalName: b.nombre,
+        }));
+        const activeBranchAlerts = rawAlerts.filter((a) => !isAlertDismissed(a));
 
         let status = {
           code: 'NORMAL',
@@ -635,7 +662,104 @@ export default function LineStatusView({ onNavigateToPlanner }) {
           </button>
         </div>
 
+        {/* Barra de Gestión de Avisos y Notificaciones */}
+        {(alertRamalesCount > 0 || dismissedKeys.size > 0) && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'var(--ios-card)',
+              border: '1px solid var(--ios-card-border)',
+              borderRadius: '14px',
+              padding: '10px 14px',
+              marginBottom: '14px',
+              gap: '10px',
+              flexWrap: 'wrap',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  background: alertRamalesCount > 0 ? 'rgba(255, 69, 58, 0.15)' : 'rgba(48, 209, 88, 0.15)',
+                  color: alertRamalesCount > 0 ? '#ff453a' : '#30d158',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {alertRamalesCount > 0 ? <AlertCircle size={15} /> : <CheckCircle size={15} />}
+              </div>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ios-text-primary)' }}>
+                  {alertRamalesCount > 0
+                    ? `${alertRamalesCount} ${alertRamalesCount === 1 ? 'ramal con aviso activo' : 'ramales con avisos activos'}`
+                    : 'Avisos descartados'}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)' }}>
+                  {alertRamalesCount > 0
+                    ? 'Podés eliminar cada aviso individualmente o limpiar todos'
+                    : `${dismissedKeys.size} aviso(s) eliminado(s)`}
+                </div>
+              </div>
+            </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {alertRamalesCount > 0 && (
+                <button
+                  onClick={handleDismissAll}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '6px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255, 69, 58, 0.35)',
+                    background: 'rgba(255, 69, 58, 0.12)',
+                    color: '#ff453a',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  title="Eliminar todos los avisos de notificación activos"
+                >
+                  <Trash2 size={13} />
+                  <span>Eliminar avisos</span>
+                </button>
+              )}
+
+              {dismissedKeys.size > 0 && (
+                <button
+                  onClick={handleRestoreDismissed}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '6px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid var(--ios-separator)',
+                    background: 'rgba(118, 118, 128, 0.12)',
+                    color: 'var(--ios-text-primary)',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  title="Restablecer los avisos que fueron eliminados"
+                >
+                  <RotateCcw size={13} />
+                  <span>Restaurar ({dismissedKeys.size})</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* 2. RAMALES SECTION */}
         <div>
@@ -985,11 +1109,51 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                             color: 'var(--ios-text-primary)',
                           }}
                         >
-                          <div style={{ fontWeight: 800, color: '#ff453a', marginBottom: '3px', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <AlertTriangle size={13} />
-                            <span>Afectación oficial en el ramal</span>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '8px',
+                              marginBottom: '5px',
+                            }}
+                          >
+                            <div style={{ fontWeight: 800, color: '#ff453a', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <AlertTriangle size={13} />
+                              <span>Afectación oficial en el ramal</span>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDismissIncident(ramal.activeAlerts[0]);
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '3px 8px',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(255, 69, 58, 0.35)',
+                                background: 'rgba(255, 69, 58, 0.16)',
+                                color: '#ff453a',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                              }}
+                              title="Eliminar este aviso de notificación"
+                              aria-label="Eliminar este aviso de notificación"
+                            >
+                              <Trash2 size={11} />
+                              <span>Eliminar aviso</span>
+                            </button>
                           </div>
                           <div>{ramal.activeAlerts[0]?.contenido}</div>
+                          {ramal.activeAlerts.length > 1 && (
+                            <div style={{ fontSize: '11px', color: 'var(--ios-text-secondary)', marginTop: '4px', fontWeight: 600 }}>
+                              +{ramal.activeAlerts.length - 1} aviso(s) más. Desglosá para ver todos.
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -1049,8 +1213,43 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                                       border: '1px solid rgba(255, 69, 58, 0.25)',
                                     }}
                                   >
-                                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#ff453a', marginBottom: '4px' }}>
-                                      {alt.titulo || 'Comunicado Oficial de Trenes Argentinos'}
+                                    <div
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        gap: '8px',
+                                        marginBottom: '4px',
+                                      }}
+                                    >
+                                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#ff453a' }}>
+                                        {alt.titulo || 'Comunicado Oficial de Trenes Argentinos'}
+                                      </div>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDismissIncident(alt);
+                                        }}
+                                        style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '4px',
+                                          padding: '3px 8px',
+                                          borderRadius: '8px',
+                                          border: '1px solid rgba(255, 69, 58, 0.3)',
+                                          background: 'rgba(255, 69, 58, 0.15)',
+                                          color: '#ff453a',
+                                          fontSize: '11px',
+                                          fontWeight: 700,
+                                          cursor: 'pointer',
+                                          flexShrink: 0,
+                                        }}
+                                        title="Eliminar este aviso de notificación"
+                                        aria-label="Eliminar este aviso de notificación"
+                                      >
+                                        <Trash2 size={11} />
+                                        <span>Eliminar aviso</span>
+                                      </button>
                                     </div>
                                     <div style={{ fontSize: '12.5px', color: 'var(--ios-text-primary)', lineHeight: 1.45 }}>
                                       {alt.contenido}
@@ -1062,6 +1261,50 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                                     )}
                                   </div>
                                 ))}
+                              </div>
+                            ) : ramal.rawAlerts && ramal.rawAlerts.length > 0 ? (
+                              <div
+                                style={{
+                                  padding: '10px 12px',
+                                  borderRadius: '10px',
+                                  background: 'rgba(48, 209, 88, 0.08)',
+                                  border: '1px solid rgba(48, 209, 88, 0.25)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: '8px',
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <CheckCircle size={16} color="#30d158" style={{ flexShrink: 0 }} />
+                                  <div style={{ fontSize: '12px', color: 'var(--ios-text-primary)', lineHeight: 1.4 }}>
+                                    Aviso de afectación eliminado por el usuario.
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRestoreDismissed();
+                                  }}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    padding: '4px 8px',
+                                    borderRadius: '8px',
+                                    border: '1px solid var(--ios-separator)',
+                                    background: 'rgba(118, 118, 128, 0.12)',
+                                    color: 'var(--ios-text-secondary)',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    flexShrink: 0,
+                                  }}
+                                  title="Restaurar avisos eliminados"
+                                >
+                                  <RotateCcw size={11} />
+                                  <span>Restaurar</span>
+                                </button>
                               </div>
                             ) : (
                               <div
