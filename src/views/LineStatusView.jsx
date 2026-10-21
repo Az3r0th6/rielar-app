@@ -32,7 +32,7 @@ import { SofseLivePill } from '../components/DynamicIsland';
 
 import RideAffiliateCard from '../components/RideAffiliateCard';
 import SwipeableAlertCard from '../components/SwipeableAlertCard';
-import { triggerHaptic, playChimeSound, sendAppNotification, requestNotificationPermission } from '../utils/notifications';
+import { triggerHaptic, playChimeSound, sendAppNotification, requestNotificationPermission, clearDeliveredAppNotifications } from '../utils/notifications';
 import { safeLocalStorage } from '../utils/safeStorage';
 import {
   getAlertKey,
@@ -229,6 +229,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
       (r.activeAlerts || []).forEach((a) => allActive.push(a));
     });
     dismissAllAlerts(allActive);
+    clearDeliveredAppNotifications().catch(() => {});
   };
 
   const handleRestoreDismissed = () => {
@@ -450,7 +451,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
 
   // Contadores para resumen
   const alertRamalesCount = useMemo(() => {
-    return allRamales.filter((r) => ['CANCEL', 'REDUCED', 'DELAY'].includes(r.status.code)).length;
+    return allRamales.filter((r) => (r.activeAlerts?.length || 0) > 0).length;
   }, [allRamales]);
 
   const worksRamalesCount = useMemo(() => {

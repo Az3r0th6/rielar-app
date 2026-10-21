@@ -12,11 +12,21 @@ const ALERTS_CHANGED_EVENT = 'rielar:alerts-changed';
 export function getAlertKey(alert) {
   if (!alert) return '';
   if (typeof alert === 'string') return alert;
-  if (alert.id) return `id_${alert.id}`;
-  const line = alert.lineId || alert.linea_id || alert.lineName || '';
-  const ramal = alert.ramalId || alert.ramal_id || alert.ramalName || alert.nombre || '';
-  const content = (alert.content || alert.contenido || '').trim().toLowerCase();
-  return `${line}_${ramal}_${content}`.replace(/\s+/g, '_');
+
+  const line = String(alert.lineId || alert.linea_id || alert.lineName || '').trim();
+  const ramal = String(alert.ramalId || alert.ramal_id || alert.ramalName || alert.nombre || '').trim();
+  const content = (alert.content || alert.contenido || alert.titulo || alert.title || '').trim().toLowerCase();
+  const cleanContent = content.replace(/\s+/g, '_').slice(0, 80);
+
+  // If alert has a true numeric SOFSE id (not synthetic)
+  if (alert.id && (typeof alert.id === 'number' || /^\d+$/.test(String(alert.id)))) {
+    return `id_${alert.id}`;
+  }
+
+  if (line || ramal) {
+    return `${line}_${ramal}_${cleanContent}`;
+  }
+  return `__${cleanContent}`;
 }
 
 /**
@@ -31,20 +41,39 @@ export function isAlertDismissed(alert, customDismissedSet = null) {
     return dismissed.has(alert);
   }
 
-  // 1. Direct ID match (SOFSE official alert ID)
-  if (alert.id && (dismissed.has(String(alert.id)) || dismissed.has(`id_${alert.id}`))) {
-    return true;
+  // 1. Direct ID match
+  if (alert.id) {
+    const idStr = String(alert.id);
+    if (dismissed.has(idStr) || dismissed.has(`id_${idStr}`)) {
+      return true;
+    }
   }
 
   // 2. Canonical key match
-  const key = getAlertKey(alert);
-  if (key && dismissed.has(key)) return true;
+  const canonicalKey = getAlertKey(alert);
+  if (canonicalKey && dismissed.has(canonicalKey)) {
+    return true;
+  }
 
   // 3. Fallback content match
-  const content = (alert.content || alert.contenido || '').trim().toLowerCase();
+  const content = (alert.content || alert.contenido || alert.titulo || alert.title || '').trim().toLowerCase();
   if (content) {
-    const fallbackKey = `__${content}`.replace(/\s+/g, '_');
-    if (dismissed.has(fallbackKey)) return true;
+    const cleanContent = content.replace(/\s+/g, '_').slice(0, 80);
+    if (dismissed.has(`__${cleanContent}`)) return true;
+
+    const line = String(alert.lineId || alert.linea_id || alert.lineName || '').trim();
+    const ramal = String(alert.ramalId || alert.ramal_id || alert.ramalName || alert.nombre || '').trim();
+    if (line || ramal) {
+      if (dismissed.has(`${line}_${ramal}_${cleanContent}`)) return true;
+    }
+
+    // Fast sub-match across keys in dismissed
+    const slug = cleanContent.slice(0, 30);
+    for (const dKey of dismissed) {
+      if (dKey === cleanContent || dKey.includes(slug)) {
+        return true;
+      }
+    }
   }
 
   return false;
@@ -93,13 +122,14 @@ export function dismissAlert(alert) {
       dismissed.add(String(alert.id));
       dismissed.add(`id_${alert.id}`);
     }
-    const line = alert.lineId || alert.linea_id || alert.lineName || '';
-    const ramal = alert.ramalId || alert.ramal_id || alert.ramalName || alert.nombre || '';
-    const content = (alert.content || alert.contenido || '').trim().toLowerCase();
+    const line = String(alert.lineId || alert.linea_id || alert.lineName || '').trim();
+    const ramal = String(alert.ramalId || alert.ramal_id || alert.ramalName || alert.nombre || '').trim();
+    const content = (alert.content || alert.contenido || alert.titulo || alert.title || '').trim().toLowerCase();
     if (content) {
-      dismissed.add(`__${content}`.replace(/\s+/g, '_'));
+      const cleanContent = content.replace(/\s+/g, '_').slice(0, 80);
+      dismissed.add(`__${cleanContent}`);
       if (line || ramal) {
-        dismissed.add(`${line}_${ramal}_${content}`.replace(/\s+/g, '_'));
+        dismissed.add(`${line}_${ramal}_${cleanContent}`);
       }
     }
   }
@@ -115,9 +145,21 @@ export function dismissAlert(alert) {
     const rawNotified = safeLocalStorage.getItem('rielar_notified_alerts') || '[]';
     const notified = new Set(JSON.parse(rawNotified));
     if (key) notified.add(key);
-    if (typeof alert === 'object' && alert.id) {
-      notified.add(String(alert.id));
-      notified.add(`id_${alert.id}`);
+    if (typeof alert === 'object') {
+      if (alert.id) {
+        notified.add(String(alert.id));
+        notified.add(`id_${alert.id}`);
+      }
+      const line = String(alert.lineId || alert.linea_id || alert.lineName || '').trim();
+      const ramal = String(alert.ramalId || alert.ramal_id || alert.ramalName || alert.nombre || '').trim();
+      const content = (alert.content || alert.contenido || '').trim().toLowerCase();
+      if (content) {
+        const cleanContent = content.replace(/\s+/g, '_').slice(0, 80);
+        notified.add(`__${cleanContent}`);
+        if (line || ramal) {
+          notified.add(`${line}_${ramal}_${cleanContent}`);
+        }
+      }
     }
     safeLocalStorage.setItem('rielar_notified_alerts', JSON.stringify(Array.from(notified)));
   } catch {}
@@ -150,9 +192,17 @@ export function dismissAllAlerts(alertsList = []) {
         notified.add(String(a.id));
         notified.add(`id_${a.id}`);
       }
-      const content = (a.content || a.contenido || '').trim().toLowerCase();
+      const line = String(a.lineId || a.linea_id || a.lineName || '').trim();
+      const ramal = String(a.ramalId || a.ramal_id || a.ramalName || a.nombre || '').trim();
+      const content = (a.content || a.contenido || a.titulo || a.title || '').trim().toLowerCase();
       if (content) {
-        dismissed.add(`__${content}`.replace(/\s+/g, '_'));
+        const cleanContent = content.replace(/\s+/g, '_').slice(0, 80);
+        dismissed.add(`__${cleanContent}`);
+        notified.add(`__${cleanContent}`);
+        if (line || ramal) {
+          dismissed.add(`${line}_${ramal}_${cleanContent}`);
+          notified.add(`${line}_${ramal}_${cleanContent}`);
+        }
       }
     }
   });

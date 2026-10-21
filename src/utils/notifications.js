@@ -357,3 +357,33 @@ export async function sendAppNotification(title, body, options = {}) {
   return false;
 }
 
+/**
+ * Clears delivered notifications from the device's system tray (Android/iOS status bar)
+ * and active ServiceWorker notifications.
+ */
+export async function clearDeliveredAppNotifications() {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await LocalNotifications.removeAllDeliveredNotifications();
+    } catch (e) {
+      console.debug('Error clearing delivered native notifications:', e);
+    }
+  }
+
+  if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg && reg.getNotifications) {
+        const notifs = await reg.getNotifications();
+        notifs.forEach((n) => {
+          try {
+            n.close();
+          } catch {}
+        });
+      }
+    } catch (e) {
+      console.debug('Error closing web notifications:', e);
+    }
+  }
+}
+

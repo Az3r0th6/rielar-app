@@ -290,8 +290,12 @@ app.get('/api/network-status', async (req, res) => {
                   severity = 'warning';
                 }
 
+                // Generate a 100% deterministic, stable ID so client-side dismissals persist across app reloads
+                const contentSlug = text.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 32);
+                const stableId = al.id ? String(al.id) : `alt_${line.id}_${b.id}_${contentSlug}`;
+
                 const alertObj = {
-                  id: al.id || `${line.id}_${b.id}_${Math.random()}`,
+                  id: stableId,
                   lineId: line.id,
                   lineName: line.nombre,
                   ramalId: b.id,
@@ -299,6 +303,7 @@ app.get('/api/network-status', async (req, res) => {
                   type,
                   severity,
                   content: text,
+                  contenido: text,
                   since: al.vigencia_desde,
                   until: al.vigencia_hasta,
                   colorBg: al.criticidad_color_fondo,

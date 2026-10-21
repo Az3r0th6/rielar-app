@@ -25,6 +25,7 @@ import {
   playChimeSound,
   sendAppNotification,
   subscribeToPushNotifications,
+  clearDeliveredAppNotifications,
 } from './utils/notifications';
 import {
   getUnreadAlertsCount,
@@ -103,6 +104,16 @@ export default function App() {
       scrollLockRef.current = false;
     }, 1500);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Clear delivered notification drawer on app launch if alerts have been dismissed
+  useEffect(() => {
+    try {
+      const dismissed = getDismissedAlertKeys();
+      if (dismissed && dismissed.size > 0) {
+        clearDeliveredAppNotifications().catch(() => {});
+      }
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -322,6 +333,10 @@ export default function App() {
       if (!Array.isArray(subscribed) || subscribed.length === 0) return;
 
       const dismissedKeys = getDismissedAlertKeys();
+      const hasActiveUndismissed = incidents.some((inc) => !isAlertDismissed(inc, dismissedKeys));
+      if (!hasActiveUndismissed && incidents.length > 0) {
+        clearDeliveredAppNotifications().catch(() => {});
+      }
       const notifiedRaw = safeLocalStorage.getItem('rielar_notified_alerts') || '[]';
       const notifiedSet = new Set(JSON.parse(notifiedRaw));
       let notifiedChanged = false;
