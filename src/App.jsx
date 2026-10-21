@@ -24,6 +24,9 @@ import {
 import {
   getUnreadAlertsCount,
   markAlertsAsRead,
+  getDismissedAlertKeys,
+  isAlertDismissed,
+  getAlertKey,
   ALERTS_CHANGED_EVENT,
 } from './utils/alertManager';
 import {
@@ -313,18 +316,31 @@ export default function App() {
       const subscribed = JSON.parse(rawSubscribed);
       if (!Array.isArray(subscribed) || subscribed.length === 0) return;
 
-      const notifiedRaw = safeSessionStorage.getItem('rielar_notified_alerts') || '[]';
+      const dismissedKeys = getDismissedAlertKeys();
+      const notifiedRaw = safeLocalStorage.getItem('rielar_notified_alerts') || '[]';
       const notifiedSet = new Set(JSON.parse(notifiedRaw));
+      let notifiedChanged = false;
 
       for (const inc of incidents) {
+        // 1. If alert was dismissed or eliminated by user, NEVER re-notify!
+        if (isAlertDismissed(inc, dismissedKeys)) {
+          continue;
+        }
+
         const incLineId = Number(inc.lineId);
         if (subscribed.some((id) => Number(id) === incLineId)) {
-          const alertKey = `${incLineId}_${inc.ramalName || ''}_${(inc.content || inc.title || '').slice(0, 30)}`;
-          if (!notifiedSet.has(alertKey)) {
+          const alertKey = inc.id ? `id_${inc.id}` : getAlertKey(inc);
+          const legacyKey = `${incLineId}_${inc.ramalName || ''}_${(inc.content || inc.title || '').slice(0, 30)}`;
+
+          if (
+            !notifiedSet.has(alertKey) &&
+            !notifiedSet.has(legacyKey) &&
+            !(inc.id && notifiedSet.has(String(inc.id)))
+          ) {
             notifiedSet.add(alertKey);
-            try {
-              safeSessionStorage.setItem('rielar_notified_alerts', JSON.stringify(Array.from(notifiedSet)));
-            } catch {}
+            notifiedSet.add(legacyKey);
+            if (inc.id) notifiedSet.add(String(inc.id));
+            notifiedChanged = true;
 
             sendAppNotification(
               `⚠️ Alerta en Línea ${inc.lineName || 'de Trenes'}`,
@@ -333,6 +349,12 @@ export default function App() {
             );
           }
         }
+      }
+
+      if (notifiedChanged) {
+        try {
+          safeLocalStorage.setItem('rielar_notified_alerts', JSON.stringify(Array.from(notifiedSet)));
+        } catch {}
       }
     } catch {}
   };

@@ -48,6 +48,15 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
 
   const updates = [
     {
+      icon: <BellRing size={20} color="#ff453a" />,
+      badge: 'NUEVO',
+      badgeColor: '#ff453a',
+      badgeBg: 'rgba(255, 69, 58, 0.15)',
+      title: 'Descarte y Gestión de Alertas en "Estado"',
+      description:
+        'Ahora podés eliminar u ocultar los avisos de servicio en la pantalla de Estado (por ramal o individualmente), o desactivar todas las alertas activas con un solo toque. Además, corregimos la persistencia en el teléfono para que las notificaciones no vuelvan a sonar ni repetirse al reabrir la app.',
+    },
+    {
       icon: <Clock size={20} color="#ffd60a" />,
       badge: 'NUEVO',
       badgeColor: '#ffd60a',
@@ -172,7 +181,7 @@ export default function ChangelogModal({ isOpen, onClose, onNavigateToPlanner })
               }}
             >
               <Sparkles size={13} />
-              <span>Versión 2.0 • Actualización</span>
+              <span>Versión 1.1.9 • Actualización</span>
             </div>
 
             <button

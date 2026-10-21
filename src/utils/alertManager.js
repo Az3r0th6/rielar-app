@@ -11,10 +11,43 @@ const ALERTS_CHANGED_EVENT = 'rielar:alerts-changed';
  */
 export function getAlertKey(alert) {
   if (!alert) return '';
-  const line = alert.lineId || alert.lineName || '';
-  const ramal = alert.ramalName || alert.nombre || '';
+  if (typeof alert === 'string') return alert;
+  if (alert.id) return `id_${alert.id}`;
+  const line = alert.lineId || alert.linea_id || alert.lineName || '';
+  const ramal = alert.ramalId || alert.ramal_id || alert.ramalName || alert.nombre || '';
   const content = (alert.content || alert.contenido || '').trim().toLowerCase();
   return `${line}_${ramal}_${content}`.replace(/\s+/g, '_');
+}
+
+/**
+ * Checks whether an alert has been dismissed by the user
+ */
+export function isAlertDismissed(alert, customDismissedSet = null) {
+  if (!alert) return false;
+  const dismissed = customDismissedSet || getDismissedAlertKeys();
+  if (!dismissed || dismissed.size === 0) return false;
+
+  if (typeof alert === 'string') {
+    return dismissed.has(alert);
+  }
+
+  // 1. Direct ID match (SOFSE official alert ID)
+  if (alert.id && (dismissed.has(String(alert.id)) || dismissed.has(`id_${alert.id}`))) {
+    return true;
+  }
+
+  // 2. Canonical key match
+  const key = getAlertKey(alert);
+  if (key && dismissed.has(key)) return true;
+
+  // 3. Fallback content match
+  const content = (alert.content || alert.contenido || '').trim().toLowerCase();
+  if (content) {
+    const fallbackKey = `__${content}`.replace(/\s+/g, '_');
+    if (dismissed.has(fallbackKey)) return true;
+  }
+
+  return false;
 }
 
 /**
@@ -49,17 +82,25 @@ export function getReadAlertKeys() {
  * Dismisses a single alert permanently (or until restored)
  */
 export function dismissAlert(alert) {
+  if (!alert) return;
   const key = typeof alert === 'string' ? alert : getAlertKey(alert);
-  if (!key) return;
 
   const dismissed = getDismissedAlertKeys();
-  dismissed.add(key);
+  if (key) dismissed.add(key);
 
-  // If alert is an object, also store fallback key based on content alone
-  if (typeof alert === 'object' && alert) {
+  if (typeof alert === 'object') {
+    if (alert.id) {
+      dismissed.add(String(alert.id));
+      dismissed.add(`id_${alert.id}`);
+    }
+    const line = alert.lineId || alert.linea_id || alert.lineName || '';
+    const ramal = alert.ramalId || alert.ramal_id || alert.ramalName || alert.nombre || '';
     const content = (alert.content || alert.contenido || '').trim().toLowerCase();
     if (content) {
       dismissed.add(`__${content}`.replace(/\s+/g, '_'));
+      if (line || ramal) {
+        dismissed.add(`${line}_${ramal}_${content}`.replace(/\s+/g, '_'));
+      }
     }
   }
 
@@ -69,6 +110,18 @@ export function dismissAlert(alert) {
     console.warn('Error saving dismissed alerts:', e);
   }
 
+  // Also add to rielar_notified_alerts in safeLocalStorage so notification loops never re-fire
+  try {
+    const rawNotified = safeLocalStorage.getItem('rielar_notified_alerts') || '[]';
+    const notified = new Set(JSON.parse(rawNotified));
+    if (key) notified.add(key);
+    if (typeof alert === 'object' && alert.id) {
+      notified.add(String(alert.id));
+      notified.add(`id_${alert.id}`);
+    }
+    safeLocalStorage.setItem('rielar_notified_alerts', JSON.stringify(Array.from(notified)));
+  } catch {}
+
   notifyAlertsChanged();
 }
 
@@ -77,10 +130,26 @@ export function dismissAlert(alert) {
  */
 export function dismissAllAlerts(alertsList = []) {
   const dismissed = getDismissedAlertKeys();
+  let notified = new Set();
+  try {
+    const rawNotified = safeLocalStorage.getItem('rielar_notified_alerts') || '[]';
+    notified = new Set(JSON.parse(rawNotified));
+  } catch {}
+
   alertsList.forEach((a) => {
+    if (!a) return;
     const key = typeof a === 'string' ? a : getAlertKey(a);
-    if (key) dismissed.add(key);
-    if (typeof a === 'object' && a) {
+    if (key) {
+      dismissed.add(key);
+      notified.add(key);
+    }
+    if (typeof a === 'object') {
+      if (a.id) {
+        dismissed.add(String(a.id));
+        dismissed.add(`id_${a.id}`);
+        notified.add(String(a.id));
+        notified.add(`id_${a.id}`);
+      }
       const content = (a.content || a.contenido || '').trim().toLowerCase();
       if (content) {
         dismissed.add(`__${content}`.replace(/\s+/g, '_'));
@@ -90,6 +159,7 @@ export function dismissAllAlerts(alertsList = []) {
 
   try {
     safeLocalStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify(Array.from(dismissed)));
+    safeLocalStorage.setItem('rielar_notified_alerts', JSON.stringify(Array.from(notified)));
   } catch (e) {
     console.warn('Error saving dismissed alerts:', e);
   }

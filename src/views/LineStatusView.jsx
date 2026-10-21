@@ -41,6 +41,7 @@ import {
   markAlertsAsRead,
   restoreDismissedAlerts,
   getDismissedAlertKeys,
+  isAlertDismissed,
   ALERTS_CHANGED_EVENT,
 } from '../utils/alertManager';
 import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
@@ -143,17 +144,18 @@ export default function LineStatusView({ onNavigateToPlanner }) {
 
   const handleToggleSubscribe = async (lineId, lineName) => {
     triggerHaptic('medium');
-    const isSubscribed = subscribedLines.includes(lineId);
+    const idNum = Number(lineId);
+    const isSubscribed = subscribedLines.some((id) => Number(id) === idNum);
     let updated;
     if (isSubscribed) {
-      updated = subscribedLines.filter((id) => id !== lineId);
+      updated = subscribedLines.filter((id) => Number(id) !== idNum);
       sendAppNotification(
         `Avisos desactivados • Línea ${lineName}`,
         `Se eliminaron las notificaciones automáticas para la línea ${lineName}.`,
         { type: 'info' }
       );
     } else {
-      updated = [...subscribedLines, lineId];
+      updated = [...subscribedLines.filter((id) => Number(id) !== idNum), idNum];
       // Explicitly request notification permission during this user tap
       await requestNotificationPermission();
       sendAppNotification(
@@ -203,15 +205,7 @@ export default function LineStatusView({ onNavigateToPlanner }) {
   const lines = (networkData?.lines || []).filter((l) => l.id !== 501);
   const allCriticalIncidents = summary.criticalIncidents || [];
 
-  const isAlertDismissed = (a) => {
-    if (!a) return false;
-    const key = getAlertKey(a);
-    const content = (a.content || a.contenido || '').trim().toLowerCase();
-    const fallbackKey = content ? `__${content}`.replace(/\s+/g, '_') : '';
-    return dismissedKeys.has(key) || (fallbackKey && dismissedKeys.has(fallbackKey));
-  };
-
-  const activeIncidents = allCriticalIncidents.filter((inc) => !isAlertDismissed(inc));
+  const activeIncidents = allCriticalIncidents.filter((inc) => !isAlertDismissed(inc, dismissedKeys));
 
   // Marcar alertas como leídas al verlas
   useEffect(() => {
@@ -273,12 +267,13 @@ export default function LineStatusView({ onNavigateToPlanner }) {
       branches.forEach((b, bIdx) => {
         const rawAlerts = (b.alerta || []).map((a) => ({
           ...a,
+          id: a.id,
           lineId: line.id,
           lineName: line.nombre,
           ramalId: b.id,
           ramalName: b.nombre,
         }));
-        const activeBranchAlerts = rawAlerts.filter((a) => !isAlertDismissed(a));
+        const activeBranchAlerts = rawAlerts.filter((a) => !isAlertDismissed(a, dismissedKeys));
 
         let status = {
           code: 'NORMAL',
@@ -734,6 +729,39 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                 </button>
               )}
 
+              {subscribedLines.length > 0 && (
+                <button
+                  onClick={() => {
+                    triggerHaptic('medium');
+                    setSubscribedLines([]);
+                    safeLocalStorage.setItem('subscribed_lines', JSON.stringify([]));
+                    sendAppNotification(
+                      'Notificaciones desactivadas',
+                      'Se cancelaron las alertas automáticas para todas las líneas.',
+                      { type: 'info' }
+                    );
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '6px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid var(--ios-separator)',
+                    background: 'rgba(118, 118, 128, 0.12)',
+                    color: 'var(--ios-text-secondary)',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  title="Eliminar y desactivar todas las alertas de notificación automáticas"
+                >
+                  <BellOff size={13} />
+                  <span>Desactivar alertas ({subscribedLines.length})</span>
+                </button>
+              )}
+
               {dismissedKeys.size > 0 && (
                 <button
                   onClick={handleRestoreDismissed}
@@ -1081,16 +1109,16 @@ export default function LineStatusView({ onNavigateToPlanner }) {
                             style={{
                               width: '28px',
                               height: '28px',
-                              color: subscribedLines.includes(ramal.lineId) ? '#0a84ff' : 'var(--ios-text-secondary)',
-                              background: subscribedLines.includes(ramal.lineId) ? 'rgba(10,132,255,0.15)' : 'rgba(118, 118, 128, 0.1)',
+                              color: subscribedLines.some((id) => Number(id) === Number(ramal.lineId)) ? '#0a84ff' : 'var(--ios-text-secondary)',
+                              background: subscribedLines.some((id) => Number(id) === Number(ramal.lineId)) ? 'rgba(10,132,255,0.15)' : 'rgba(118, 118, 128, 0.1)',
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleToggleSubscribe(ramal.lineId, ramal.lineName);
                             }}
-                            title={subscribedLines.includes(ramal.lineId) ? 'Alertas activas para esta línea' : 'Suscribirse a alertas de esta línea'}
+                            title={subscribedLines.some((id) => Number(id) === Number(ramal.lineId)) ? 'Alertas activas para esta línea (tocá para desactivar/eliminar)' : 'Suscribirse a alertas de esta línea'}
                           >
-                            {subscribedLines.includes(ramal.lineId) ? <Bell size={13} /> : <BellOff size={13} />}
+                            {subscribedLines.some((id) => Number(id) === Number(ramal.lineId)) ? <Bell size={13} /> : <BellOff size={13} />}
                           </button>
                         </div>
                       </div>
