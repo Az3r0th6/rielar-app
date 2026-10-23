@@ -1,6 +1,12 @@
 import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData.js';
 import { getDistanceMeters } from './geo.js';
 import { formatLocalTime } from './time.js';
+import {
+  identifyBranchKey,
+  getTrackCoordinatesForRoute,
+  interpolatePositionOnTrack,
+  getMasterStopsForBranch,
+} from '../data/railwayTracksData.js';
 
 
 /**
@@ -128,36 +134,18 @@ export function calculateTrainJourney(trainData) {
       };
     });
   } else {
-    // Reconstruct route based on origin & destination from master catalog
-    const origGeo = findStation(origName, lineId) || PRELOADED_STATIONS[0];
-    const destGeo = findStation(destName, lineId) || PRELOADED_STATIONS[16] || origGeo;
-    const targetGeo = findStation(stationName, lineId) || origGeo;
+    // Reconstruct route based on official master branch catalog
+    const branchKey = identifyBranchKey(lineId, origName, destName, [stationName]);
+    const masterStops = branchKey
+      ? getMasterStopsForBranch(branchKey, origName, destName, lineId, PRELOADED_STATIONS)
+      : [];
 
-    // Filter stations belonging to the specific branch between origin and destination
-    const lineStations = PRELOADED_STATIONS.filter(s => s.lineId === (origGeo.lineId || lineId || 5));
-    const targetRamal = origGeo.ramal || destGeo.ramal;
-    let branchStations = targetRamal ? lineStations.filter(s => s.ramal === targetRamal) : lineStations;
-
-    const origIdx = branchStations.findIndex(s => normalizeStationName(s.name) === normalizeStationName(origGeo.name));
-    const destIdx = branchStations.findIndex(s => normalizeStationName(s.name) === normalizeStationName(destGeo.name));
-
-    if (origIdx !== -1 && destIdx !== -1) {
-      if (origIdx > destIdx) {
-        branchStations = branchStations.slice(destIdx, origIdx + 1).reverse();
-      } else {
-        branchStations = branchStations.slice(origIdx, destIdx + 1);
-      }
-    }
-
-    if (branchStations.length >= 2) {
-      stops = branchStations.map(s => ({
-        id: s.id,
-        name: s.name,
-        lat: s.lat,
-        lng: s.lng,
-        anden: '1',
-      }));
+    if (masterStops.length >= 2) {
+      stops = masterStops;
     } else {
+      const origGeo = findStation(origName, lineId) || PRELOADED_STATIONS[0];
+      const destGeo = findStation(destName, lineId) || PRELOADED_STATIONS[16] || origGeo;
+      const targetGeo = findStation(stationName, lineId) || origGeo;
       stops = [
         { id: origGeo.id, name: origGeo.name, lat: origGeo.lat, lng: origGeo.lng, anden: '1' },
         { id: targetGeo.id, name: targetGeo.name, lat: targetGeo.lat, lng: targetGeo.lng, anden: '1' },
@@ -188,6 +176,17 @@ export function calculateTrainJourney(trainData) {
 
   const targetStop = stops[targetIndex] || stops[0];
 
+  // Identify official branch key and retrieve true railway track coordinates
+  const branchKey = identifyBranchKey(lineId, origName, destName, stops.map(s => s.name));
+  const firstStop = stops[0];
+  const lastStop = stops[stops.length - 1];
+  const trackCoordinates = getTrackCoordinatesForRoute(
+    branchKey,
+    firstStop ? [firstStop.lat, firstStop.lng] : null,
+    lastStop ? [lastStop.lat, lastStop.lng] : null,
+    stops.map(s => [s.lat, s.lng])
+  );
+
   // Check if we have individual station ETA seconds from SOFSE (servicio.estaciones)
   const hasStopsSeconds = stops.some(s => s.secondsToStop !== undefined && s.secondsToStop !== null);
 
@@ -212,11 +211,17 @@ export function calculateTrainJourney(trainData) {
     statusDetail = `Detenido en Andén ${targetStop.anden || '1'} de ${targetStop.name}`;
     speedKmH = 0;
   } else if (secondsToTarget <= 65) {
-    // Train is decelerating and entering the platform of stationName
+    // Train is decelerating and entering the platform of stationName along the physical track
     const prevStop = stops[Math.max(0, targetIndex - 1)] || targetStop;
     const progress = Math.max(0.65, Math.min(0.99, 1 - ((secondsToTarget - 25) / 40)));
-    trainLat = prevStop.lat + (targetStop.lat - prevStop.lat) * progress;
-    trainLng = prevStop.lng + (targetStop.lng - prevStop.lng) * progress;
+    const trainPos = interpolatePositionOnTrack(
+      trackCoordinates,
+      [prevStop.lat, prevStop.lng],
+      [targetStop.lat, targetStop.lng],
+      progress
+    );
+    trainLat = trainPos[0];
+    trainLng = trainPos[1];
     currentStationIndex = targetIndex;
     prevStationIndex = Math.max(0, targetIndex - 1);
     statusBadge = 'Ingresando a andén';
@@ -270,8 +275,14 @@ export function calculateTrainJourney(trainData) {
         const elapsedSec = Math.max(0, -(prevStop.secondsToStop || 0));
         const progress = Math.max(0.05, Math.min(0.95, elapsedSec / legDurationSec));
 
-        trainLat = prevStop.lat + (nextStop.lat - prevStop.lat) * progress;
-        trainLng = prevStop.lng + (nextStop.lng - prevStop.lng) * progress;
+        const trainPos = interpolatePositionOnTrack(
+          trackCoordinates,
+          [prevStop.lat, prevStop.lng],
+          [nextStop.lat, nextStop.lng],
+          progress
+        );
+        trainLat = trainPos[0];
+        trainLng = trainPos[1];
 
         const minToNext = Math.ceil(nextStop.secondsToStop / 60);
         statusBadge = 'En viaje';
@@ -290,8 +301,14 @@ export function calculateTrainJourney(trainData) {
     prevStationIndex = Math.max(0, activeIdx - 1);
     const progress = Math.max(0.1, Math.min(0.9, 1 - ((secondsToTarget % 150) / 150)));
 
-    trainLat = pStop.lat + (nStop.lat - pStop.lat) * progress;
-    trainLng = pStop.lng + (nStop.lng - pStop.lng) * progress;
+    const trainPos = interpolatePositionOnTrack(
+      trackCoordinates,
+      [pStop.lat, pStop.lng],
+      [nStop.lat, nStop.lng],
+      progress
+    );
+    trainLat = trainPos[0];
+    trainLng = trainPos[1];
     statusBadge = 'En viaje';
     statusDetail = `En trayecto hacia ${nStop.name} (llega en ~${Math.ceil(secondsToTarget / 60)} min)`;
     speedKmH = 43;
@@ -342,6 +359,8 @@ export function calculateTrainJourney(trainData) {
     trainNumber: servicio?.numero || 'S/N',
     lineId,
     lineName: servicio?.gerencia?.nombre || 'Línea',
+    branchKey,
+    trackCoordinates,
     origin: origName,
     destination: destName,
     scheduledTime: targetStop?.scheduledTime || null,
@@ -649,16 +668,19 @@ export function getActiveNetworkTrains() {
     },
   ];
 
-  // Dynamically lock each circulating train directly to its railway corridor between stations
+  // Dynamically lock each circulating train directly to its railway corridor along actual track curves
   return activeTrains.map((train) => {
     const curr = findStationByName(train.currentStation, train.lineId);
     const next = findStationByName(train.nextStation, train.lineId);
     if (curr && next) {
       const ratio = train.progressRatio || 0.5;
+      const bKey = identifyBranchKey(train.lineId, train.origin, train.destination, [train.currentStation, train.nextStation]);
+      const track = getTrackCoordinatesForRoute(bKey, [curr.lat, curr.lng], [next.lat, next.lng]);
+      const pos = interpolatePositionOnTrack(track, [curr.lat, curr.lng], [next.lat, next.lng], ratio);
       return {
         ...train,
-        lat: Number((curr.lat + (next.lat - curr.lat) * ratio).toFixed(5)),
-        lng: Number((curr.lng + (next.lng - curr.lng) * ratio).toFixed(5)),
+        lat: pos[0],
+        lng: pos[1],
       };
     }
     return train;
@@ -783,8 +805,12 @@ export function processRawNetworkTrains(rawList = []) {
           const elapsed = Math.max(0, -lastPassed.segundos);
           const progress = Math.max(0.05, Math.min(0.95, elapsed / legDuration));
 
-          trainLat = pGeo.lat + (nGeo.lat - pGeo.lat) * progress;
-          trainLng = pGeo.lng + (nGeo.lng - pGeo.lng) * progress;
+          const bKey = identifyBranchKey(lineId, origName, destName, [pGeo.name, nGeo.name]);
+          const track = getTrackCoordinatesForRoute(bKey, [pGeo.lat, pGeo.lng], [nGeo.lat, nGeo.lng]);
+          const pos = interpolatePositionOnTrack(track, [pGeo.lat, pGeo.lng], [nGeo.lat, nGeo.lng], progress);
+
+          trainLat = pos[0];
+          trainLng = pos[1];
           currentStationName = pGeo.name;
           nextStationName = nGeo.name;
           speedKmH = 45;

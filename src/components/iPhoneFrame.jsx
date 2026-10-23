@@ -57,6 +57,50 @@ export default function iPhoneFrame({
     document.body.removeChild(textArea);
   };
 
+  const [isPulling, setIsPulling] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = React.useRef(0);
+  const contentRef = React.useRef(null);
+
+  const handleTouchStart = (e) => {
+    if (contentRef.current && contentRef.current.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    } else {
+      touchStartY.current = 0;
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!touchStartY.current || isRefreshing) return;
+    const touchY = e.touches[0].clientY;
+    const distance = touchY - touchStartY.current;
+
+    if (distance > 0 && contentRef.current && contentRef.current.scrollTop === 0) {
+      setIsPulling(true);
+      // Logarithmic resistance
+      const resist = Math.min(distance * 0.4, 80);
+      setPullDistance(resist);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartY.current) return;
+    touchStartY.current = 0;
+    setIsPulling(false);
+
+    if (pullDistance > 60 && !isRefreshing) {
+      setIsRefreshing(true);
+      triggerHaptic('medium');
+      // Execute the refresh
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } else {
+      setPullDistance(0);
+    }
+  };
+
   return (
     <div className="app-viewport-container">
       {/* Main Screen Viewport */}
@@ -68,10 +112,49 @@ export default function iPhoneFrame({
           onOpenDetails={onOpenDetails}
         />
 
+        {/* Pull To Refresh Indicator */}
+        <div
+          style={{
+            position: 'absolute',
+            top: `calc(${pullDistance}px - 40px + env(safe-area-inset-top, 0px))`,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10,
+            opacity: pullDistance > 10 ? Math.min(pullDistance / 60, 1) : 0,
+            transition: isPulling ? 'none' : 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '50%',
+            width: '36px',
+            height: '36px',
+            color: '#fff',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          }}
+        >
+          {isRefreshing ? (
+             <div style={{ width: '18px', height: '18px', border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          ) : (
+            <Download size={18} style={{ transform: `rotate(${pullDistance > 60 ? 180 : 0}deg)`, transition: 'transform 0.2s' }} />
+          )}
+        </div>
+        <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
+
         {/* Screen View */}
         <div
+          ref={contentRef}
           className={`app-screen-content ${isHeaderHidden ? 'header-hidden' : ''}`}
           onScroll={onContentScroll}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            transform: `translateY(${isPulling || isRefreshing ? pullDistance : 0}px)`,
+            transition: isPulling ? 'none' : 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)'
+          }}
         >
           {children}
         </div>

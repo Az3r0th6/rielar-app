@@ -20,6 +20,7 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import LineBadge from './LineBadge';
+import { LINES_DATA } from '../data/linesData';
 import { formatArrivalSeconds, formatLocalTime } from '../utils/time';
 import { playChimeSound, triggerHaptic, sendAppNotification, unlockAudio } from '../utils/notifications';
 import { calculateTrainJourney, findStationByName } from '../utils/trainTracker';
@@ -268,13 +269,18 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
     alert(`🔔 Alarma configurada: Te avisaremos cuando el tren #${trainNumber} esté a 2 minutos de ${stationName}.`);
   };
 
-  // Custom Train Live Marker
+  const lineObj = LINES_DATA.find(
+    (l) => l.name === lineName || l.id === journey?.lineId || l.id === liveTrain?.lineId || l.id === liveTrain?.servicio?.lineId
+  );
+  const routeColor = lineObj?.color || '#009fe3';
+
+  // Custom Train Live Marker with line-specific color theme
   const liveTrainIcon = L.divIcon({
     className: 'live-train-marker',
     html: `
       <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-        <div style="position: absolute; inset: -6px; border-radius: 50%; background: rgba(0, 159, 227, 0.4); animation: pulse-ring 1.8s infinite;"></div>
-        <div style="width: 34px; height: 34px; border-radius: 50%; background: #009fe3; border: 2.5px solid #ffffff; box-shadow: 0 4px 14px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-size: 17px;">
+        <div style="position: absolute; inset: -6px; border-radius: 50%; background: ${routeColor}66; animation: pulse-ring 1.8s infinite;"></div>
+        <div style="width: 34px; height: 34px; border-radius: 50%; background: ${routeColor}; border: 2.5px solid #ffffff; box-shadow: 0 4px 14px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-size: 17px;">
           🚆
         </div>
       </div>
@@ -300,7 +306,10 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
     });
   };
 
-  const polylineCoords = journey?.stops.map((s) => [s.lat, s.lng]) || [];
+  // High-precision railway track polyline following physical tracks and curves
+  const polylineCoords = (journey?.trackCoordinates && journey.trackCoordinates.length > 1)
+    ? journey.trackCoordinates
+    : (journey?.stops.map((s) => [s.lat, s.lng]) || []);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -718,12 +727,32 @@ export default function TrainDetailSheet({ trainData, onClose, onTrackTrain, isT
                   className="dark-osm-tiles"
                 />
 
-                {/* Railway Route Polyline */}
+                {/* Railway Route Polyline following physical tracks */}
                 {polylineCoords.length > 1 && (
-                  <Polyline
-                    positions={polylineCoords}
-                    pathOptions={{ color: '#009fe3', weight: 4, opacity: 0.85 }}
-                  />
+                  <>
+                    {/* Dark track casing */}
+                    <Polyline
+                      positions={polylineCoords}
+                      pathOptions={{
+                        color: '#121218',
+                        weight: 6.5,
+                        opacity: 0.85,
+                        lineCap: 'round',
+                        lineJoin: 'round',
+                      }}
+                    />
+                    {/* Active railway corridor */}
+                    <Polyline
+                      positions={polylineCoords}
+                      pathOptions={{
+                        color: routeColor || '#009fe3',
+                        weight: 4,
+                        opacity: 0.95,
+                        lineCap: 'round',
+                        lineJoin: 'round',
+                      }}
+                    />
+                  </>
                 )}
 
                 {/* Station Pins along the route */}

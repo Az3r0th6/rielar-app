@@ -591,7 +591,7 @@ export default function MoreView({
                     <Sparkles size={14} style={{ color: '#ffd60a' }} />
                     <span>Aplicación</span>
                   </span>
-                  <span style={{ color: 'var(--ios-text-primary)', fontWeight: 600 }}>RielAR v2.0 • PWA</span>
+                  <span style={{ color: 'var(--ios-text-primary)', fontWeight: 600 }}>RielAR App (Híbrida)</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

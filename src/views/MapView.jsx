@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Navigation, Layers, MapPin, Eye, Info } from 'lucide-react';
 import { PRELOADED_STATIONS, LINES_DATA } from '../data/linesData';
+import { RAILWAY_BRANCHES } from '../data/railwayTracksData';
 import LineBadge from '../components/LineBadge';
 import { getDistanceMeters, formatDistance } from '../utils/geo';
 import { triggerHaptic } from '../utils/notifications';
@@ -137,6 +138,10 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
 
   const selectedLineObj = activeMapLines.find((l) => String(l.id) === selectedLine);
 
+  const activeRailwayTracks = Object.values(RAILWAY_BRANCHES).filter(
+    (b) => selectedLine === 'ALL' || b.lineId === Number(selectedLine)
+  );
+
   return (
     <div className="map-view-wrapper">
       {/* Map Filter Control Bar */}
@@ -252,6 +257,38 @@ export default function MapView({ userCoords, onSelectStation, onSelectTrain, on
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           className="dark-osm-tiles"
         />
+
+        {/* Real Railway Tracks Network Layer */}
+        {activeRailwayTracks.map((branch) => {
+          const line = LINES_DATA.find((l) => l.id === branch.lineId);
+          const color = line?.color || '#009fe3';
+          return (
+            <React.Fragment key={`track-${branch.key}`}>
+              {/* Dark track ballast casing */}
+              <Polyline
+                positions={branch.track}
+                pathOptions={{
+                  color: '#121218',
+                  weight: selectedLine === 'ALL' ? 3.5 : 5.5,
+                  opacity: 0.6,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                }}
+              />
+              {/* Active railway corridor */}
+              <Polyline
+                positions={branch.track}
+                pathOptions={{
+                  color,
+                  weight: selectedLine === 'ALL' ? 2 : 3.5,
+                  opacity: selectedLine === 'ALL' ? 0.45 : 0.85,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                }}
+              />
+            </React.Fragment>
+          );
+        })}
 
         {/* User Location Pin */}
         <Marker position={[userCoords.lat, userCoords.lng]} icon={userIcon}>

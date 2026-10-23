@@ -433,7 +433,7 @@ html, body {
 
 /* Header Banner */
 .ios-nav-header {
-  padding: 14px 16px 12px;
+  padding: calc(14px + env(safe-area-inset-top, 32px)) 16px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
